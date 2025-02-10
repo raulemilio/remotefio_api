@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 #include <signal.h>
-//#include <rc/time.h>
+#include <rc/time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -60,6 +60,8 @@ int main(int argc, char **argv) {
     }
     fflush(stdout);
 
+	double sum_voltage = 0.0;
+
     while(running){
    // for(j=0; j<1000; j++){
        for(i=0; i<numberOutputSamples; i++){
@@ -67,11 +69,12 @@ int main(int argc, char **argv) {
            read_result = *((unsigned long *) virt_addr);
            voltage = ((double)read_result / 4095.0)*1.8;
            printf("Value is: %.3f V\n", voltage);
-//           printf("Value at address 0x%X is: %d\n", target, read_result);
-//         printf("Value at address 0x%X is: 0x%X\n", target, read_result);
-  //         target+=2;                   // 2 bytes per sample
-       }
+		//sum_voltage+=voltage;
+	}
        fflush(stdout);
+	//printf("Value is: %.4f V\n", (sum_voltage/numberOutputSamples));
+	sum_voltage =0.0;
+	rc_usleep(200000);
     }
 
     if(munmap(map_base, MAP_SIZE) == -1) {

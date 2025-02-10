@@ -36,7 +36,8 @@
         .asg 0x02, ADC_TSC_CTRL_STEPCONFIG_PROTECT      ;
 
         .asg 0x64, ADC_TSC_STEPCONFIG_1                 ; ch0
-        .asg 0x00, ADC_TSC_STEPCONFIG_1_MASK            ; SW mode, one shot mode, fifo 0, channel 0
+        .asg 0x00, ADC_TSC_STEPCONFIG_1_MASK            ; SW mode, single ended, one shot mode, fifo 0, channel 0
+	;.asg 0x20800000, ADC_TSC_STEPCONFIG_1_MASK            ; SW mode, differential pair enable, one shot mode, fifo 0, ch0_negativo - ch1_positivo
 
         .asg 0x68, ADC_TSC_STEPDELAY_1                  ; TRM pag. 1859
         .asg 0x00, ADC_TSC_STEPDELAY_1_MASK             ; OpenDly0 SampleDly0
