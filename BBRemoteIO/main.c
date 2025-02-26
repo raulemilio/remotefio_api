@@ -21,6 +21,9 @@
 #define TOPIC_RSP_GPIO_WRITE "BBRemote/rsp/gpio_write"
 #define TOPIC_RSP_MOTOR "BBRemote/rsp/motor"
 
+#define MESSAGE_CALLBACK_JSON_OK "Mensaje recibido ok"
+#define MESSAGE_CALLBACK_JSON_ERROR " Hubo un error al recibir el mensaje"
+
 struct mosquitto *mosq = NULL;
 
 // Flags para indicar si una tarea en ejecucion
@@ -154,10 +157,10 @@ void message_callback(struct mosquitto *mosq, void *userdata, const struct mosqu
         int result = process_json_message_adc((char *)message->payload, &adc_data);
            if (result == 0) {
              // Si el procesamiento es exitoso
-             printf("Valor de samples recibido: %d\n", adc_data.samples);
+             printf("%s\n", MESSAGE_CALLBACK_JSON_OK);
            } else {
              // Si ocurrio un error al procesar el mensaje JSON
-             printf("Hubo un error al procesar el mensaje JSON\n");
+             printf("%s\n",MESSAGE_CALLBACK_JSON_ERROR);
              return;
            }
         // cargamos los datos en la variable que se enviara al hilo
@@ -175,14 +178,14 @@ void message_callback(struct mosquitto *mosq, void *userdata, const struct mosqu
          // Verificamos el mensaje JSON y cargamos los datos en la estructura correspondiente
          GpioReadData gpio_read_data; // aqui ya se cargan los datos de entrada
          int result = process_json_message_gpio_read((char *)message->payload, &gpio_read_data);
-            if (result == 0) {
-              // Si el procesamiento es exitoso
-              printf("Cantidad de pins recibidos: %d\n", gpio_read_data.num_pins);
-            } else {
-              // Si ocurrio un error al procesar el mensaje JSON
-              printf("Hubo un error al procesar el mensaje JSON\n");
-              return;
-            }
+           if (result == 0) {
+             // Si el procesamiento es exitoso
+             printf("%s\n", MESSAGE_CALLBACK_JSON_OK);
+           } else {
+             // Si ocurrio un error al procesar el mensaje JSON
+             printf("%s\n", MESSAGE_CALLBACK_JSON_ERROR);
+             return;
+	   }
         // cargamos los datos en la variable que se enviara al hilo
         args->gpio_read_data=gpio_read_data;
         // Activamos el flag
@@ -197,14 +200,14 @@ void message_callback(struct mosquitto *mosq, void *userdata, const struct mosqu
           // Verificamos el mensaje JSON y cargamos los datos en la estructura correspondiente
           GpioWriteData gpio_write_data; // aqui ya se cargan los datos de entrada
           int result = process_json_message_gpio_write((char *)message->payload, &gpio_write_data);
-             if (result == 0) {
-               // Si el procesamiento es exitoso
-               printf("Pins recibidos: ok\n");
-             } else {
-               // Si ocurrio un error al procesar el mensaje JSON
-               printf("Hubo un error al procesar el mensaje JSON\n");
-               return;
-             }
+           if (result == 0) {
+             // Si el procesamiento es exitoso
+             printf("%s\n", MESSAGE_CALLBACK_JSON_OK);
+           } else {
+             // Si ocurrio un error al procesar el mensaje JSON
+             printf("%s\n",MESSAGE_CALLBACK_JSON_ERROR);
+             return;
+           }
         // cargamos los datos en la variable que se enviara al hilo
         args->gpio_write_data=gpio_write_data;
         // Activamos el flag
@@ -218,14 +221,14 @@ void message_callback(struct mosquitto *mosq, void *userdata, const struct mosqu
         // Verificamos el mensaje JSON y cargamos los datos en la estructura correspondiente
         MotorData motor_data; // aqui ya se cargan los datos de entrada
         int result = process_json_message_motor((char *)message->payload, &motor_data);
-            if (result == 0) {
-              // Si el procesamiento es exitoso
-              printf("Cantidad de pins recibidos ok: %d\n");
-             } else {
-              // Si ocurrio un error al procesar el mensaje JSON
-              printf("Hubo un error al procesar el mensaje JSON\n");
-              return;
-             }
+           if (result == 0) {
+             // Si el procesamiento es exitoso
+             printf("%s\n", MESSAGE_CALLBACK_JSON_OK);
+           } else {
+             // Si ocurrio un error al procesar el mensaje JSON
+             printf("%s\n",MESSAGE_CALLBACK_JSON_ERROR);
+             return;
+           }
         // cargamos los datos en la variable que se enviara al hilo
         args->motor_data=motor_data;
 
