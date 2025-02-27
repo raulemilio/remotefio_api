@@ -6,7 +6,7 @@
 #include <mosquitto.h>
 #include <cjson/cJSON.h>
 
-#include "json_utils.h"// funciones auxiliares para procesar el payload json
+#include "message_validator.h"// funciones auxiliares para procesar el payload json
 
 #define BROKER_ADDRESS "192.168.7.1"
 #define BROKER_PORT 1883
@@ -23,6 +23,8 @@
 
 #define MESSAGE_CALLBACK_JSON_OK "Mensaje recibido ok"
 #define MESSAGE_CALLBACK_JSON_ERROR " Hubo un error al recibir el mensaje"
+#define TOPIC_LOGS "BBRemote/logs"
+
 
 struct mosquitto *mosq = NULL;
 
@@ -134,6 +136,8 @@ void message_callback(struct mosquitto *mosq, void *userdata, const struct mosqu
     // Verificacion de mensaje nulo o vacio
     if (message->payload == NULL || *((char *)message->payload) == '\0') {
         printf("Error: El mensaje recibido es NULL o vacio\n");
+        const char *response = "Error: Message received format";
+        mosquitto_publish(mosq, NULL, TOPIC_LOGS, strlen(response), response, 0, false);
         return;
     }
     // reserva de memoria para un posible hilo de tarea
@@ -154,11 +158,15 @@ void message_callback(struct mosquitto *mosq, void *userdata, const struct mosqu
         }
         // Verificamos el mensaje JSON y cargamos los datos en la estructura correspondiente
         AdcData adc_data; // aqui ya se cargan los datos de entrada
-        int result = process_json_message_adc((char *)message->payload, &adc_data);
+        int result = validate_adc_message((char *)message->payload, &adc_data);
            if (result == 0) {
+             const char *response = "BBRemote Message received format: OK";
+             mosquitto_publish(mosq, NULL, TOPIC_LOGS, strlen(response), response, 0, false);
              // Si el procesamiento es exitoso
              printf("%s\n", MESSAGE_CALLBACK_JSON_OK);
            } else {
+             const char *response = "BBRemote Message received format: Error";
+             mosquitto_publish(mosq, NULL, TOPIC_LOGS, strlen(response), response, 0, false);
              // Si ocurrio un error al procesar el mensaje JSON
              printf("%s\n",MESSAGE_CALLBACK_JSON_ERROR);
              return;
@@ -177,11 +185,15 @@ void message_callback(struct mosquitto *mosq, void *userdata, const struct mosqu
         }
          // Verificamos el mensaje JSON y cargamos los datos en la estructura correspondiente
          GpioReadData gpio_read_data; // aqui ya se cargan los datos de entrada
-         int result = process_json_message_gpio_read((char *)message->payload, &gpio_read_data);
+         int result = validate_gpio_read_message((char *)message->payload, &gpio_read_data);
            if (result == 0) {
+             const char *response = "BBRemote Message received format: Ok";
+             mosquitto_publish(mosq, NULL, TOPIC_LOGS, strlen(response), response, 0, false);
              // Si el procesamiento es exitoso
              printf("%s\n", MESSAGE_CALLBACK_JSON_OK);
            } else {
+             const char *response = "BBRemote Message received format: Error";
+             mosquitto_publish(mosq, NULL, TOPIC_LOGS, strlen(response), response, 0, false);
              // Si ocurrio un error al procesar el mensaje JSON
              printf("%s\n", MESSAGE_CALLBACK_JSON_ERROR);
              return;
@@ -199,11 +211,15 @@ void message_callback(struct mosquitto *mosq, void *userdata, const struct mosqu
         }
           // Verificamos el mensaje JSON y cargamos los datos en la estructura correspondiente
           GpioWriteData gpio_write_data; // aqui ya se cargan los datos de entrada
-          int result = process_json_message_gpio_write((char *)message->payload, &gpio_write_data);
+          int result = validate_gpio_write_message((char *)message->payload, &gpio_write_data);
            if (result == 0) {
+             const char *response = "BBRemote Message received format: Ok";
+             mosquitto_publish(mosq, NULL, TOPIC_LOGS, strlen(response), response, 0, false);
              // Si el procesamiento es exitoso
              printf("%s\n", MESSAGE_CALLBACK_JSON_OK);
            } else {
+             const char *response = "BBRemote Message received format: Error";
+             mosquitto_publish(mosq, NULL, TOPIC_LOGS, strlen(response), response, 0, false);
              // Si ocurrio un error al procesar el mensaje JSON
              printf("%s\n",MESSAGE_CALLBACK_JSON_ERROR);
              return;
@@ -220,12 +236,16 @@ void message_callback(struct mosquitto *mosq, void *userdata, const struct mosqu
         }
         // Verificamos el mensaje JSON y cargamos los datos en la estructura correspondiente
         MotorData motor_data; // aqui ya se cargan los datos de entrada
-        int result = process_json_message_motor((char *)message->payload, &motor_data);
+        int result = validate_motor_message((char *)message->payload, &motor_data);
            if (result == 0) {
+             const char *response = "BBRemote Message received format: Ok";
+             mosquitto_publish(mosq, NULL, TOPIC_LOGS, strlen(response), response, 0, false);
              // Si el procesamiento es exitoso
              printf("%s\n", MESSAGE_CALLBACK_JSON_OK);
            } else {
              // Si ocurrio un error al procesar el mensaje JSON
+             const char *response = "BBRemote Message received format: Error";
+             mosquitto_publish(mosq, NULL, TOPIC_LOGS, strlen(response), response, 0, false);
              printf("%s\n",MESSAGE_CALLBACK_JSON_ERROR);
              return;
            }
