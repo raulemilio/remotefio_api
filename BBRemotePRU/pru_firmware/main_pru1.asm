@@ -1,6 +1,6 @@
 ;******************************************************************************
 ;* PRU C/C++ Codegen                                              Unix v2.3.3 *
-;* Date/Time created: Tue Mar  4 18:26:07 2025                                *
+;* Date/Time created: Fri Mar 14 19:32:28 2025                                *
 ;******************************************************************************
 	.compiler_opts --abi=eabi --endian=little --hll_source=on --object_format=elf --silicon_version=3 --symdebug:dwarf --symdebug:dwarf_version=3 
 
@@ -8,7 +8,7 @@ $C$DW$CU	.dwtag  DW_TAG_compile_unit
 	.dwattr $C$DW$CU, DW_AT_name("src/main_pru1.c")
 	.dwattr $C$DW$CU, DW_AT_producer("TI PRU C/C++ Codegen Unix v2.3.3 Copyright (c) 2012-2018 Texas Instruments Incorporated")
 	.dwattr $C$DW$CU, DW_AT_TI_version(0x01)
-	.dwattr $C$DW$CU, DW_AT_comp_dir("/home/debian/remotefio_api/test_mem_gpio/pru_firmware")
+	.dwattr $C$DW$CU, DW_AT_comp_dir("/home/debian/remotefio_api/BBRemotePRU/pru_firmware")
 	.global	__PRU_CREG_PRU_CFG
 	.weak	||CT_CFG||
 ||CT_CFG||:	.usect	".creg.PRU_CFG.noload.near",68,1
@@ -60,8 +60,8 @@ $C$DW$3	.dwtag  DW_TAG_subprogram
 	.dwattr $C$DW$3, DW_AT_decl_column(0x0d)
 	.dwendtag $C$DW$3
 
-;	/usr/bin/optpru /tmp/TI0otG2o1U6 /tmp/TI0otO63Zb4 
-;	/usr/bin/acpiapru -@/tmp/TI0otwuYEGU 
+;	/usr/bin/optpru /tmp/TI0kO6L3URG /tmp/TI0kOiauKyd 
+;	/usr/bin/acpiapru -@/tmp/TI0kOOxab7J 
 	.sect	".text:main"
 	.clink
 	.global	||main||

@@ -1,108 +1,391 @@
-PRU Assembler Unix v2.3.3 Tue Mar  4 18:26:08 2025
+PRU Assembler Unix v2.3.3 Fri Mar 14 21:14:46 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-servo.asm                                                   PAGE    1
 
        1; Raul Emlio Romero
        2;
-       3;
-       4        .clink
-       5        .global start
-       6
-       7        .asg "5000000",  DELAY
-       8        .asg  0x44e07000, GPIO0       ; GPIO Bank 0, See the AM335x TRM
-       9        .asg  0x481ac000, GPIO2       ; GPIO Bank 2,
-      10
-      11        .asg  0x190, GPIO_CLRDATAOUT  ; for clearing the GPIO registers
-      12        .asg  0x194, GPIO_SETDATAOUT  ; for setting the GPIO registers
-      13        .asg  0x138, GPIO_DATAOUT     ; for reading the GPIO registers
-      14        .asg  0x138, GPIO_DATAIN      ; for reading the GPIO registers
-      15
-      16        .asg  0x130, GPIO_CTRL        ; ENABLE GPIO PORT
-      17        .asg  0x00,  GPIO_CTRL_ENABLE ;
-      18        .asg  0x134, GPIO_OE          ; SET GPIO INPUT-OUTPUT
-      19        .asg  0xFC3C003F, GPIO_OE_OUTPUT   ; Pines usados como salida bit6 a bit17 y bit22 al bit25 en
-      20        .asg  0xF0,  GPIO_OE_INPUT    ; Para todos lo pines usados como entrada bit8 al bit10 en 1
-      21
-      22        ;Gpio read
-      23        .asg 1<<10, GPIO0_10_in0     ; P8_31 gpio0[10] input_0 config-pin P8_31 gpio_pd
-      24        .asg 1<<11, GPIO0_11_in1     ; P8_32 gpio0[11] input_1
-      25        .asg 1<<9,  GPIO0_9_in2      ; P8_33 gpio0[9] input_2
-      26        .asg 1<<8,  GPIO0_8_in3      ; P8_35 gpio0[8] input_3
-      27
-      28        ; Gpio write
-      29        .asg 1<<22, GPIO2_22_out0    ; P8_27 gpio2[22] output_0 congif-pin P8_27 gpio
-      30        .asg 1<<24, GPIO2_24_out1    ; P8_28 gpio2[24] output_1
-      31        .asg 1<<23, GPIO2_23_out2    ; P8_29 gpio2[23] output_2
-      32        .asg 1<<25, GPIO2_25_out3    ; P8_30 gpio2[25] output_3
-      33
-      34        ; Motor
-      35        .asg 1<<17, GPIO2_17_MA_E      ; P8_34 gpio2[17] output_MA_E config-pin P8_34 gpio
-      36        .asg 1<<16, GPIO2_16_MA_D      ; P8_36 gpio2[16] output_MA_D
-      37        .asg 1<<14, GPIO2_14_MA_S      ; P8_37 gpio2[14] output_MA_S
-      38        .asg 1<<15, GPIO2_15_MB_E      ; P8_38 gpio2[15] output_MB_E
-      39        .asg 1<<12, GPIO2_12_MB_D      ; P8_39 gpio2[12] output_MB_D
-      40        .asg 1<<13, GPIO2_13_MB_S      ; P8_40 gpio2[13] output_MB_S
-      41        .asg 1<<10, GPIO2_10_MC_E      ; P8_41 gpio2[10] output_MC_E
-      42        .asg 1<<11, GPIO2_11_MC_D      ; P8_42 gpio2[11] output_MC_D
-      43        .asg 1<<8,  GPIO2_8_MC_S       ; P8_43 gpio2[8] output_MC_S
-      44        .asg 1<<9,  GPIO2_9_MD_E       ; P8_44 gpio2[9] output_MD_E
-      45        .asg 1<<6,  GPIO2_6_MD_D       ; P8_45 gpio2[6] output_MD_D
-      46        .asg 1<<7,  GPIO2_7_MD_S       ; P8_46 gpio2[7] output_MD_S
+       3; cd /sys/class/remoteproc/remoteproc1
+       4; echo 'am335x-pru1-rc-servo-fw' > firmware
+       5; echo 'start' > state
+       6; echo 'stop' > state
+       7; cd /sys/kernel/debug/remoteproc/remoteproc1
+       8; sudo cat regs
+       9;
+      10; PRU definitions
+      11; memory
+      12  .asg 0x00000000, RAM0_ADDR                            ; local addr ram0. In linux space addr is 0x4a
+      13  .asg 0x00002000, RAM1_ADDR                            ; local addr ram1. In linux space addr is 0x4a
+      14  .asg 0x00010000, SHARED_ADDR                          ; local addr shared. In linux space addr is 0x
+      15  .asg 0x00, SHD_0                                      ; shared[0] flags linux
+      16  .asg 0x04, SHD_1                                      ; shared[1] gpio_read bit4-> flag | bit0-bit3-
+      17  .asg 0x08, SHD_2                                      ; shared[2] gpio_write bit8-> flag write compl
+      18  .asg 0x0C, SHD_3                                      ; shared[3] motor bit12-> flag config complete
+      19  .asg 0x10, SHD_4                                      ; shared[4] motor_A STEP_PERIOD_A
+      20  .asg 0x14, SHD_5                                      ; shared[5] motor_B STEP_PERIOD_B
+      21  .asg 0x18, SHD_6                                      ; shared[6] motor_C STEP_PERIOD_C
+      22  .asg 0x1C, SHD_7                                      ; shared[7] motor_D STEP_PERIOD_D
+      23  .asg 0x0a, SHARED_MEM_SIZE                            ; 10 en decimal
+      24  .asg 0x04, OFFSET_MEM                                 ;
+      25
+      26; gpio bank
+      27  .asg 0x44e07000, GPIO0                                ; GPIO Bank 0, See the AM335x TRM
+      28  .asg 0x481ac000, GPIO2                                ; GPIO Bank 2
+      29
+      30  .asg 0x190, GPIO_CLRDATAOUT                           ; for clearing the GPIO registers
+      31  .asg 0x194, GPIO_SETDATAOUT                           ; for setting the GPIO registers
+      32  .asg 0x13C, GPIO_DATAOUT                              ; for read-write the GPIO registers
+      33  .asg 0x138, GPIO_DATAIN                               ; for reading the GPIO registers
+      34
+      35  .asg 0x130, GPIO_CTRL                                 ; enable GPIO port
+      36  .asg 0x00,  GPIO_CTRL_ENABLE                          ;
+      37  .asg 0x134, GPIO_OE                                   ; set GPIO input - output
+      38  .asg 0xFC3C003F, GPIO_OE_OUTPUT                       ; pines usados como salida bit6 a bit17 y bit2
+      39  .asg 0xF0,  GPIO_OE_INPUT                             ; para todos lo pines usados como entrada bit8
+      40
+      41; gpio_read
+      42  ; Pins
+      43  ; P8_35 gpio0[8] -> bit8 input_0  no hace falta hacer: config-pin P8_35 gpio_pd
+      44  ; P8_33 gpio0[9] -> bit9 input_1  no hace falta hacer: config-pin P8_33 gpio_pd
+      45  ; P8_31 gpio0[10]-> bit10 input_2 no hace falta hacer: config-pin P8_31 gpio_pd
+      46  ; P8_32 gpio0[11]-> bit11 input_3 no hace falta hacer: config-pin P8_32 gpio_pd
       47
-      48        .asg  32, PRU0_R31_VEC_VALID  ; allows notification of program completion
-      49        .asg  3,  PRU_EVTOUT_0        ; the event number that is sent back
-      50
-      51 00000000                 start:
-      52
-      53; GPIO0 configuration
-      54 00000000 7130802444E0C0          LDI32   r0, (GPIO0|GPIO_CTRL)  ; Load GPIO0 control register address
-      55 00000008 000081240000C1          LDI32   r1, GPIO_CTRL_ENABLE   ; Load control enable value
-PRU Assembler Unix v2.3.3 Tue Mar  4 18:26:08 2025
+      48; gpio_write
+      49  .asg  (1<<22),  GPIO_OUT_BASE                         ;
+      50  ; Pins
+      51  ; P8_27 gpio2[22]-> bit22 output_0 no hace falta hacer: config-pin P8_27 gpio
+      52  ; P8_29 gpio2[23]-> bit23 output_1 no hace falta hacer: config-pin P8_29 gpio
+      53  ; P8_28 gpio2[24]-> bit24 output_2 no hace falta hacer: config-pin P8_28 gpio
+      54  ; P8_30 gpio2[25]-> bit25 output_3 no hace falta hacer: config-pin P8_30 gpio
+      55
+PRU Assembler Unix v2.3.3 Fri Mar 14 21:14:46 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-servo.asm                                                   PAGE    2
 
-      56 00000010 000000E1002081          SBBO    &r1, r0, 0, 4          ; Write enable value to GPIO0 control register
-      57
-      58 00000014 7134802444E0C0          LDI32   r0, (GPIO0|GPIO_OE)    ; Load GPIO0 output enable register address
-      59 0000001c 00F081240000C1          LDI32   r1, GPIO_OE_INPUT      ; Set GPIO0 as input
-      60 00000024 000000E1002081          SBBO    &r1, r0, 0, 4          ; Write input configuration to GPIO0
-      61
-      62; GPIO2 configuration
-      63 00000028 C1308024481AC0          LDI32   r0, (GPIO2|GPIO_CTRL)  ; Load GPIO2 control register address
-      64 00000030 000081240000C1          LDI32   r1, GPIO_CTRL_ENABLE   ; Load control enable value
-      65 00000038 000000E1002081          SBBO    &r1, r0, 0, 4          ; Write enable value to GPIO2 control register
-      66
-      67 0000003c C1348024481AC0          LDI32   r0, (GPIO2|GPIO_OE)    ; Load GPIO2 output enable register address
-      68 00000044 003F8124FC3CC1          LDI32   r1, GPIO_OE_OUTPUT     ; Set GPIO2 as output
-      69 0000004c 000000E1002081          SBBO    &r1, r0, 0, 4          ; Write output configuration to GPIO2
+      56; motor
+      57  ; Enable-Direction
+      58  .asg (1<<6), GPIO_MOTOR_ENA_BASE                      ;
+      59  .asg (1<<7), GPIO_MOTOR_DIR_BASE                      ;
+      60
+      61  ; Pins
+      62  ; P8_45 gpio2[6] -> bit6 output_MA_E no hace falta hacer: config-pin P8_45 gpio
+      63  ; P8_46 gpio2[7] -> bit7 output_MA_D config-pin P8_46 gpio
+      64
+      65  ; P8_43 gpio2[8] -> bit8 output_MB_E config-pin P8_43 gpio
+      66  ; P8_44 gpio2[9] -> bit9 output_MB_D config-pin P8_44 gpio
+      67
+      68  ; P8_41 gpio2[10]-> bit10 output_MC_E config-pin P8_41 gpio
+      69  ; P8_42 gpio2[11]-> bit11 output_MC_D config-pin P8_42 gpio
       70
-      71 00000050                 MAN:
-      72 00000050 C1948124481AC1          LDI32   r1, (GPIO2|GPIO_SETDATAOUT)  ; load addr for GPIO Set data r1
-      73 00000058 040082240000C2          LDI32   r2, GPIO2_10_MC_E     ; write GPIO0_30 to r2
-      74 00000060 000000E1002182          SBBO    &r2, r1, 0, 4     ; write r2 to the r1 address value - LED ON
-      75
-      76 00000064 4B408024004CC0          LDI32   r0, DELAY
-      77 0000006c                 DELAYON:
-      78 0000006c 0000000501E0E0          SUB     r0, r0, 1
-      79 00000070 0000006F00E0FF          QBNE    DELAYON, r0, 0   ; Loop to DELAYON, unless REG0=0
-      80 00000074                 LEDOFF:
-      81 00000074 C1908124481AC1          LDI32   r1, (GPIO2|GPIO_CLRDATAOUT) ; load addr for GPIO Clear data
-      82 0000007c 040082240000C2          LDI32   r2, GPIO2_10_MC_E     ; write GPIO_30 to r2
-      83 00000084 000000E1002182          SBBO    &r2, r1, 0, 4    ; write r2 to the r1 address - LED OFF
-      84 00000088 4B408024004CC0          LDI32   r0, DELAY        ; Reset REG0 to the length of the delay
+      71  ; P8_39 gpio2[12]-> bit12 output_MD_E config-pin P8_39 gpio
+      72  ; P8_40 gpio2[13]-> bit13 output_MD_D config-pin P8_40 gpio
+      73
+      74  ; Step period (medio ciclo de la senial)
+      75  .asg (1<<14), GPIO2_14_MA_S                           ; P8_37 gpio2[14] output_MA_S no hace falta ha
+      76  .asg (1<<15), GPIO2_15_MB_S                           ; P8_38 gpio2[15] output_MB_S
+      77  .asg (1<<16), GPIO2_16_MC_S                           ; P8_36 gpio2[16] output_MC_S
+      78  .asg (1<<17), GPIO2_17_MD_S                           ; P8_34 gpio2[17] output_MD_S
+      79
+      80  .asg 32, PRU0_R31_VEC_VALID                           ; allows notification of program completion
+      81  .asg 3,  PRU_EVTOUT_0                                 ; the event number that is sent back
+      82
+      83  .clink
+      84  .global start
       85
-      86 00000090                 DELAYOFF:
-      87 00000090 0000000501E0E0          SUB     r0, r0, 1              ; decrement REG0 by 1
-      88 00000094 0000006F00E0FF          QBNE    DELAYOFF, r0, 0        ; Loop to DELAYOFF, unless REG0=0
-      89
-      90 00000098 7138852444E0C5          LDI32   r5, (GPIO0|GPIO_DATAIN); load read addr for DATAOUT
-      91 000000a0 000000F1002586          LBBO    &r6, r5, 0, 4          ; Load the value at r5 into r6
-      92 000000a4 000000CF03FFEB          QBBC    MAN, r31, 3            ; is the button pressed? If not, loop
-      93 000000a8                 END:                                   ; notify the calling app that finished
+      86 00000000                 start:
+      87; Registro fijos
+      88 00000000 000094240001D4    LDI32 r20, SHARED_ADDR                                ; shared_addr_base
+      89  ; r10-> STEP_PERIOD_A
+      90  ; r11-> STEP_PERIOD_B
+      91  ; r12-> STEP_PERIOD_C
+      92  ; r13-> STEP_PERIOD_D
+      93  ; r21-r25-> DEBUG
       94
-      95 000000a8 00239F240000DF          LDI32   R31, (PRU0_R31_VEC_VALID|PRU_EVTOUT_0)
-      96 000000b0 0000002A000000          HALT                     ; halt the pru program
+      95 00000008                 SETUP:
+      96; borrado de momoria
+      97 00000008 0000002EFF8180    ZERO  &r0, 4                                          ; zero put register
+      98 0000000c 000081240000C1    LDI32 r1, 0                                           ; offset_mem
+      99 00000014 000082240000C2    LDI32 r2, 0                                           ; Count mem
+     100 0000001c                 mem_init:
+     101 0000001c 000000E0E13480    SBBO  &r0, r20, r1, 4                                 ;
+     102 00000020 0000000104E1E1    ADD   r1, r1, 4                                       ; cada posicion de memoria ocupa 4 bytes
+     103 00000024 0000000101E2E2    ADD   r2, r2, 1                                       ; count++
+     104 00000028 000000670AE2FD    QBGT  mem_init, r2, SHARED_MEM_SIZE                   ; qbgt myLabel, r3, r4. Branch if r4 > r3
+     105
+     106 0000002c                 gpio_config:
+     107 0000002c 7130802444E0C0    LDI32 r0, (GPIO0|GPIO_CTRL)                           ; load GPIO0 control register address
+     108 00000034 000081240000C1    LDI32 r1, GPIO_CTRL_ENABLE                            ; load control enable value
+     109 0000003c 000000E1002081    SBBO  &r1, r0, 0, 4                                   ; write enable value to GPIO0 control register
+     110
+PRU Assembler Unix v2.3.3 Fri Mar 14 21:14:46 2025
+
+Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
+src/pru1-servo.asm                                                   PAGE    3
+
+     111 00000040 7134802444E0C0    LDI32 r0, (GPIO0|GPIO_OE)                             ; load GPIO0 output enable register address
+     112 00000048 00F081240000C1    LDI32 r1, GPIO_OE_INPUT                               ; set GPIO0 as input
+     113 00000050 000000E1002081    SBBO  &r1, r0, 0, 4                                   ; write input configuration to GPIO0
+     114
+     115 00000054 C1308024481AC0    LDI32 r0, (GPIO2|GPIO_CTRL)                           ; load GPIO2 control register address
+     116 0000005c 000081240000C1    LDI32 r1, GPIO_CTRL_ENABLE                            ; load control enable value
+     117 00000064 000000E1002081    SBBO  &r1, r0, 0, 4                                   ; write enable value to GPIO2 control register
+     118
+     119 00000068 C1348024481AC0    LDI32 r0, (GPIO2|GPIO_OE)                             ; load GPIO2 output enable register address
+     120 00000070 003F8124FC3CC1    LDI32 r1, GPIO_OE_OUTPUT                              ; set GPIO2 as output
+     121 00000078 000000E1002081    SBBO  &r1, r0, 0, 4                                   ; write output configuration to GPIO2
+     122
+     123 0000007c C13C8024481AC0    LDI32 r0, (GPIO2|GPIO_DATAOUT)                        ; load GPIO2 output
+     124 00000084 0000002EFF8181    ZERO  &r1, 4                                          ;
+     125 00000088 000000E1002081    SBBO  &r1, r0, 0 , 4                                  ; Cargamos todas las salidas en cero
+     126
+     127; debug ---------------------------------------------------------------------------------------
+     128; get flag function
+     129;  LBBO &r0, r20, SHD_0, 4                               ; load shared[0]
+     130; set flag function probe
+     131;  SET  r0, r0, 0                                        ; set flag gpio_read bit0
+     132;  SET  r0, r0, 1                                        ; set flag gpio_write bit1
+     133;  SET  r0, r0, 2                                        ; set flaf motor bit2
+     134; set flag set in shared[0]
+     135;  SBBO  &r0, r20, SHD_0, 4                              ;
+     136; gpio read
+     137;  LBBO  &r21, r20, SHD_1, 4                             ; valores de las entradas gpio_read bit0-bit3
+     138; gpio write
+     139;  LDI32 r22, 0xFF                                       ; debug-> Cargamos gpio_write state->1100 pin
+     140;  SBBO  &r22, r20, SHD_2, 4                             ;
+     141; motor
+     142;  LDI32 r23, 0x47D                                      ; direction-enable 01 00 01 11  motor->1101 (
+     143;  LDI32 r24, 0xFFF                                      ; Cargamos un STEP_PERIOD_A de prueba en deci
+     144;  LDI32 r25, 0xFFF                                      ; Cargamos un STEP_PERIOD_B de prueba
+     145;  LDI32 r26, 0xFF                                       ; Cargamos un STEP_PERIOD_C de prueba
+     146;  LDI32 r27, 0xF                                        ; Cargamos un STEP_PERIOD_D de prueba en deci
+     147;  SBBO  &r23, r20, SHD_3, 4                             ; cargamos enable-dir
+     148;  SBBO  &r24, r20, SHD_4, 4                             ; cargamos STEP_PERIOD_A
+     149;  SBBO  &r25, r20, SHD_5, 4                             ; cargamos STEP_PERIOD_B
+     150;  SBBO  &r26, r20, SHD_6, 4                             ; cargamos STEP_PERIOD_C
+     151;  SBBO  &r27, r20, SHD_7, 4                             ; cargamos STEP_PERIOD_D
+     152; debug ----------------------------------------------------------------------------------------
+     153
+     154 0000008c                 MAIN_LOOP:
+     155; get state gpio_read function flag
+     156 0000008c 000000F1003480    LBBO  &r0, r20, SHD_0, 4                              ; read shared[0]
+     157 00000090 000000D100E015    QBBS  GPIO_READ, r0, 0                                ; jump is gpio_read_flag is set shared[0] bit0
+     158 00000094                 level_A:
+     159; get state gpio_write function flag
+     160 00000094 000000F1003480    LBBO  &r0, r20, SHD_0, 4                              ; read shared[0]
+     161 00000098 000000D101E020    QBBS  GPIO_WRITE, r0, 1                               ; jump is gpio_write_flag is set shared[0] bit
+     162 0000009c                 level_B:
+     163; get state motor function flag
+     164 0000009c 000000F1003480    LBBO  &r0, r20, SHD_0, 4                              ; read shared[0]
+     165 000000a0 000000D102E03D    QBBS  MOTOR, r0, 2                                    ; jump is motor_flag is set shared[0] bit2
+PRU Assembler Unix v2.3.3 Fri Mar 14 21:14:46 2025
+
+Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
+src/pru1-servo.asm                                                   PAGE    4
+
+     166 000000a4                 level_C:
+     167; get enable MA
+     168 000000a4 C13C8024481AC0    LDI32 r0, (GPIO2|GPIO_DATAOUT)                        ; load addr for GPIO2 Set data r0
+     169 000000ac 000000F1002081    LBBO  &r1, r0, 0, 4                                   ; load value into r1 r0 addr
+     170 000000b0 000000D106E16B    QBBS  STEP_PERIOD_A, r1, 6                            ; jump is output_MA_E is set bit6
+     171 000000b4 0000002EFF818A    ZERO  &r10, 4                                         ; borramos r10 STEP_PERIOD_A
+     172 000000b8 000000E110348A    SBBO  &r10, r20, SHD_4, 4                             ; borramos shared[4] STEP_PERIOD_A
+     173 000000bc                 level_C1:
+     174 000000bc 000000D108E174    QBBS  STEP_PERIOD_B, r1, 8                            ; jump is output_MB_E is set bit8
+     175 000000c0 0000002EFF818B    ZERO  &r11, 4                                         ; borramos r11 STEP_PERIOD_B
+     176 000000c4 000000E114348B    SBBO  &r11, r20, SHD_5, 4                             ; borramos shared[5] STEP_PERIOD_B
+     177 000000c8                 level_C2:
+     178 000000c8 000000D10AE17D    QBBS  STEP_PERIOD_C, r1, 10                           ; jump is output_MC_E is set bit10
+     179 000000cc 0000002EFF818C    ZERO  &r12, 4                                         ; borramos r12 STEP_PERIOD_C
+     180 000000d0 000000E118348C    SBBO  &r12, r20, SHD_6, 4                             ; borramos shared[6] STEP_PERIOD_C
+     181 000000d4                 level_C3:
+     182 000000d4 000000D10CE186    QBBS  STEP_PERIOD_D, r1, 12                           ; jump is output_MD_E is set bit12
+     183 000000d8 0000002EFF818D    ZERO  &r13, 4                                         ; borramos r13 STEP_PERIOD_D
+     184 000000dc 000000E11C348D    SBBO  &r13, r20, SHD_7, 4                             ; borramos shared[7] STEP_PERIOD_D
+     185 000000e0                 level_D:
+     186
+     187 000000e0 0000007F0000EB    QBA   MAIN_LOOP                                       ; program loop
+     188
+     189 000000e4                 GPIO_READ:
+     190; clr flag gpio_read
+     191 000000e4 000000F1003480    LBBO  &r0, r20, SHD_0, 4                              ; shared[0]
+     192 000000e8 0000001D00E0E0    CLR   r0,r0, 0                                        ; bit0 flag gpio_read
+     193 000000ec 000000E1003480    SBBO  &r0, r20, SHD_0, 4                              ;
+     194; read GPIO IN
+     195 000000f0 7138802444E0C0    LDI32 r0, (GPIO0|GPIO_DATAIN)                         ; load addr for DATAIN
+     196 000000f8 000000F1002081    LBBO  &r1, r0, 0, 4                                   ; Load the values at r0 into r1.
+     197; write GPIO IN DATA INTO SHARED[1]
+     198 000000fc 0F0080240000C0    LDI32 r0, 0xF00                                       ; mascara desde bit8 a bit11 porque en el regi
+     199 00000104 00000010E0E1E1    AND   r1, r1, r0                                      ;
+     200 00000108 0000000B08E1E1    LSR   r1, r1, 8                                       ; se desplazan 8 posiciones para que los datos
+     201; set flag data ready
+     202 0000010c 0000001F0CE1E1    SET   r1, r1, 12                                      ; shared[1] bit12-> flag data ready
+     203 00000110 000000E1043481    SBBO  &r1, r20, SHD_1, 4                              ; Cargamos valores de las entradas gpio_read b
+     204 00000114 0000007F0000E0    QBA   level_A                                         ;
+     205
+     206 00000118                 GPIO_WRITE:
+     207; clr flag gpio_write
+     208 00000118 000000F1003480    LBBO  &r0, r20, SHD_0, 4                              ; Shared[0]
+     209 0000011c 0000001D01E0E0    CLR   r0,r0, 1                                        ; bit1 flag gpio_write
+     210 00000120 000000E1003480    SBBO  &r0, r20, SHD_0, 4                              ;
+     211; read gpio_output to set
+     212 00000124 000000F1083480    LBBO  &r0, r20, SHD_2, 4                              ; read shared[2]
+     213 00000128 000000110FE0E1    AND   r1, r0, 0x0F                                    ; extrae los primeros 4 bits (0-3) en r1. Flag
+     214 0000012c 00000011F0E0E2    AND   r2, r0, 0xF0                                    ; extrae los bits 4-7 en r2. Pin state
+     215 00000130 0000000B04E2E2    LSR   r2, r2, 4                                       ; desplaza los bits 4-7 a la posicion menos si
+     216 00000134 000083240000C3    LDI32 r3, 0                                           ; inicializa el contador de bits (0 a 3)
+     217 0000013c 000084240040C4    LDI32 r4, GPIO_OUT_BASE                               ; direccion base GPIO_OUT_BASE
+     218 00000144                 check_bits_w:
+     219 00000144 0000001101E1E5    AND   r5, r1, 1                                       ; extrae el bit menos significativo de r1 (sta
+     220 00000148 000000D0E3E109    QBBS  gpio_write_out_funct, r1, r3                    ; qbbs myLabel r1, r3. Branch if( r1&(1<<r3) )
+PRU Assembler Unix v2.3.3 Fri Mar 14 21:14:46 2025
+
+Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
+src/pru1-servo.asm                                                   PAGE    5
+
+     221 0000014c                 level_A1:
+     222 0000014c 0000000B01E2E2    LSR   r2, r2, 1                                       ; desplaza r2 a la derecha para procesar el si
+     223 00000150 0000000901E4E4    LSL   r4, r4, 1                                       ; desplaza hacia el proximo bit de GPIO_out1,.
+     224 00000154 0000000101E3E3    ADD   r3, r3, 1                                       ; count++
+     225 00000158 0000006704E3FB    QBGT  check_bits_w, r3, 4                             ; cuatro salidas. qbgt myLabel, r3, r4. Branch
+     226; set flag data complete
+     227 0000015c 0000002EFF8180    ZERO  &r0, 4                                          ; shared[2] erase
+     228 00000160 0000001F0CE0E0    SET   r0, r0, 12                                      ; shared[2] bit12-> flag write complete
+     229 00000164 000000E1083480    SBBO  &r0, r20, SHD_2, 4                              ;
+     230 00000168 0000007F0000CD    QBA   level_B                                         ;
+     231
+     232 0000016c                 gpio_write_out_funct:
+     233 0000016c 000000D100E502    QBBS  write_out_set, r5, 0                            ; jamp si bit0 de r5 es set
+     234 00000170 000000C900E505    QBBC  write_out_clr, r5, 0                            ; jamp si bit0 de r5 es clr
+     235 00000174                 write_out_set:
+     236 00000174 C1948624481AC6    LDI32 r6, (GPIO2|GPIO_SETDATAOUT)                     ; load addr for GPIO Set data r6
+     237 0000017c 000000E1002684    SBBO  &r4, r6, 0, 4                                   ; write r4 to the r6 address valu
+     238 00000180 0000007F0000F3    QBA   level_A1                                        ;
+     239 00000184                 write_out_clr:
+     240 00000184 C1908624481AC6    LDI32 r6, (GPIO2|GPIO_CLRDATAOUT)                     ; load addr for GPIO Clear data.
+     241 0000018c 000000E1002684    SBBO  &r4, r6, 0, 4                                   ; write r4 to the r6 address
+     242 00000190 0000007F0000EF    QBA   level_A1                                        ;
+     243
+     244 00000194                 MOTOR:
+     245; Cargamos los step
+     246 00000194 000000F110348A    LBBO  &r10, r20, SHD_4, 4                             ; read shared[4] STEP_PERIOD_A
+     247 00000198 000000F114348B    LBBO  &r11, r20, SHD_5, 4                             ; read shared[5] STEP_PERIOD_B
+     248 0000019c 000000F118348C    LBBO  &r12, r20, SHD_6, 4                             ; read shared[6] STEP_PERIOD_C
+     249 000001a0 000000F11C348D    LBBO  &r13, r20, SHD_7, 4                             ; read shared[7] STEP_PERIOD_C
+     250; clr flag motor
+     251 000001a4 000000F1003480    LBBO  &r0, r20, SHD_0, 4                              ; Shared[0]
+     252 000001a8 0000001D02E0E0    CLR   r0,r0, 2                                        ; bit2 flag motor
+     253 000001ac 000000E1003480    SBBO  &r0, r20, SHD_0, 4                              ;
+     254 000001b0 000000F10C3480    LBBO  &r0, r20, SHD_3, 4                              ; read shared[3]
+     255 000001b4 000000110FE0E1    AND   r1, r0, 0x0F                                    ; extrae los primeros 4 bits (0-3) en r1. Flag
+     256 000001b8 0FF082240000C2    LDI32 r2, 0xFF0                                       ; mascara bit 4-11
+     257 000001c0 00000010E2E0E2    AND   r2, r0, r2                                      ; extrae los bits 4-11 en r2. Pins enable-dir
+     258 000001c4 0000000B04E2E2    LSR   r2, r2, 4                                       ; desplaza los bits 4-11 a la posicion menos s
+     259 000001c8 000083240000C3    LDI32 r3, 0                                           ; inicializa el contador de bits (0 a 3)
+     260 000001d0 004084240000C4    LDI32 r4, GPIO_MOTOR_ENA_BASE                         ; direccion base gpio MOTOR_ENA_Base
+     261 000001d8 008085240000C5    LDI32 r5, GPIO_MOTOR_DIR_BASE                         ; direccion base gpio MOTOR_DIR_Base
+     262 000001e0                 check_bits_m:
+     263 000001e0 0000001103E2E6    AND   r6, r2, 0x03                                    ; extrae los dos primeros  bits. Bit0 -> Enabl
+     264 000001e4 000000D0E3E10A    QBBS  motor_config, r1, r3                            ; qbbs myLabel r2, r4. Branch if( r2&(1<<r4) )
+     265 000001e8                 level_B1:
+     266 000001e8 0000000B02E2E2    LSR   r2, r2, 2                                       ; desplaza r2 a la derecha para procesar los s
+     267 000001ec 0000000902E4E4    LSL   r4, r4, 2                                       ; desplaza a la siguiente Ena
+     268 000001f0 0000000902E5E5    LSL   r5, r5, 2                                       ; desplaza a la siguente Dir
+     269 000001f4 0000000101E3E3    ADD   r3, r3, 1                                       ; count++
+     270 000001f8 0000006704E3FA    QBGT  check_bits_m, r3, 4                             ; cuatro salidas. qbgt myLabel, r3, r4. Branch
+     271; set flag motor config complete
+     272 000001fc 0000002EFF8180    ZERO  &r0, 4                                          ; shared[3] erase
+     273 00000200 0000001F0CE0E0    SET   r0, r0, 12                                      ; shared[3] bit12-> flag motor config complete
+     274 00000204 000000E10C3480    SBBO  &r0, r20, SHD_3, 4                              ;
+     275 00000208 0000007F0000A7    QBA   level_C                                         ;
+PRU Assembler Unix v2.3.3 Fri Mar 14 21:14:46 2025
+
+Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
+src/pru1-servo.asm                                                   PAGE    6
+
+     276
+     277 0000020c                 motor_config:
+     278 0000020c 000000D100E604    QBBS  enable_set, r6, 0                               ;
+     279 00000210 000000C900E607    QBBC  enable_clr, r6, 0                               ;
+     280 00000214                 level_B2:
+     281 00000214 000000D101E60A    QBBS  dir_set, r6, 1                                  ;
+     282 00000218 000000C901E60D    QBBC  dir_clr, r6, 1                                  ;
+     283 0000021c                 enable_set:
+     284 0000021c C1948724481AC7    LDI32 r7, (GPIO2|GPIO_SETDATAOUT)                     ; load addr for GPIO Set data r7
+     285 00000224 000000E1002784    SBBO  &r4, r7, 0, 4                                   ; write r4 to the r7 address value
+     286 00000228 0000007F0000FB    QBA   level_B2                                        ;
+     287 0000022c                 enable_clr:
+     288 0000022c C1908724481AC7    LDI32 r7, (GPIO2|GPIO_CLRDATAOUT)                     ; load addr for GPIO Set data r7
+     289 00000234 000000E1002784    SBBO  &r4, r7, 0, 4                                   ; write r4 to the r6 address value
+     290 00000238 0000007F0000F7    QBA   level_B2                                        ;
+     291 0000023c                 dir_set:
+     292 0000023c C1948724481AC7    LDI32 r7, (GPIO2|GPIO_SETDATAOUT)                     ; load addr for GPIO Set data r7
+     293 00000244 000000E1002785    SBBO  &r5, r7, 0, 4                                   ; write r5 to the r7 address value
+     294 00000248 0000007F0000E8    QBA   level_B1                                        ;
+     295 0000024c                 dir_clr:
+     296 0000024c C1908724481AC7    LDI32 r7, (GPIO2|GPIO_CLRDATAOUT)                     ; load addr for GPIO Set data r7
+     297 00000254 000000E1002785    SBBO  &r5, r7, 0, 4                                   ; write r5 to the r7 address value
+     298 00000258 0000007F0000E4    QBA   level_B1                                        ;
+     299
+     300 0000025c                 STEP_PERIOD_A:
+     301 0000025c 0000000501EAEA    SUB   r10, r10, 1                                     ; se resta 1 a r10. r10 fue cargado cuando se 
+     302 00000260 0000005100EA02    QBEQ  TOGGLE_PIN_A, r10, 0                            ; toggle pin step cuando la cuenta llega a 0
+     303 00000264 0000007F000096    QBA   level_C1                                        ; sino volvemos al loop principal
+     304 00000268                 TOGGLE_PIN_A:
+     305 00000268 C13C8024481AC0    LDI32 r0, (GPIO2|GPIO_DATAOUT)                        ; load addr for GPIO2
+     306 00000270 000000F1002081    LBBO  &r1, r0, 0, 4                                   ; Load the values at r0 into r1.
+     307 00000274 400082240000C2    LDI32 r2, GPIO2_14_MA_S                               ; GPIO2_14_MA_S
+     308 0000027c 00000014E2E1E1    XOR   r1, r1, r2                                      ; toggle GPIO2_14_MA_S
+     309 00000280 000000E1002081    SBBO  &r1, r0, 0 , 4                                  ; actualizamos la salida GPIO2_14_MA_S
+     310 00000284 000000F110348A    LBBO  &r10, r20, SHD_4, 4                             ; cargamos nuevamente el valor de shared[4] pa
+     311 00000288 0000007F00008D    QBA   level_C1                                        ; volvemos al loop principal
+     312
+     313 0000028c                 STEP_PERIOD_B:
+     314 0000028c 0000000501EBEB    SUB   r11, r11, 1                                     ; se resta 1 a r11. r11 fue cargado cuando se 
+     315 00000290 0000005100EB02    QBEQ  TOGGLE_PIN_B, r11, 0                            ; toggle pin step cuando la cuenta llega a 0
+     316 00000294 0000007F00008D    QBA   level_C2                                        ; sino volvemos al loop principal
+     317 00000298                 TOGGLE_PIN_B:
+     318 00000298 C13C8024481AC0    LDI32 r0, (GPIO2|GPIO_DATAOUT)                        ; load addr for GPIO2
+     319 000002a0 000000F1002081    LBBO  &r1, r0, 0, 4                                   ; Load the values at r0 into r1.
+     320 000002a4 800082240000C2    LDI32 r2, GPIO2_15_MB_S                               ; GPIO2_15_MB_S
+     321 000002ac 00000014E2E1E1    XOR   r1, r1, r2                                      ; toggle GPIO2_15_MB_S
+     322 000002b0 000000E1002081    SBBO  &r1, r0, 0 , 4                                  ; actualizamos la salida GPIO2_15_MB_S
+     323 000002b4 000000F114348B    LBBO  &r11, r20, SHD_5, 4                             ; cargamos nuevamente el valor de shared[5] pa
+     324 000002b8 0000007F000084    QBA   level_C2                                        ; volvemos al loop principal
+     325
+     326 000002bc                 STEP_PERIOD_C:
+     327 000002bc 0000000501ECEC    SUB   r12, r12, 1                                     ; se resta 1 a r12. r12 fue cargado cuando se 
+     328 000002c0 0000005100EC02    QBEQ  TOGGLE_PIN_C, r12, 0                            ; toggle pin step cuando la cuenta llega a 0
+     329 000002c4 0000007F000084    QBA   level_C3                                        ; sino volvemos al loop principal
+     330 000002c8                 TOGGLE_PIN_C:
+PRU Assembler Unix v2.3.3 Fri Mar 14 21:14:46 2025
+
+Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
+src/pru1-servo.asm                                                   PAGE    7
+
+     331 000002c8 C13C8024481AC0    LDI32 r0, (GPIO2|GPIO_DATAOUT)                        ; load addr for GPIO2
+     332 000002d0 000000F1002081    LBBO  &r1, r0, 0, 4                                   ; Load the values at r0 into r1.
+     333 000002d4 000082240001C2    LDI32 r2, GPIO2_16_MC_S                               ; GPIO2_16_MC_S
+     334 000002dc 00000014E2E1E1    XOR   r1, r1, r2                                      ; toggle GPIO2_16_MC_S
+     335 000002e0 000000E1002081    SBBO  &r1, r0, 0 , 4                                  ; actualizamos la salida GPIO2_16_MC_S
+     336 000002e4 000000F118348C    LBBO  &r12, r20, SHD_6, 4                             ; cargamos nuevamente el valor de shared[6] pa
+     337 000002e8 0000007F00007B    QBA   level_C3                                        ; volvemos al loop principal
+     338
+     339 000002ec                 STEP_PERIOD_D:
+     340 000002ec 0000000501EDED    SUB   r13, r13, 1                                     ; se resta 1 a r13. r13 fue cargado cuando se 
+     341 000002f0 0000005100ED02    QBEQ  TOGGLE_PIN_D, r13, 0                            ; toggle pin step cuando la cuenta llega a 0
+     342 000002f4 0000007F00007B    QBA   level_D                                         ; sino volvemos al loop principal
+     343 000002f8                 TOGGLE_PIN_D:
+     344 000002f8 C13C8024481AC0    LDI32 r0, (GPIO2|GPIO_DATAOUT)                        ; load addr for GPIO2
+     345 00000300 000000F1002081    LBBO  &r1, r0, 0, 4                                   ; Load the values at r0 into r1.
+     346 00000304 000082240002C2    LDI32 r2, GPIO2_17_MD_S                               ; GPIO2_17_MD_S
+     347 0000030c 00000014E2E1E1    XOR   r1, r1, r2                                      ; toggle GPIO2_17_MD_S
+     348 00000310 000000E1002081    SBBO  &r1, r0, 0 , 4                                  ; actualizamos la salida GPIO2_17_MD_S
+     349 00000314 000000F11C348D    LBBO  &r13, r20, SHD_7, 4                             ; cargamos nuevamente el valor de shared[7] pa
+     350 00000318 0000007F000072    QBA   level_D                                         ; volvemos al loop principal
+     351
+     352 0000031c 00239F240000DF    LDI32   R31, (PRU0_R31_VEC_VALID|PRU_EVTOUT_0)        ;
+     353
+     354 00000324 0000002A000000    HALT                                                  ; halt the pru program
 
 No Assembly Errors, No Assembly Warnings
