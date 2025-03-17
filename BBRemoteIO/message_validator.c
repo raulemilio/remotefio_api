@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// ADC {"task":"adc","samples":10}  de 1 a 1000
+// ADC {"task":"adc","samples":10, "mode":1, "sample_rate":5000}
 int validate_adc_message(const char *payload, AdcData *adc_data) {
     if (payload == NULL || adc_data == NULL) {
         printf("Error: Payload o estructura data es NULL\n");
@@ -31,7 +31,7 @@ int validate_adc_message(const char *payload, AdcData *adc_data) {
     // Verificar si el ultimo caracter es '}'
     size_t len = strlen(payload);
     if (payload[len - 1] != '}') {
-        printf("Error: El ultimo caracter del payload no es '}'\n");
+        printf("Error: El ultimo caracter del payload no es '}\n");
         return -1;
     }
     // Obtener el valor de "samples"
@@ -41,15 +41,46 @@ int validate_adc_message(const char *payload, AdcData *adc_data) {
         cJSON_Delete(root);
         return -1;
     }
-    // Guardar el valor en la estructura
     adc_data->samples = sample_value;
-    // JSON valido y valor en rango
-    printf("Mensaje valido. samples = %d\n", sample_value);
+
+    // Verificar si el campo "mode" existe y es valido (0, 1 o 2)
+    cJSON *mode_item = cJSON_GetObjectItemCaseSensitive(root, "mode");
+    if (!cJSON_IsNumber(mode_item)) {
+        printf("Error: El campo 'mode' no existe o no es un numero\n");
+        cJSON_Delete(root);
+        return -1;
+    }
+    int mode_value = mode_item->valueint;
+    if (mode_value < 0 || mode_value > 2) {
+        printf("Error: El valor de 'mode' (%d) esta fuera del rango permitido (0-2)\n", mode_value);
+        cJSON_Delete(root);
+        return -1;
+    }
+    adc_data->mode = mode_value;
+
+    // Verificar si el campo "sample_rate" existe y es valido (0-10000)
+    cJSON *sample_rate_item = cJSON_GetObjectItemCaseSensitive(root, "sample_rate");
+    if (!cJSON_IsNumber(sample_rate_item)) {
+        printf("Error: El campo 'sample_rate' no existe o no es un numero\n");
+        cJSON_Delete(root);
+        return -1;
+    }
+    int sample_rate_value = sample_rate_item->valueint;
+    if (sample_rate_value < 0 || sample_rate_value > 10000) {
+        printf("Error: El valor de 'sample_rate' (%d) esta fuera del rango permitido (0-10000)\n", sample_rate_value);
+        cJSON_Delete(root);
+        return -1;
+    }
+    adc_data->sample_rate = sample_rate_value;
+
+    // JSON valido y valores en rango
+    printf("Mensaje valido. samples = %d, mode = %d, sample_rate = %d\n", adc_data->samples, adc_data->mode, adc_data->sample_rate);
+
     cJSON_Delete(root);
     return 0; //exito
 }
 
-// GPIO READ {"task":"gpio_read","pins":[0,1,2,3]} pueden ser de 1 a 4
+// GPIO READ {"task":"gpio_read","pins":[0,1,2,3], "mode":1} pueden ser de 1 a 4
 int validate_gpio_read_message(const char *payload, GpioReadData *gpio_read_data) {
     if (payload == NULL || gpio_read_data == NULL) {
         printf("Error: Payload o estructura de datos es NULL\n");
@@ -64,7 +95,7 @@ int validate_gpio_read_message(const char *payload, GpioReadData *gpio_read_data
     // Verificar si el ultimo caracter es '}'
     size_t len = strlen(payload);
     if (payload[len - 1] != '}') {
-        printf("Error: El ultimo caracter del payload no es '}'\n");
+        printf("Error: El ultimo caracter del payload no es '}\n");
         cJSON_Delete(root);
         return -1;
     }
@@ -106,9 +137,23 @@ int validate_gpio_read_message(const char *payload, GpioReadData *gpio_read_data
         // Guardar el valor en la estructura gpio_read_data
         gpio_read_data->pins[i] = pin_value;
     }
-
     // Guardar el numero de elementos en el arreglo
     gpio_read_data->num_pins = num_elements;
+
+    // Verificar si el campo "mode" existe y es valido (0, 1 o 2)
+    cJSON *mode_item = cJSON_GetObjectItemCaseSensitive(root, "mode");
+    if (!cJSON_IsNumber(mode_item)) {
+        printf("Error: El campo 'mode' no existe o no es un numero\n");
+        cJSON_Delete(root);
+        return -1;
+    }
+    int mode_value = mode_item->valueint;
+    if (mode_value < 0 || mode_value > 2) {
+        printf("Error: El valor de 'mode' (%d) esta fuera del rango permitido (0-2)\n", mode_value);
+        cJSON_Delete(root);
+        return -1;
+    }
+    gpio_read_data->mode = mode_value;
 
     // JSON valido y valores en rango
     printf("Mensaje valido. pins = [");
@@ -118,12 +163,13 @@ int validate_gpio_read_message(const char *payload, GpioReadData *gpio_read_data
             printf(", ");
         }
     }
-    printf("]\n");
+    printf("], mode = %d\n", gpio_read_data->mode);
 
     cJSON_Delete(root);
     return 0; //exito
 }
-// GPIO WRITE {"task":"gpio_write","pins":[0,1,2,3], "values": [0,0,0,0]} puede ser de 1 a 4
+
+// GPIO WRITE {"task":"gpio_write","pins":[0,1,2,3], "values": [0,0,0,0],, "mode":1} puede ser de 1 a 4
 int validate_gpio_write_message(const char *payload, GpioWriteData *gpio_write_data) {
     if (payload == NULL || gpio_write_data == NULL) {
         printf("Error: Payload o estructura de datos es NULL\n");
@@ -219,6 +265,21 @@ int validate_gpio_write_message(const char *payload, GpioWriteData *gpio_write_d
     // Guardar el numero de pines procesados
     gpio_write_data->num_pins = num_pins;
 
+    // Verificar si el campo "mode" existe y es valido (0, 1 o 2)
+    cJSON *mode_item = cJSON_GetObjectItemCaseSensitive(root, "mode");
+    if (!cJSON_IsNumber(mode_item)) {
+        printf("Error: El campo 'mode' no existe o no es un numero\n");
+        cJSON_Delete(root);
+        return -1;
+    }
+    int mode_value = mode_item->valueint;
+    if (mode_value < 0 || mode_value > 2) {
+        printf("Error: El valor de 'mode' (%d) esta fuera del rango permitido (0-2)\n", mode_value);
+        cJSON_Delete(root);
+        return -1;
+    }
+    gpio_write_data->mode = mode_value;
+
     // JSON valido y valores en rango
     printf("Mensaje valido. Pins y State:\n");
     for (int i = 0; i < num_pins; i++) {
@@ -229,7 +290,7 @@ int validate_gpio_write_message(const char *payload, GpioWriteData *gpio_write_d
     return 0; //exito
 }
 
-// MOTOR {"task":"motor","num":0,"cfg":[0,0],"spd": 0}
+// MOTOR {"task":"motor","num":0,"cfg":[0,0],"spd": 0, "mode": 1}
 int validate_motor_message(const char *payload, MotorData *motor_data) {
     if (payload == NULL || motor_data == NULL) {
         printf("Error: Payload o estructura de datos es NULL\n");
@@ -316,6 +377,21 @@ int validate_motor_message(const char *payload, MotorData *motor_data) {
         return -1;
     }
     motor_data->spd = spd_value;
+
+    // Verificar si el campo "mode" existe y es valido (0, 1 o 2)
+    cJSON *mode_item = cJSON_GetObjectItemCaseSensitive(root, "mode");
+    if (!cJSON_IsNumber(mode_item)) {
+        printf("Error: El campo 'mode' no existe o no es un numero\n");
+        cJSON_Delete(root);
+        return -1;
+    }
+    int mode_value = mode_item->valueint;
+    if (mode_value < 0 || mode_value > 2) {
+        printf("Error: El valor de 'mode' (%d) esta fuera del rango permitido (0-2)\n", mode_value);
+        cJSON_Delete(root);
+        return -1;
+    }
+    motor_data->mode = mode_value;
 
     // JSON valido y valores en rango
     printf("Mensaje valido. num = %d, cfg = [%d, %d], spd = %d\n",

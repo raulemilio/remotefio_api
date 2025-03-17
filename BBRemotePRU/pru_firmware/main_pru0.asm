@@ -1,6 +1,6 @@
 ;******************************************************************************
 ;* PRU C/C++ Codegen                                              Unix v2.3.3 *
-;* Date/Time created: Fri Mar 14 19:32:27 2025                                *
+;* Date/Time created: Sun Mar 16 16:56:34 2025                                *
 ;******************************************************************************
 	.compiler_opts --abi=eabi --endian=little --hll_source=on --object_format=elf --silicon_version=3 --symdebug:dwarf --symdebug:dwarf_version=3 
 
@@ -60,8 +60,8 @@ $C$DW$3	.dwtag  DW_TAG_subprogram
 	.dwattr $C$DW$3, DW_AT_decl_column(0x0d)
 	.dwendtag $C$DW$3
 
-;	/usr/bin/optpru /tmp/TI0kyS2uoQh /tmp/TI0kyaExkvp 
-;	/usr/bin/acpiapru -@/tmp/TI0kyMHtemQ 
+;	/usr/bin/optpru /tmp/TI0tA6ky2oL /tmp/TI0tAy85BCm 
+;	/usr/bin/acpiapru -@/tmp/TI0tARBzaYX 
 	.sect	".text:main"
 	.clink
 	.global	||main||

@@ -6,7 +6,10 @@
 #include <mosquitto.h>
 #include <cjson/cJSON.h>
 
+#include "pru_control.h"
 #include "message_validator.h"// funciones auxiliares para procesar el payload json
+#include "process_fun.h"
+#include "send_msg_mqtt.h"
 
 #define BROKER_ADDRESS "192.168.7.1"
 #define BROKER_PORT 1883
@@ -33,15 +36,6 @@ int adc_in_progress = 0;
 int gpio_read_in_progress = 0;
 int gpio_write_in_progress = 0;
 int motor_in_progress = 0;
-
-// Estructura para pasar los argumentos al hilo
-typedef struct {
-    struct mosquitto *mosq;
-    AdcData adc_data;
-    GpioReadData gpio_read_data;
-    GpioWriteData gpio_write_data;
-    MotorData motor_data;
-} ThreadArgs;
 
 // Manejo de seniales para salir limpiamente
 void handle_signal(int signo) {
@@ -80,13 +74,25 @@ void *gpio_read_function(void *arg) {
     struct mosquitto *mosq = args->mosq;
     printf("num_pins desde adc_function: %d\n", args->gpio_read_data.num_pins);
 
+    GpioReadData gpio_data_send = {0};  // Estructura para almacenar los datos leidos
+    // en proceso de construccion
+    if (read_gpio_data(&args, &gpio_data_send) == 0) {
+        printf("Datos capturados: %d %d %d %d\n",
+            gpio_data_send.pins[0],
+            gpio_data_send.pins[1],
+            gpio_data_send.pins[2],
+            gpio_data_send.pins[3]);
+
+        send_gpio_data_mqtt(mosq, &gpio_data_send);
+    } else {
+        printf("Error al leer datos GPIO.\n");
+    }
     // Logica para GPIO READ
     sleep(5);
-
     // logica de respuesta
-    const char *response = "Comando GPIO read recibido";
-    mosquitto_publish(mosq, NULL, TOPIC_RSP_GPIO_READ, strlen(response), response, 0, false);
-    printf("Enviando respuesta GPIO read: %s\n", response);
+//    const char *response = "Comando GPIO read recibido";
+//    mosquitto_publish(mosq, NULL, TOPIC_RSP_GPIO_READ, strlen(response), response, 0, false);
+//    printf("Enviando respuesta GPIO read: %s\n", response);
 
     // Liberar recursos antes de terminar
     gpio_read_in_progress = 0; // Liberar el flag
