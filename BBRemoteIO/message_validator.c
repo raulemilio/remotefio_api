@@ -169,7 +169,7 @@ int validate_gpio_read_message(const char *payload, GpioReadData *gpio_read_data
     return 0; //exito
 }
 
-// GPIO WRITE {"task":"gpio_write","pins":[0,1,2,3], "values": [0,0,0,0],, "mode":1} puede ser de 1 a 4
+// GPIO WRITE {"task":"gpio_write","pins":[0,1,2,3], "state": [0,0,0,0],, "mode":1} puede ser de 1 a 4
 int validate_gpio_write_message(const char *payload, GpioWriteData *gpio_write_data) {
     if (payload == NULL || gpio_write_data == NULL) {
         printf("Error: Payload o estructura de datos es NULL\n");
@@ -289,8 +289,7 @@ int validate_gpio_write_message(const char *payload, GpioWriteData *gpio_write_d
     cJSON_Delete(root);
     return 0; //exito
 }
-
-// MOTOR {"task":"motor","num":0,"cfg":[0,0],"spd": 0, "mode": 1}
+// MOTOR {"task":"motor","motor":[0,1,2,3],"dir":[0,1,0,1],"ena":[1,1,0,1],"spd":[1000,1500,1200,1800],"mode":1}
 int validate_motor_message(const char *payload, MotorData *motor_data) {
     if (payload == NULL || motor_data == NULL) {
         printf("Error: Payload o estructura de datos es NULL\n");
@@ -304,14 +303,7 @@ int validate_motor_message(const char *payload, MotorData *motor_data) {
         return -1;
     }
 
-    // Verificar que el ultimo caracter sea '}'
-    size_t len = strlen(payload);
-    if (payload[len - 1] != '}') {
-        printf("Error: El ultimo caracter del payload no es '}'\n");
-        cJSON_Delete(root);
-        return -1;
-    }
-     // Verificar si el campo "task" existe y es "motor"
+    // Verificar si el campo "task" existe y es "motor"
     cJSON *task = cJSON_GetObjectItemCaseSensitive(root, "task");
     if (!cJSON_IsString(task) || strcmp(task->valuestring, "motor") != 0) {
         printf("Error: Campo 'task' no encontrado o no es 'motor'\n");
@@ -319,84 +311,89 @@ int validate_motor_message(const char *payload, MotorData *motor_data) {
         return -1;
     }
 
-    // Verificar si el campo "num" existe
-    cJSON *num_item = cJSON_GetObjectItemCaseSensitive(root, "num");
-    if (!cJSON_IsNumber(num_item)) {
-        printf("Error: El campo 'num' no existe o no es un numero\n");
+    // Obtener el arreglo "motor" para identificar los motores
+    cJSON *motor_array = cJSON_GetObjectItemCaseSensitive(root, "motor");
+    if (!cJSON_IsArray(motor_array)) {
+        printf("Error: El campo 'motor' no existe o no es un arreglo\n");
         cJSON_Delete(root);
         return -1;
     }
 
-    int num_value = num_item->valueint;
-    if (num_value < 0 || num_value > 3) {
-        printf("Error: El valor de 'num' (%d) esta fuera del rango permitido (0-3)\n", num_value);
+    int num_motor = cJSON_GetArraySize(motor_array);
+    if (num_motor < 1 || num_motor > 4) {
+        printf("Error: Numero de motores invalido (%d). Debe estar entre 1 y 4\n", num_motor);
         cJSON_Delete(root);
         return -1;
     }
-    motor_data->num = num_value;
+    motor_data->num = num_motor;
 
-    // Verificar si el campo "cfg" existe y es un arreglo de 2 elementos
-    cJSON *cfg_array = cJSON_GetObjectItemCaseSensitive(root, "cfg");
-    if (!cJSON_IsArray(cfg_array) || cJSON_GetArraySize(cfg_array) != 2) {
-        printf("Error: El campo 'cfg' no existe o no tiene exactamente 2 elementos\n");
+    // Verificar los otros campos
+    cJSON *dir_array = cJSON_GetObjectItemCaseSensitive(root, "dir");
+    cJSON *ena_array = cJSON_GetObjectItemCaseSensitive(root, "ena");
+    cJSON *spd_array = cJSON_GetObjectItemCaseSensitive(root, "spd");
+
+    if (!cJSON_IsArray(dir_array) || cJSON_GetArraySize(dir_array) != num_motor ||
+        !cJSON_IsArray(ena_array) || cJSON_GetArraySize(ena_array) != num_motor ||
+        !cJSON_IsArray(spd_array) || cJSON_GetArraySize(spd_array) != num_motor) {
+        printf("Error: Los campos 'dir', 'ena' o 'spd' no tienen el numero correcto de elementos\n");
         cJSON_Delete(root);
         return -1;
     }
 
-    // Verificar que los valores en el arreglo "cfg" sean 0 o 1
-    for (int i = 0; i < 2; i++) {
-        cJSON *cfg_item = cJSON_GetArrayItem(cfg_array, i);
-        if (!cJSON_IsNumber(cfg_item)) {
-            printf("Error: El valor en la posicion %d del arreglo 'cfg' no es un numero\n", i);
+    // Leer valores del arreglo "motor"
+    for (int i = 0; i < num_motor; i++) {
+        cJSON *motor_item = cJSON_GetArrayItem(motor_array, i);
+        if (!cJSON_IsNumber(motor_item) || motor_item->valueint < 0 || motor_item->valueint > 3) {
+            printf("Error: El valor en la posicion %d del arreglo 'motor' no es valido\n", i);
             cJSON_Delete(root);
             return -1;
         }
+        motor_data->motor[i] = motor_item->valueint;
+    }
 
-        int cfg_value = cfg_item->valueint;
-        if (cfg_value != 0 && cfg_value != 1) {
-            printf("Error: El valor en la posicion %d del arreglo 'cfg' (%d) no es 0 ni 1\n", i, cfg_value);
+    // Verificar valores de "dir"
+    for (int i = 0; i < num_motor; i++) {
+        cJSON *dir_item = cJSON_GetArrayItem(dir_array, i);
+        if (!cJSON_IsNumber(dir_item) || (dir_item->valueint != 0 && dir_item->valueint != 1)) {
+            printf("Error: El valor en la posicion %d del arreglo 'dir' no es 0 ni 1\n", i);
             cJSON_Delete(root);
             return -1;
         }
-
-        motor_data->cfg[i] = cfg_value;
+        motor_data->dir[i] = dir_item->valueint;
     }
 
-    // Verificar si el campo "spd" existe y es un numero valido
-    cJSON *spd_item = cJSON_GetObjectItemCaseSensitive(root, "spd");
-    if (!cJSON_IsNumber(spd_item)) {
-        printf("Error: El campo 'spd' no existe o no es un numero\n");
-        cJSON_Delete(root);
-        return -1;
+    // Verificar valores de "ena"
+    for (int i = 0; i < num_motor; i++) {
+        cJSON *ena_item = cJSON_GetArrayItem(ena_array, i);
+        if (!cJSON_IsNumber(ena_item) || (ena_item->valueint != 0 && ena_item->valueint != 1)) {
+            printf("Error: El valor en la posicion %d del arreglo 'ena' no es 0 ni 1\n", i);
+            cJSON_Delete(root);
+            return -1;
+        }
+        motor_data->ena[i] = ena_item->valueint;
     }
 
-    int spd_value = spd_item->valueint;
-    if (spd_value < 0 || spd_value > 9) {
-        printf("Error: El valor de 'spd' (%d) esta fuera del rango permitido (0-9)\n", spd_value);
-        cJSON_Delete(root);
-        return -1;
+    // Verificar valores de "spd"
+    for (int i = 0; i < num_motor; i++) {
+        cJSON *spd_item = cJSON_GetArrayItem(spd_array, i);
+        if (!cJSON_IsNumber(spd_item) || spd_item->valueint < 0 || spd_item->valueint > 2000) {
+            printf("Error: El valor en la posicion %d del arreglo 'spd' esta fuera del rango permitido (0-2000)\n", i);
+            cJSON_Delete(root);
+            return -1;
+        }
+        motor_data->spd[i] = spd_item->valueint;
     }
-    motor_data->spd = spd_value;
 
     // Verificar si el campo "mode" existe y es valido (0, 1 o 2)
     cJSON *mode_item = cJSON_GetObjectItemCaseSensitive(root, "mode");
-    if (!cJSON_IsNumber(mode_item)) {
-        printf("Error: El campo 'mode' no existe o no es un numero\n");
+    if (!cJSON_IsNumber(mode_item) || mode_item->valueint < 0 || mode_item->valueint > 2) {
+        printf("Error: El valor de 'mode' (%d) esta fuera del rango permitido (0-2)\n", mode_item->valueint);
         cJSON_Delete(root);
         return -1;
     }
-    int mode_value = mode_item->valueint;
-    if (mode_value < 0 || mode_value > 2) {
-        printf("Error: El valor de 'mode' (%d) esta fuera del rango permitido (0-2)\n", mode_value);
-        cJSON_Delete(root);
-        return -1;
-    }
-    motor_data->mode = mode_value;
+    motor_data->mode = mode_item->valueint;
 
-    // JSON valido y valores en rango
-    printf("Mensaje valido. num = %d, cfg = [%d, %d], spd = %d\n",
-           motor_data->num, motor_data->cfg[0], motor_data->cfg[1], motor_data->spd);
-
+    printf("Mensaje valido. num_motor = %d\n", motor_data->num);
     cJSON_Delete(root);
-    return 0; //exito
+    return 0; // exito
 }

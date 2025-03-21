@@ -29,6 +29,7 @@
   .asg 0x1C, SHD_7		       			; shared[7] motor_C STEP_PERIOD_C
   .asg 0x20, SHD_8					; shared[8] motor_D STEP_PERIOD_D
   .asg 0x24, SHD_9					; shared[9] send enable-dir MA y MB rising detect
+  .asg 0x28, SHD_10
   .asg 0x0a, SHARED_MEM_SIZE          	 		; 10 en decimal
   .asg 0x04, OFFSET_MEM                			;
 
@@ -44,9 +45,9 @@
   .asg 0x148, GPIO_RISINGDETECT				; habilita las interrupciones por flanco asc
   .asg 0x30,  GPIO_IRQSTATUS_1				; get-set irq
   .asg 0x150, GPIO_DEBOUNCENABLE			; antirebote enable register
-  .asg 0x54,  GPIO_DEBOUNCINGTIME			; tiempo en us antirebote register
-  .asg 0xD,  DEBOUNCETIME				; tiempo en us value
-  .asg 0xF00, GPIO0_LEVELDETECT_MASK		        ; bits 8-11 bit22
+  .asg 0x54,  GPIO_DEBOUNCINGTIME			; configure debouncingtime register
+  .asg 0xD,  DEBOUNCETIME				; Debouncing Value = (DEBOUNCETIME + 1) * 31 microseconds
+  .asg 0xF00, GPIO0_LEVELDETECT_MASK		        ; bits 8-11 estas entradas estan configuradas con antirebote
   .asg 0x08800000, GPIO0_RISINGDETECT_MASK              ; bit23 y bit 27
   .asg 0x01, GPIO2_RISINGDETECT_MASK			; pin P8_18 GPIO2_1 flanco asc detect para funcion get gpio read send
 
@@ -173,6 +174,19 @@ gpio_config:
   LDI32 r1, GPIO0_RISINGDETECT_MASK                     ; input toggles bit23 y bit27
   SBBO  &r1, r0, 0, 4                                   ; Load the values at r0 into r1.
 
+  ; configuracion antirebote
+;  LDI32 r0, (GPIO0|GPIO_DEBOUNCINGTIME)                 ; load addr for GPIO0
+;  LBBO  &r1, r0, 0, 4                                   ; Load the values at r0 into r1.
+;  LDI32 r1, GPIO_DEBOUNCINGTIME                         ; debouncingtime 0-255
+;  SBBO  &r1, r0, 0, 4                                   ; Load the values at r0 into r1.
+
+  ; Muy importante primero hay que definir el debouncingtime y luego habilitar el modulo
+;  LDI32 r0, (GPIO0|GPIO_DEBOUNCENABLE)                  ; load addr for GPIO0
+;  LBBO  &r1, r0, 0, 4                                   ; Load the values at r0 into r1.
+;  LDI32 r1, 0x0;
+;  LDI32 r1, GPIO0_LEVELDETECT_MASK                      ; input GPIO0 bits 8-11
+;  SBBO  &r1, r0, 0, 4                                   ; Load the values at r0 into r1.
+
 ;GPIO2
   LDI32 r0, (GPIO2|GPIO_CTRL)          			; load GPIO2 control register address
   LDI32 r1, GPIO_CTRL_ENABLE           			; load control enable value
@@ -204,15 +218,16 @@ gpio_config:
   LBBO &r0, r20, SHD_0, 4                               ; load shared[0]
 ; set flag function probe
 ;  SET  r0, r0, 0                          	         ; set flag gpio_read bit0
-;  SET  r0, r0, 1                          	         ; set flag gpio_write set  bit1
+  SET  r0, r0, 2                          	         ; set flag gpio_write set  bit2
   SET  r0, r0, 4			  	         ; set flaf motor config set bit4
   SBBO  &r0, r20, SHD_0, 4                              ; set flag set in shared[0]
 
 ; gpio read
 ;  LBBO  &r21, r20, SHD_1, 4                             ; valores de las entradas gpio_read bit0-bit3
+
 ; gpio write
-;  LDI32 r22, 0xFF			                 ; debug-> Cargamos gpio_write state->1100 pins->1101
-;  SBBO  &r22, r20, SHD_2, 4                             ;
+  LDI32 r22, 0x6F			                 ; debug-> Cargamos gpio_write state->1100 pins->1101
+  SBBO  &r22, r20, SHD_3, 4                              ;
 ; motor
   LDI32 r23, 0xFFF                       		 ; direction-enable 11 11 11 11  motor->1111 (1111 1111 1111)
   LDI32 r24, 0xFFF					 ; Cargamos un STEP_PERIOD_A de prueba en decimal 4096  aprox 2.8 ms
@@ -253,20 +268,16 @@ level_F:
   LDI32 r0, (GPIO2|GPIO_DATAOUT)                        ; load addr for GPIO2 Set data r0
   LBBO  &r1, r0, 0, 4				        ; load value into r1 r0 addr
   QBBS  STEP_PERIOD_A, r1, OUTPUT_MA_E                  ; jump is output_MA_E is set bit6
-  ZERO  &r10, 4  					; borramos r10 STEP_PERIOD_A
-  SBBO  &r10, r20, SHD_5, 4 				; borramos shared[5] STEP_PERIOD_A
+  QBBC  DISABLE_OUTPUT_MA, r1, OUTPUT_MA_E		; jump si output_MA_DIS borramos todas las salidas
 level_F1:
   QBBS  STEP_PERIOD_B, r1, OUTPUT_MB_E		        ; jump is output_MB_E is set bit8
-  ZERO  &r11, 4                                         ; borramos r11 STEP_PERIOD_B
-  SBBO  &r11, r20, SHD_6, 4 				; borramos shared[6] STEP_PERIOD_B
+  QBBC  DISABLE_OUTPUT_MB, r1, OUTPUT_MB_E              ; jump si output_MB_DIS borramos todas las salidas
 level_F2:
   QBBS  STEP_PERIOD_C, r1, OUTPUT_MC_E                  ; jump is output_MC_E is set bit10
-  ZERO  &r12, 4                                         ; borramos r12 STEP_PERIOD_C
-  SBBO  &r12, r20, SHD_7, 4 				; borramos shared[7] STEP_PERIOD_C
+  QBBC  DISABLE_OUTPUT_MC, r1, OUTPUT_MC_E              ; jump si output_MC_DIS borramos todas las salidas
 level_F3:
   QBBS  STEP_PERIOD_D, r1, OUTPUT_MD_E                  ; jump is output_MD_E is set bit12
-  ZERO  &r13, 4                                         ; borramos r13 STEP_PERIOD_D
-  SBBO  &r13, r20, SHD_8, 4 				; borramos shared[8] STEP_PERIOD_D
+  QBBC  DISABLE_OUTPUT_MD, r1, OUTPUT_MD_E              ; jump si output_MD_DIS borramos todas las salidas
 level_G:
   LDI32 r0, (GPIO0|GPIO_DATAIN)                         ; load addr for GPIO0 Set data r0
   LBBO  &r1, r0, 0, 4					;
@@ -348,7 +359,7 @@ level_A1:
 GPIO_WRITE_SET:
 ; clr flag gpio_write
   LBBO  &r0, r20, SHD_0, 4  				; Shared[0]
-  CLR   r0,r0, GPIO_WRITESET_FLAG                       ; bit2 flag gpio_write set
+  CLR   r0, r0, GPIO_WRITESET_FLAG                      ; bit2 flag gpio_write set
   SBBO  &r0, r20, SHD_0, 4  				;
 ; read gpio_output to set
   LBBO  &r0, r20, SHD_3, 4  				; read shared[3]
@@ -358,7 +369,7 @@ GPIO_WRITE_SET:
   LDI32	r3, 0            	           	        ; inicializa el contador de bits (0 a 3)
   LDI32 r4, GPIO_OUT_BASE			   	; direccion base GPIO_OUT_BASE
 check_bits_w:
-  AND   r5, r1, 1  			   	        ; extrae el bit menos significativo de r1 (state 0 o 1)
+  AND   r5, r2, 1  			   	        ; extrae el bit menos significativo de r2 (state 0 o 1)
   QBBS  gpio_write_out_funct, r1, r3       	        ; qbbs myLabel r1, r3. Branch if( r1&(1<<r3) ) ojo r3 es un 1 desplazado
 level_B1:
   LSR   r2, r2, 1			   		; desplaza r2 a la derecha para procesar el siguiente bit de state
@@ -386,15 +397,17 @@ write_out_clr:
 GPIO_WRITE_GET:
 ; clr flag gpio_read
   LBBO  &r0, r20, SHD_0, 4                              ; shared[0]
-  CLR   r0,r0, GPIO_WRITEGET_FLAG                       ; bit3 flag gpio_write get state
+  CLR   r0, r0, GPIO_WRITEGET_FLAG                      ; bit3 flag gpio_write get state
   SBBO  &r0, r20, SHD_0, 4                              ;
 ; read GPIO_DATAOUT
   LDI32 r0, (GPIO2|GPIO_DATAOUT)                        ; load addr for DATAOUT
   LBBO  &r1, r0, 0, 4                                   ; Load the values at r0 into r1.
-; write GPIO DATAOUT INTO SHARED[2]
+;  SBBO  &r1, r20, SHD_10, 4
+; write GPIO DATAOUT INTO SHARED[3]
   LDI32 r0, 0x03C00000                                  ; mascara desde bit22 a bit25 porque en el registro GPIO_DATAOUT estan en esa posicion
   AND   r1, r1, r0                                      ;
   LSR   r1, r1, 18                                      ; se desplazan 18 posiciones para que los datos queden a partir del bit4
+  SBBO  &r1, r20, SHD_10, 4
 ; set flag data ready
   SET   r1, r1, GPIO_WRITEGETCOMP_FLAG                  ; shared[3] bit12-> flag gpio_write get complete
   SBBO  &r1, r20, SHD_3, 4                              ; Cargamos valores de gpio_out 22-25 en los bits 4-7 y el flag data ready en bit12
@@ -412,7 +425,8 @@ MOTOR_CONFIG_SET:
   SBBO  &r0, r20, SHD_0, 4  				;
 ; load data
   LBBO  &r0, r20, SHD_4, 4  				; read shared[4]
-  AND   r1, r0, 0x0F                       		; extrae los primeros 4 bits (0-3) en r1. Flag de mascaras
+  ;SBBO  &r0, r20, SHD_10, 4; debug
+  AND   r1, r0, 0x0F                       		; extrae los priomeros 4 bits (0-3) en r1. Flag de mascaras
   LDI32 r2, 0xFF0			   		; mascara bit 4-11
   AND   r2, r0, r2                         		; extrae los bits 4-11 en r2. Pins enable-dir
   LSR   r2, r2, 4                          		; desplaza los bits 4-11 a la posicion menos significativa en r2
@@ -525,6 +539,38 @@ TOGGLE_PIN_D:
   SBBO  &r1, r0, 0 , 4                                  ; actualizamos la salida GPIO2_17_MD_S
   LBBO  &r13, r20, SHD_8, 4                             ; cargamos nuevamente el valor de shared[8] para arrancar de nuevo la cuenta
   QBA   level_G                                         ; volvemos al loop principal
+
+DISABLE_OUTPUT_MA:
+  LDI32 r0, (GPIO2|GPIO_CLRDATAOUT)                     ; recordar que hay que hacer un set para clr
+  LDI32 r1, 0x0						; ponemos en estado bajo las salidas
+  SET   r1, r1, OUTPUT_MA_D                             ;
+  SET   r1, r1, 14	         			; OUTPUT_MA_S lo hacemos asi para no agregar mas instrucciones
+  SBBO  &r1, r0, 0, 4                                   ;
+  QBA   level_F1					;
+
+DISABLE_OUTPUT_MB:
+  LDI32 r0, (GPIO2|GPIO_CLRDATAOUT)                     ; recordar que hay que hacer un set para clr
+  LDI32 r1, 0x0                                         ; ponemos en estado bajo las salidas
+  SET   r1, r1, OUTPUT_MB_D                             ;
+  SET   r1, r1, 15                                      ; OUTPUT_MB_S
+  SBBO  &r1, r0, 0, 4                                   ;
+  QBA   level_F2                                        ;
+
+DISABLE_OUTPUT_MC:
+  LDI32 r0, (GPIO2|GPIO_CLRDATAOUT)                     ; recordar que hay que hacer un set para clr
+  LDI32 r1, 0x0                                         ; ponemos en estado bajo las salidas
+  SET   r1, r1, OUTPUT_MC_D                             ;
+  SET   r1, r1, 16                                      ; OUTPUT_MC_S
+  SBBO  &r1, r0, 0, 4                                   ;
+  QBA   level_F3                                        ;
+
+DISABLE_OUTPUT_MD:
+  LDI32 r0, (GPIO2|GPIO_CLRDATAOUT)                     ; recordar que hay que hacer un set para clr
+  LDI32 r1, 0x0                                         ; ponemos en estado bajo las salidas
+  SET   r1, r1, OUTPUT_MD_D                             ;
+  SET   r1, r1, 17                                      ; OUTPUT_MD_S
+  SBBO  &r1, r0, 0, 4                                   ;
+  QBA   level_G                                         ;
 
 DISABLE_MA:
   LDI32 r0, (GPIO2|GPIO_CLRDATAOUT)                     ;
