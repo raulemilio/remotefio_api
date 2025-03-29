@@ -1,0 +1,60 @@
+/*******************************************/
+/*******************************************/
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <rc/i2c.h>
+#include "i2c_lcd.h"
+
+//Comandos (por defecto ya esta confiugurado):
+//bus 2 (I2C2)
+//dev/i2c-1
+//SDA P9_20 / P1.26
+//SCL  P9_19 / P1.28
+//El driver está configurado para 2 lineas por 16 caracteres pero
+// se puede usar perfectamente con 4 lineas y 20 caracteres.
+// por ejemplo para escribir en la linea 4 en la posición 1 -> lcd_cursor_pos(2,21);
+
+int main()
+{
+    const char *str1 = "Hello World";
+
+    if (lcd_set_i2c())
+    {
+        printf("lcd_set_i2c() failed!!!\n");
+        return 1;
+    }
+
+    printf("Running LCD test...\n");
+    lcd_init();
+
+    //set string to first line
+    lcd_cursor_pos(2,21);// linea 4 posición 1 si se usa un LCD de 20x4
+    lcd_put_str(str1);
+
+    //set cursor position and put char
+    lcd_cursor_pos(2,1);
+    lcd_put_char('R');
+
+    lcd_cursor_pos(2,2);
+    lcd_put_char('P');
+
+    lcd_cursor_pos(2,3);
+    lcd_put_char('i');
+
+    lcd_cursor_pos(2,10);
+    lcd_put_str(":-)");
+
+    printf("Displaying test chars on LCD.\n" );
+    sleep(10);
+
+    //clear screen and finish tests
+    lcd_clear_screen();
+    lcd_put_str("Test OK, bye...");
+
+    lcd_end();
+    rc_i2c_close(0);
+    printf("Test finished.\n");
+    return 0;
+}
+
