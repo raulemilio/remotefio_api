@@ -1,0 +1,263 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <signal.h>
+#include <pthread.h>
+#include <mosquitto.h>
+#include <cjson/cJSON.h>
+
+#include <stdint.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/mman.h>
+#include <errno.h>
+#include <time.h>
+
+#include "mqtt_callback.h"
+#include "mem_map.h"
+#include "mqtt_response.h"
+#include "lcd_system_status.h"
+
+#define FUNC_COUNT FUNC_UNKNOWN  // Numero total de funciones validas
+
+// Mutex y flags de ejecucion (static para que sean locales al archivo)
+static pthread_mutex_t function_mutex = PTHREAD_MUTEX_INITIALIZER;
+static int execution_flags[FUNC_COUNT] = {EXECUTION_ENABLED}; // Se inicializan en habilitado
+
+static int fd_shared;
+static void *map_base_shared;
+static uint32_t *shared; // SHARED es de 32 bits por dato
+
+static off_t target_shared = 0x4A310000; // Direccion base de SHARED
+static size_t shared_size = 0x3000;      // 12KB de memoria compartida
+
+//time_t start_time;
+
+// Funciones auxiliares para cada tipo de funcion
+void handle_lcd_function(ThreadArgs *args) {
+    printf("System -> lcd clean\n");
+
+    // Logica especifica para LCD
+     ActionType action = args->system_data->action;
+    if (action == ACTION_CLEAN){
+       lcd_system_init();
+       publish_system_response_status(args->mosq, FUNCTION_STATUS_OK);
+       lcd_system_status(LCD_SYSTEM_CLEAN);
+
+    }else{
+      publish_gpio_input_response_status(args->mosq, FUNCTION_STATUS_ERROR);
+    }
+}
+
+void handle_pru0_function(ThreadArgs *args) {
+    printf("System -> pru0\n");
+
+    ActionType action = args->system_data->action;
+    handle_pru_action(action, PRU0_PATH, PRU0_FIRMWARE, args);
+}
+
+void handle_pru1_function(ThreadArgs *args) {
+    printf("System -> pru1\n");
+
+    ActionType action = args->system_data->action;
+    handle_pru_action(action, PRU1_PATH, PRU1_FIRMWARE, args);
+}
+
+void handle_adc_function(ThreadArgs *args) {
+    printf("System -> adc stop\n");
+    // Logica especifica para ADC
+}
+
+void handle_gpio_input_mode0_function(ThreadArgs *args) {
+    printf("System -> gpio_input mode0 stop\n");
+}
+void handle_gpio_input_mode1_function(ThreadArgs *args) {
+    printf("System -> gpio_input mode1 stop\n");
+    //  clr flag gpio_input MODE 1
+    pthread_mutex_lock(&gpio_mutex);
+    shared[PRU_SHD_FLAGS_INDEX] &= ~(1 << PRU_GPIO_INPUT_MODE1_FLAG);
+    pthread_mutex_unlock(&gpio_mutex);
+    lcd_system_status(LCD_GPIO_INPUT_STATUS_FINNISH);
+}
+void handle_gpio_input_mode2_function(ThreadArgs *args) {
+    printf("System -> gpio_input mode2 stop\n");
+}
+
+void handle_gpio_output_mode0_function(ThreadArgs *args) {
+    printf("System -> gpio_output mode0 stop\n");
+    // Logica especifica para GPIO Output
+    lcd_system_status(LCD_GPIO_OUTPUT_STATUS_FINNISH);
+}
+void handle_gpio_output_mode1_function(ThreadArgs *args) {
+    printf("System -> gpio_output mode1 stop\n");
+}
+
+void handle_motor_mode0_function(ThreadArgs *args) {
+    printf("System -> motor mode 0 stop\n");
+}
+
+void handle_motor_mode1_function(ThreadArgs *args) {
+    printf("System -> motor mode 1 stop\n");
+    //  clr flag motor MODE 1
+    pthread_mutex_lock(&gpio_mutex);
+    shared[PRU_SHD_FLAGS_INDEX] &= ~(1 << PRU_MOTOR_MODE1_FLAG);
+    pthread_mutex_unlock(&gpio_mutex);
+    lcd_system_status(LCD_MOTOR_STATUS_FINNISH);
+}
+void handle_motor_mode2_function(ThreadArgs *args) {
+    printf("System -> motor mode 2 stop\n");
+}
+void handle_motor_mode3_function(ThreadArgs *args) {
+    printf("System -> motor mode 3 stop\n");
+}
+
+
+void handle_all_stop_functions(ThreadArgs *args) {
+    printf("System -> function all stop\n");
+   //  clr all flags shd0
+    pthread_mutex_lock(&gpio_mutex);
+    shared[PRU_SHD_FLAGS_INDEX] = PRU_ERASE_MEM;
+    pthread_mutex_unlock(&gpio_mutex);
+    lcd_system_status(LCD_FUNCTION_ALL_STATUS_FINNISH);
+
+    // Liberar la memoria de los argumentos
+    free(args);
+    pthread_exit(NULL);
+
+
+}
+
+// Funciones auxiliares
+void handle_pru_action(int action, const char *pru_path, const char *pru_firmware, ThreadArgs *args) {
+    switch (action) {
+        case ACTION_START:
+            // Encender PRU
+            if (control_pru(1, pru_path, pru_firmware) == 0) {
+                printf(PRU1_ON_SUCCESS);
+                publish_system_response_status(args->mosq, FUNCTION_STATUS_OK);
+                lcd_system_status(LCD_PRU0_START);
+            } else {
+                printf(PRU1_ON_ERROR);
+                publish_system_response_status(args->mosq, FUNCTION_STATUS_ERROR);
+                lcd_system_status(LCD_PRU0_ERROR);
+            }
+            break;
+        case ACTION_STOP:
+            // Apagar PRU
+            if (control_pru(0, pru_path, pru_firmware) == 0) {
+                printf(PRU1_OFF_SUCCESS);
+                publish_system_response_status(args->mosq, FUNCTION_STATUS_OK);
+                lcd_system_status(LCD_PRU1_STOP);
+            } else {
+                printf(PRU1_OFF_ERROR);
+                publish_system_response_status(args->mosq, FUNCTION_STATUS_ERROR);
+                lcd_system_status(LCD_PRU1_ERROR);
+            }
+            break;
+        default:
+            printf(SYSTEM_INVALID_OPTION);
+            break;
+    }
+}
+
+// **FUNCION PRINCIPAL**
+void *system_function(void *arg) {
+    ThreadArgs *args = (ThreadArgs *)arg;
+
+    // Recuperar el tipo de funcion de la estructura SystemData
+    FunctionType function_type = args->system_data->function;
+
+    // Verificar si el tipo de funcion es valido
+    if (function_type < 0 || function_type >= FUNC_COUNT) {
+        printf("Invalid function type\n");
+        pthread_exit(NULL);
+    }
+
+    // Bloquear el mutex antes de modificar execution_flags
+    pthread_mutex_lock(&function_mutex);
+
+    // Verificar si la funcion ya esta en ejecucion
+    if (execution_flags[function_type] == EXECUTION_DISABLED) {
+        printf(MODE_ALREADY_RUNNING, function_type);
+        lcd_system_status(LCD_MQTT_MSG_RECEIVED_SYSTEM_BUSY);
+        pthread_mutex_unlock(&function_mutex);
+        pthread_exit(NULL);
+    }
+
+    // Marcar la funcion como en ejecucion
+    execution_flags[function_type] = EXECUTION_DISABLED;
+    pthread_mutex_unlock(&function_mutex);
+
+    // Mapear SHARED (32 bits por dato)
+    if (map_memory(&fd_shared, &map_base_shared, (void **)&shared, target_shared, shared_size) == -1) {
+        // Si falla el mapeo, liberar el flag y el mutex
+        pthread_mutex_lock(&function_mutex);
+        execution_flags[function_type] = EXECUTION_ENABLED;
+        pthread_mutex_unlock(&function_mutex);
+        pthread_exit(NULL);  // Abortamos el hilo
+        return -1;
+    }
+
+    // Ejecutar la funcion correspondiente segun el tipo de funcion
+    switch (function_type) {
+        case FUNC_LCD:
+            handle_lcd_function(args);
+            break;
+        case FUNC_PRU0:
+            handle_pru0_function(args);
+            break;
+        case FUNC_PRU1:
+            handle_pru1_function(args);
+            break;
+        case FUNC_ADC:
+            handle_adc_function(args);
+            break;
+        case FUNC_GPIO_INPUT_MODE0:
+            handle_gpio_input_mode0_function(args);
+            break;
+        case FUNC_GPIO_INPUT_MODE1:
+            handle_gpio_input_mode1_function(args);
+            break;
+        case FUNC_GPIO_INPUT_MODE2:
+            handle_gpio_input_mode2_function(args);
+            break;
+        case FUNC_GPIO_OUTPUT_MODE0:
+            handle_gpio_output_mode0_function(args);
+            break;
+        case FUNC_GPIO_OUTPUT_MODE1:
+            handle_gpio_output_mode1_function(args);
+            break;
+        case FUNC_MOTOR_MODE0:
+            handle_motor_mode0_function(args);
+            break;
+        case FUNC_MOTOR_MODE1:
+            handle_motor_mode1_function(args);
+            break;
+        case FUNC_MOTOR_MODE2:
+            handle_motor_mode2_function(args);
+            break;
+        case FUNC_MOTOR_MODE3:
+            handle_motor_mode3_function(args);
+            break;
+        case FUNC_ALL_STOP_FUNCTIONS:
+            handle_all_stop_functions(args);
+	    break;
+        default:
+            printf(GPIO_SYSTEM_INVALID_OPTION);
+            break;
+    }
+
+    // Liberar memoria mapeada
+    unmap_memory(fd_shared, map_base_shared, shared_size);
+
+    // Marcar la funcion como finalizada
+    pthread_mutex_lock(&function_mutex);
+    execution_flags[function_type] = EXECUTION_ENABLED;
+    pthread_mutex_unlock(&function_mutex);
+
+    // Liberar la memoria de los argumentos
+    free(args);
+    pthread_exit(NULL);
+}
+

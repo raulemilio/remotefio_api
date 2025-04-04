@@ -1,0 +1,108 @@
+PRU Assembler Unix v2.3.3 Tue Mar  4 18:26:08 2025
+
+Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
+src/pru1-servo.asm                                                   PAGE    1
+
+       1; Raul Emlio Romero
+       2;
+       3;
+       4        .clink
+       5        .global start
+       6
+       7        .asg "5000000",  DELAY
+       8        .asg  0x44e07000, GPIO0       ; GPIO Bank 0, See the AM335x TRM
+       9        .asg  0x481ac000, GPIO2       ; GPIO Bank 2,
+      10
+      11        .asg  0x190, GPIO_CLRDATAOUT  ; for clearing the GPIO registers
+      12        .asg  0x194, GPIO_SETDATAOUT  ; for setting the GPIO registers
+      13        .asg  0x138, GPIO_DATAOUT     ; for reading the GPIO registers
+      14        .asg  0x138, GPIO_DATAIN      ; for reading the GPIO registers
+      15
+      16        .asg  0x130, GPIO_CTRL        ; ENABLE GPIO PORT
+      17        .asg  0x00,  GPIO_CTRL_ENABLE ;
+      18        .asg  0x134, GPIO_OE          ; SET GPIO INPUT-OUTPUT
+      19        .asg  0xFC3C003F, GPIO_OE_OUTPUT   ; Pines usados como salida bit6 a bit17 y bit22 al bit25 en
+      20        .asg  0xF0,  GPIO_OE_INPUT    ; Para todos lo pines usados como entrada bit8 al bit10 en 1
+      21
+      22        ;Gpio read
+      23        .asg 1<<10, GPIO0_10_in0     ; P8_31 gpio0[10] input_0 config-pin P8_31 gpio_pd
+      24        .asg 1<<11, GPIO0_11_in1     ; P8_32 gpio0[11] input_1
+      25        .asg 1<<9,  GPIO0_9_in2      ; P8_33 gpio0[9] input_2
+      26        .asg 1<<8,  GPIO0_8_in3      ; P8_35 gpio0[8] input_3
+      27
+      28        ; Gpio write
+      29        .asg 1<<22, GPIO2_22_out0    ; P8_27 gpio2[22] output_0 congif-pin P8_27 gpio
+      30        .asg 1<<24, GPIO2_24_out1    ; P8_28 gpio2[24] output_1
+      31        .asg 1<<23, GPIO2_23_out2    ; P8_29 gpio2[23] output_2
+      32        .asg 1<<25, GPIO2_25_out3    ; P8_30 gpio2[25] output_3
+      33
+      34        ; Motor
+      35        .asg 1<<17, GPIO2_17_MA_E      ; P8_34 gpio2[17] output_MA_E config-pin P8_34 gpio
+      36        .asg 1<<16, GPIO2_16_MA_D      ; P8_36 gpio2[16] output_MA_D
+      37        .asg 1<<14, GPIO2_14_MA_S      ; P8_37 gpio2[14] output_MA_S
+      38        .asg 1<<15, GPIO2_15_MB_E      ; P8_38 gpio2[15] output_MB_E
+      39        .asg 1<<12, GPIO2_12_MB_D      ; P8_39 gpio2[12] output_MB_D
+      40        .asg 1<<13, GPIO2_13_MB_S      ; P8_40 gpio2[13] output_MB_S
+      41        .asg 1<<10, GPIO2_10_MC_E      ; P8_41 gpio2[10] output_MC_E
+      42        .asg 1<<11, GPIO2_11_MC_D      ; P8_42 gpio2[11] output_MC_D
+      43        .asg 1<<8,  GPIO2_8_MC_S       ; P8_43 gpio2[8] output_MC_S
+      44        .asg 1<<9,  GPIO2_9_MD_E       ; P8_44 gpio2[9] output_MD_E
+      45        .asg 1<<6,  GPIO2_6_MD_D       ; P8_45 gpio2[6] output_MD_D
+      46        .asg 1<<7,  GPIO2_7_MD_S       ; P8_46 gpio2[7] output_MD_S
+      47
+      48        .asg  32, PRU0_R31_VEC_VALID  ; allows notification of program completion
+      49        .asg  3,  PRU_EVTOUT_0        ; the event number that is sent back
+      50
+      51 00000000                 start:
+      52
+      53; GPIO0 configuration
+      54 00000000 7130802444E0C0          LDI32   r0, (GPIO0|GPIO_CTRL)  ; Load GPIO0 control register address
+      55 00000008 000081240000C1          LDI32   r1, GPIO_CTRL_ENABLE   ; Load control enable value
+PRU Assembler Unix v2.3.3 Tue Mar  4 18:26:08 2025
+
+Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
+src/pru1-servo.asm                                                   PAGE    2
+
+      56 00000010 000000E1002081          SBBO    &r1, r0, 0, 4          ; Write enable value to GPIO0 control register
+      57
+      58 00000014 7134802444E0C0          LDI32   r0, (GPIO0|GPIO_OE)    ; Load GPIO0 output enable register address
+      59 0000001c 00F081240000C1          LDI32   r1, GPIO_OE_INPUT      ; Set GPIO0 as input
+      60 00000024 000000E1002081          SBBO    &r1, r0, 0, 4          ; Write input configuration to GPIO0
+      61
+      62; GPIO2 configuration
+      63 00000028 C1308024481AC0          LDI32   r0, (GPIO2|GPIO_CTRL)  ; Load GPIO2 control register address
+      64 00000030 000081240000C1          LDI32   r1, GPIO_CTRL_ENABLE   ; Load control enable value
+      65 00000038 000000E1002081          SBBO    &r1, r0, 0, 4          ; Write enable value to GPIO2 control register
+      66
+      67 0000003c C1348024481AC0          LDI32   r0, (GPIO2|GPIO_OE)    ; Load GPIO2 output enable register address
+      68 00000044 003F8124FC3CC1          LDI32   r1, GPIO_OE_OUTPUT     ; Set GPIO2 as output
+      69 0000004c 000000E1002081          SBBO    &r1, r0, 0, 4          ; Write output configuration to GPIO2
+      70
+      71 00000050                 MAN:
+      72 00000050 C1948124481AC1          LDI32   r1, (GPIO2|GPIO_SETDATAOUT)  ; load addr for GPIO Set data r1
+      73 00000058 040082240000C2          LDI32   r2, GPIO2_10_MC_E     ; write GPIO0_30 to r2
+      74 00000060 000000E1002182          SBBO    &r2, r1, 0, 4     ; write r2 to the r1 address value - LED ON
+      75
+      76 00000064 4B408024004CC0          LDI32   r0, DELAY
+      77 0000006c                 DELAYON:
+      78 0000006c 0000000501E0E0          SUB     r0, r0, 1
+      79 00000070 0000006F00E0FF          QBNE    DELAYON, r0, 0   ; Loop to DELAYON, unless REG0=0
+      80 00000074                 LEDOFF:
+      81 00000074 C1908124481AC1          LDI32   r1, (GPIO2|GPIO_CLRDATAOUT) ; load addr for GPIO Clear data
+      82 0000007c 040082240000C2          LDI32   r2, GPIO2_10_MC_E     ; write GPIO_30 to r2
+      83 00000084 000000E1002182          SBBO    &r2, r1, 0, 4    ; write r2 to the r1 address - LED OFF
+      84 00000088 4B408024004CC0          LDI32   r0, DELAY        ; Reset REG0 to the length of the delay
+      85
+      86 00000090                 DELAYOFF:
+      87 00000090 0000000501E0E0          SUB     r0, r0, 1              ; decrement REG0 by 1
+      88 00000094 0000006F00E0FF          QBNE    DELAYOFF, r0, 0        ; Loop to DELAYOFF, unless REG0=0
+      89
+      90 00000098 7138852444E0C5          LDI32   r5, (GPIO0|GPIO_DATAIN); load read addr for DATAOUT
+      91 000000a0 000000F1002586          LBBO    &r6, r5, 0, 4          ; Load the value at r5 into r6
+      92 000000a4 000000CF03FFEB          QBBC    MAN, r31, 3            ; is the button pressed? If not, loop
+      93 000000a8                 END:                                   ; notify the calling app that finished
+      94
+      95 000000a8 00239F240000DF          LDI32   R31, (PRU0_R31_VEC_VALID|PRU_EVTOUT_0)
+      96 000000b0 0000002A000000          HALT                     ; halt the pru program
+
+No Assembly Errors, No Assembly Warnings

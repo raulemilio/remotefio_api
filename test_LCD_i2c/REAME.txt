@@ -1,0 +1,1 @@
+El make debe estar en la mista carpeta que los archivos fuentes del proyecto

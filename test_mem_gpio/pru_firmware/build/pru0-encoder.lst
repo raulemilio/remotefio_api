@@ -1,0 +1,56 @@
+PRU Assembler Unix v2.3.3 Tue Mar  4 18:26:07 2025
+
+Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
+src/pru0-encoder.asm                                                 PAGE    1
+
+       1        .clink
+       2        .global start
+       3        .asg "5000000",  DELAY
+       4        .asg  0x44e07000, GPIO0       ; GPIO Bank 0, See the AM335x TRM
+       5        .asg  0x4804c000, GPIO1       ; GPIO Bank 1, Table 2.2 Peripheral Map
+       6        .asg  0x481ac000, GPIO2       ; GPIO Bank 2,
+       7        .asg  0x481ae000, GPIO3       ; GPIO Bank 3,
+       8        .asg  0x190, GPIO_CLRDATAOUT  ; for clearing the GPIO registers
+       9        .asg  0x194, GPIO_SETDATAOUT  ; for setting the GPIO registers
+      10        .asg  0x138, GPIO_DATAOUT     ; for reading the GPIO registers
+      11        .asg  1<<30, GPIO0_30         ; P9_11 gpio0[30] Output - bit 30
+      12        .asg  1<<31, GPIO0_31         ; P9_13 gpio0[31] Input - bit 31
+      13        .asg  32, PRU0_R31_VEC_VALID  ; allows notification of program completion
+      14        .asg  3,  PRU_EVTOUT_0        ; the event number that is sent back
+      15
+      16 00000000                 start:
+      17        ;SET     r30, r30.t5
+      18        ;LDI32   r0, DELAY
+      19
+      20        ; Enable the OCP master port
+      21 00000000 00000091042480          LBCO    &r0, C4, 4, 4    ; load SYSCFG reg into r0 (use c4 const addr)
+      22 00000004 0000001D04E0E0          CLR     r0, r0, 4        ; clear bit 4 (STANDBY_INIT)
+      23 00000008 00000081042480          SBCO    &r0, C4, 4, 4    ; store the modified r0 back at the load addr
+      24 0000000c                 MAN:
+      25 0000000c 7194812444E0C1          LDI32   r1, (GPIO0|GPIO_SETDATAOUT)  ; load addr for GPIO Set data r1
+      26 00000014 000082244000C2          LDI32   r2, GPIO0_30     ; write GPIO0_30 to r2
+      27 0000001c 000000E1002182          SBBO    &r2, r1, 0, 4     ; write r2 to the r1 address value - LED ON
+      28
+      29 00000020 0000001F05FEFE          SET     r30, r30.t5
+      30 00000024 4B408024004CC0          LDI32   r0, DELAY
+      31 0000002c                 DELAYON:
+      32 0000002c 0000000501E0E0          SUB     r0, r0, 1
+      33 00000030 0000006F00E0FF          QBNE    DELAYON, r0, 0   ; Loop to DELAYON, unless REG0=0
+      34 00000034                 LEDOFF:
+      35 00000034 7190812444E0C1          LDI32   r1, (GPIO0|GPIO_CLRDATAOUT) ; load addr for GPIO Clear data
+      36 0000003c 000082244000C2          LDI32   r2, GPIO0_30     ; write GPIO_30 to r2
+      37 00000044 000000E1002182          SBBO    &r2, r1, 0, 4    ; write r2 to the r1 address - LED OFF
+      38
+      39 00000048 0000001D05FEFE          CLR     r30, r30.t5      ; clear the output bin (LED off)
+      40 0000004c 4B408024004CC0          LDI32   r0, DELAY        ; Reset REG0 to the length of the delay
+      41
+      42 00000054                 DELAYOFF:
+      43 00000054 0000000501E0E0          SUB     r0, r0, 1        ; decrement REG0 by 1
+      44 00000058 0000006F00E0FF          QBNE    DELAYOFF, r0, 0  ; Loop to DELAYOFF, unless REG0=0
+      45 0000005c 000000CF03FFEC          QBBC    MAN, r31, 3    ; is the button pressed? If not, loop
+      46 00000060                 END:                             ; notify the calling app that finished
+      47
+      48 00000060 00239F240000DF          LDI32   R31, (PRU0_R31_VEC_VALID|PRU_EVTOUT_0)
+      49 00000068 0000002A000000          HALT                     ; halt the pru program
+
+No Assembly Errors, No Assembly Warnings
