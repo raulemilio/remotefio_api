@@ -3,6 +3,23 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define ADC_SAMPLING_TABLE_SIZE         (sizeof(adc_sampling_table) / sizeof(adc_sampling_table[0]))
+
+typedef struct {
+    int frequency;
+    int cycles;
+} AdcSamplingEntry;
+
+static const AdcSamplingEntry adc_sampling_table[] = {
+    {40000, 1981}, {20000, 4480}, {10000, 9480}, {8000, 11982},
+    {6000, 16150}, {4000, 24486}, {2000, 49480}, {1000, 99450},
+    {800, 124482}, {600, 166150}, {400, 249480}, {200, 499580},
+    {100, 999500}, {80, 1249500}, {60, 1666200}, {40, 2499900},
+    {20, 4999000}, {10, 9995100}, {8, 12500000}, {6, 16667000},
+    {4, 25000000}, {2, 49990000}, {1, 99990000}
+};
+
+//ADC
 int validate_adc_message(const char *payload, AdcData *adc_data) {
     if (payload == NULL || adc_data == NULL) {
         printf(ERR_NULL_PTR);
@@ -37,24 +54,40 @@ int validate_adc_message(const char *payload, AdcData *adc_data) {
     adc_data->mode = mode_item->valueint;
 
     cJSON *sample_rate_item = cJSON_GetObjectItemCaseSensitive(root, JSON_KEY_SAMPLE_RATE);
-    if (!cJSON_IsNumber(sample_rate_item) || sample_rate_item->valueint < ADC_SAMPLE_RATE_MIN ||
-                                             sample_rate_item->valueint > ADC_SAMPLE_RATE_MAX) {
-        printf(ERR_SAMPLE_RATE_OUT_OF_RANGE, sample_rate_item->valueint);
+    if (!cJSON_IsNumber(sample_rate_item)) {
+        printf(ERR_SAMPLE_RATE_OUT_OF_RANGE, -1);
         cJSON_Delete(root);
         return -1;
     }
-    adc_data->sample_rate = sample_rate_item->valueint;
 
-    if (ADC_SAMPLE_PERIOD_BASE % adc_data->sample_rate != 0) {
-        printf(ERR_INVALID_SAMPLE_PERIOD);
+    int sample_rate = sample_rate_item->valueint;
+    int found = 0;
+    int cycles = 0;
+
+    for (size_t i = 0; i < ADC_SAMPLING_TABLE_SIZE; ++i) {
+        if (adc_sampling_table[i].frequency == sample_rate) {
+            cycles = adc_sampling_table[i].cycles;
+            found = 1;
+            break;
+        }
+    }
+
+    if (!found) {
+        printf(ERR_SAMPLE_RATE_OUT_OF_RANGE, sample_rate);
         cJSON_Delete(root);
         return -1;
     }
-    adc_data->sample_period = ADC_SAMPLE_PERIOD_BASE / adc_data->sample_rate;
+
+    adc_data->sample_rate = sample_rate;
+    adc_data->sample_period = cycles;
+
+    // Calcular tamano minimo de buffer en base a la tasa de muestreo y duracion del proceso Linux
+    int min_buffer_size = (int)(adc_data->sample_rate * PRU_LINUX_PROCESS);
 
     cJSON *buffer_size_item = cJSON_GetObjectItemCaseSensitive(root, JSON_KEY_BUFFER_SIZE);
     if (!cJSON_IsNumber(buffer_size_item) || buffer_size_item->valueint < ADC_BUFFER_SIZE_MIN ||
-                                             buffer_size_item->valueint > ADC_BUFFER_SIZE_MAX || buffer_size_item->valueint % 4 != 0) {
+        buffer_size_item->valueint > ADC_BUFFER_SIZE_MAX || buffer_size_item->valueint % 4 != 0 ||
+        buffer_size_item->valueint < min_buffer_size) {
         printf(ERR_BUFFER_SIZE_OUT_OF_RANGE, buffer_size_item->valueint);
         cJSON_Delete(root);
         return -1;
@@ -62,17 +95,19 @@ int validate_adc_message(const char *payload, AdcData *adc_data) {
     adc_data->buffer_size = buffer_size_item->valueint;
 
     cJSON *num_samples_item = cJSON_GetObjectItemCaseSensitive(root, JSON_KEY_NUM_SAMPLES);
-    int min_samples = 2 * adc_data->buffer_size;
+    int num_samples = num_samples_item ? num_samples_item->valueint : 0;
     int max_samples = ((ADC_NUM_SAMPLES_MAX / adc_data->buffer_size) * adc_data->buffer_size);
-    if (!cJSON_IsNumber(num_samples_item) || num_samples_item->valueint < min_samples ||
-                                             num_samples_item->valueint > max_samples ||
-                                             num_samples_item->valueint % (2 * adc_data->buffer_size) != 0) {
-        printf(ERR_NUM_SAMPLES_OUT_OF_RANGE, num_samples_item->valueint);
+
+    if (!cJSON_IsNumber(num_samples_item) ||
+        num_samples < adc_data->buffer_size ||
+        num_samples > max_samples ||
+        num_samples % adc_data->buffer_size != 0) {
+        printf(ERR_NUM_SAMPLES_OUT_OF_RANGE, num_samples);
         cJSON_Delete(root);
         return -1;
     }
 
-    adc_data->num_samples = num_samples_item->valueint;
+    adc_data->num_samples = num_samples;
 
     cJSON *trigger_item = cJSON_GetObjectItemCaseSensitive(root, JSON_KEY_ENABLE_TRIGGER);
     if (!cJSON_IsNumber(trigger_item) || (trigger_item->valueint != 0 && trigger_item->valueint != 1)) {
@@ -85,6 +120,7 @@ int validate_adc_message(const char *payload, AdcData *adc_data) {
     cJSON_Delete(root);
     return 0;
 }
+
 
 //GPIO INPUT
 int validate_gpio_input_message(const char *payload, GpioInputData *gpio_input_data) {

@@ -36,7 +36,6 @@ static uint32_t *shared; // SHARED es de 32 bits por dato
 static off_t target_shared = 0x4A310000; // Direccion base de SHARED
 static size_t shared_size = 0x3000;      // 12KB de memoria compartida
 
-
 // MODE 0 get state
 void handle_gpio_output_mode_0(ThreadArgs *args) {
     printf("gpio_output -> mode 0\n");
@@ -144,6 +143,5 @@ void *gpio_output_function(void *arg) {
 
     // Liberar memoria mapeada
     unmap_memory(fd_shared, map_base_shared, shared_size);
-
 }
 

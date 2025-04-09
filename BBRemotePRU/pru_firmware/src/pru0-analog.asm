@@ -119,7 +119,7 @@
   .asg 3,  PRU_EVTOUT_0                                ; the event number that is sent back
 
 ; Debug
-  .asg 0x10000, SAMPLES_PERIOD_DEBUG		       ; 0x10000 Ts aprox 600us
+  .asg 9480, SAMPLES_PERIOD_DEBUG		       ; Fs = 10 kHz
   .asg 0x200, BUFFER_SIZE_DEBUG		               ; Muestras a guardar en cada iteracion por canal maximo 0x200 -> 512
 
   .clink
@@ -149,25 +149,25 @@ start:
 
 SETUP:
 ;GPIO1
-;  LDI32 r0, (GPIO1|GPIO_CTRL)                          ; load GPIO1 control register address
-;  LDI32 r1, GPIO_CTRL_ENABLE                           ; load control enable value
-;  SBBO  &r1, r0, 0, 4                                  ; write enable value to GPIO2 control register
+  LDI32 r0, (GPIO1|GPIO_CTRL)                          ; load GPIO1 control register address
+  LDI32 r1, GPIO_CTRL_ENABLE                           ; load control enable value
+  SBBO  &r1, r0, 0, 4                                  ; write enable value to GPIO2 control register
 
-;  LDI32 r0, (GPIO1|GPIO_OE)                            ; load GPIO1 output enable register address
-;  SET   r1, r1, ADC_INPUT_TRIGGER                      ; cargamos la entrada P_14 GPIO1[18] como entrada
-;  SBBO  &r1, r0, 0, 4                                  ; write output configuration to GPIO1
+  LDI32 r0, (GPIO1|GPIO_OE)                            ; load GPIO1 output enable register address
+  SET   r1, r1, ADC_INPUT_TRIGGER                      ; cargamos la entrada P_14 GPIO1[18] como entrada
+  SBBO  &r1, r0, 0, 4                                  ; write output configuration to GPIO1
 
 ; rising detect
-;  LDI32 r0, (GPIO1|GPIO_RISINGDETECT)                  ; load addr for GPIO1
-;  LBBO  &r1, r0, 0, 4                                  ; Load the values at r0 into r1.
-;  SET   r1, r1, ADC_INPUT_TRIGGER                      ;
-;  SBBO  &r1, r0, 0, 4                                  ; Load the values at r0 into r1.
+  LDI32 r0, (GPIO1|GPIO_RISINGDETECT)                  ; load addr for GPIO1
+  LBBO  &r1, r0, 0, 4                                  ; Load the values at r0 into r1.
+  SET   r1, r1, ADC_INPUT_TRIGGER                      ;
+  SBBO  &r1, r0, 0, 4                                  ; Load the values at r0 into r1.
 
 ; enable irq set_1
-;  LDI32 r0, (GPIO1|GPIO_IRQSTATUS_SET_1)               ; load addr for GPIO1
-;  LBBO  &r1, r0, 0, 4                                  ; Load the values at r0 into r1.
-;  SET   r1, r1, ADC_INPUT_TRIGGER                      ;
-;  SBBO  &r1, r0, 0, 4                                  ; Load the values at r0 into r1.
+  LDI32 r0, (GPIO1|GPIO_IRQSTATUS_SET_1)               ; load addr for GPIO1
+  LBBO  &r1, r0, 0, 4                                  ; Load the values at r0 into r1.
+  SET   r1, r1, ADC_INPUT_TRIGGER                      ;
+  SBBO  &r1, r0, 0, 4                                  ; Load the values at r0 into r1.
 
 ; ADC MODULE
 ; CM_WKUP
@@ -262,10 +262,10 @@ SETUP:
 
 ; GPIO1
 ; clear IRQ_GPIO_IRQSTATUS_1
-;  LDI32 r0, (GPIO1|GPIO_IRQSTATUS_1)                   ;
-;  LBBO  &r1, r0, 0, 4                                  ;
-;  SET   r1, r1, ADC_INPUT_TRIGGER                      ;
-;  SBBO  &r1, r0, 0, 4                                  ;
+  LDI32 r0, (GPIO1|GPIO_IRQSTATUS_1)                   ;
+  LBBO  &r1, r0, 0, 4                                  ;
+  SET   r1, r1, ADC_INPUT_TRIGGER                      ;
+  SBBO  &r1, r0, 0, 4                                  ;
 
 ;-------------------------------------------------------
 ; Debug
@@ -294,17 +294,15 @@ MAIN_LOOP:
 level_adc_mode0:
   LBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ;
   QBBS  ADC_MODE0, r0, ADC_MODE0_FLAG        	       ; jump is set bit0
-;level_adc_mode1:
-;  LBBO  &r0, r10, SHD_FLAGS_INDEX, 4                  ;
-;  QBBS  ADC_MODE1, r0, ADC_MODE1_FLAG     	       ; jump is set bit1
+level_adc_mode1:
+  LBBO  &r0, r10, SHD_FLAGS_INDEX, 4                  ;
+  QBBS  ADC_MODE1, r0, ADC_MODE1_FLAG     	       ; jump is set bit1
 ; clear IRQ_GPIO_IRQSTATUS_1
-;  LDI32 r0, (GPIO1|GPIO_IRQSTATUS_1)                   ;
-;  LBBO  &r1, r0, 0, 4                                  ;
-;  SET   r1, r1, ADC_INPUT_TRIGGER                      ;
-;  SBBO  &r1, r0, 0, 4                                  ;
-;   QBA   ADC_READ_CH
+  LDI32 r0, (GPIO1|GPIO_IRQSTATUS_1)                   ;
+  LBBO  &r1, r0, 0, 4                                  ;
+  SET   r1, r1, ADC_INPUT_TRIGGER                      ;
+  SBBO  &r1, r0, 0, 4                                  ;
 level_adc_end:					       ;
-
   QBA  MAIN_LOOP                                       ;
 
 ADC_MODE0:
@@ -320,16 +318,23 @@ ADC_MODE0:
   LDI32  r12, 0x0				       ; RAM0 buffer count
   QBA   ADC_READ_CH				       ;
 
-;ADC_MODE1:
-;  LBBO  &r0, r10, SHD_FLAGS_INDEX, 4                  ; Desactivamos mode0
+ADC_MODE1:
+;  LBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ; Desactivamos mode0
 ;  CLR   r0, r0, ADC_MODE0_FLAG                         ;
-;  SBBO  &r0, r10, SHD_FLAGS_INDEX, 4                  ;
+;  SBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ;
+  LDI32  r4, 0                                         ; RAM0 index init 0
+  LBBO  &r5, r10, SHD_BUFFER_SIZE_INDEX, 4             ; SHD[3] buffer por canal maximo 512
+  LDI32 r7, 0xFFFC                                     ; mascara para asegurar multiplo de 4
+  AND   r5, r5, r7                                     ; aseguramos multiplo de 4
+  ADD   r6, r5, r5                                     ; r6 es doble de r5
+  LBBO   &r11, r10, SHD_SAMPLE_PERIOD_INDEX, 4         ; read SHD[2] SAMPLES PERIOD
+  LDI32  r12, 0x0                                      ; RAM0 buffer count
   ; no clr flag para que quede continuamente leyendo
   ; get irq status
-;  LDI32 r0, (GPIO1|GPIO_IRQSTATUS_1)                   ;
-;  LBBO  &r1, r0, 0, 4                                  ;
-;  QBBS  ADC_READ_CH, r1, ADC_INPUT_TRIGGER             ; si se detecta flanco asc comenzamos la conversion
-;  QBA   level_adc_end                                  ;
+  LDI32 r0, (GPIO1|GPIO_IRQSTATUS_1)                   ;
+  LBBO  &r1, r0, 0, 4
+  QBBS  ADC_READ_CH, r1, ADC_INPUT_TRIGGER             ; si se detecta flanco asc comenzamos la conversion
+  QBA   level_adc_end                                  ;
 
 ADC_READ_CH:
   SET r30, pruout_fs_sample_test		       ; debug-> period de muestreo de 4 canales, ojo no es el tiempo de buffer

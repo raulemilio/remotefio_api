@@ -82,7 +82,7 @@
 
 	.asg 0x04, OFFSET_4_BYTES		         ; EL tamanio del dato es 4 bytes. Para 2 bytes 0x02
 	.asg 0x4000, N_SAMPLE				 ; Muestras a guardar en cada iteracion 0x1000 -> 4096 | 0x4000 -> 16384
-	.asg "50000", DELAY_S				 ; fs aprox 99799->1KHz. 1000->
+	.asg 0x100, DELAY_S				 ; fs aprox 99799->1KHz. 1000->
 
         .clink
         .global start

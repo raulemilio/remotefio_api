@@ -22,7 +22,6 @@
 
 #define OFFSET_STATE       		 4
 #define MODE_COUNT         		 2  // modos 0 o  1
-
 #define EXECUTION_ENABLED   		 1
 #define EXECUTION_DISABLED 		 0
 
@@ -34,12 +33,14 @@
 #define PRU_ADC_MODE0_FLAG    		 0
 #define PRU_ADC_MODE1_FLAG    		 1
 
+#define PRU_RAM0_INDEX_START             0
+#define PRU_RAM0_INDEX_MID	         2048
 #define PRU_ADC_BUFFER0_DATARDY_FLAG     0
 #define PRU_ADC_BUFFER1_DATARDY_FLAG     1
 #define PRU_CIRCULAR_BUFFER_SIZE         2
 
-#define MAX_QUEUE_SIZE 1000000  // Limite de almacenamiento de la cola
-#define TOTAL_PRODUCED 32  // Cantidad de datos que generaro el productor
+#define MAX_QUEUE_SIZE 			 1000000  // Limite de almacenamiento de la cola
+#define MODE1_SAMPLES_MAX		 1000
 
 // Estructura de los elementos de la cola
 typedef struct Node {
@@ -76,213 +77,174 @@ static volatile size_t ram0_size = 0x2000;        // 8KB de RAM0
 static volatile size_t shared_size = 0x3000;      // 12KB de memoria compartida
 
 void *producer(void *arg) {
-printf("producer running \n");
-ThreadArgs *args = (ThreadArgs *)arg;
-    // Cargamos frecuencia de muestreo y cantidad de muestras
-
-    shared[PRU_SHD_SAMPLE_PERIOD_INDEX] = args->adc_data->sample_period;
-    shared[PRU_SHD_BUFFER_SIZE_INDEX] = args->adc_data->buffer_size;
-    shared[PRU_SHD_ADC_DATARDY_INDEX] = 0;
-
-    // Avisamos a PRU que inicie la conversion
-    shared[PRU_SHD_FLAGS_INDEX] |= (1 << PRU_ADC_MODE0_FLAG);
-
-    int idx = 0;
-    int num_iteration = (args->adc_data->num_samples/args->adc_data->buffer_size)/PRU_CIRCULAR_BUFFER_SIZE;
-    printf("num_iteration %d \n", num_iteration);
-    printf("sample_period %d \n",args->adc_data->sample_period);
+    //printf("adc -> producer running \n");
+    ThreadArgs *args = (ThreadArgs *)arg;
+    int idx;
+    produced_count = 0;
     int iteration = 0;
+    int trigger_flag = 0;
+    int mode = 0;
+    int num_iteration = 0;
 
-    // Continuamos la conversion mientras el flag no se baje desde Linux
-    while ((shared[PRU_SHD_FLAGS_INDEX] & (1 << PRU_ADC_MODE0_FLAG)) && (iteration < num_iteration)) {
-//        printf("num_iteration %d \n", iteration);
-/*
-      while (produced_count < TOTAL_PRODUCED) {
-          pthread_mutex_lock(&fifo_mutex);
+    int pru_buffer_size = args->adc_data->buffer_size / PRU_CIRCULAR_BUFFER_SIZE;
 
-      }
-         // Esperar si la cola esta llena
-          while (queue_size >= MAX_QUEUE_SIZE) {
-              pthread_cond_wait(&fifo_not_full, &fifo_mutex);
-          }
-*/
-         // buffer 0
-          if (shared[PRU_SHD_ADC_DATARDY_INDEX] & (1 << PRU_ADC_BUFFER0_DATARDY_FLAG)) {
-          printf("num_iteration %d \n", iteration);
-
-	  // Cargamos los datos del buffer 0 desde RAM1
-          printf("buffer0 \n");
-          // Agregar nuevo dato a la cola
-
-          Node *new_node = malloc(sizeof(Node));
-          if (!new_node) {
-              perror("malloc failed");
-              exit(EXIT_FAILURE);
-          }
-          idx = 0;
-             // Organizar los datos segun el formato especificado
-             for (int i = 0; i < args->adc_data->buffer_size; ++i) {
-                  new_node->channels[0][i] = ram0[idx];     // ch0
-                  new_node->channels[1][i] = ram0[idx + 1]; // ch1
-                  new_node->channels[2][i] = ram0[idx + 2]; // ch2
-                  new_node->channels[3][i] = ram0[idx + 3]; // ch3
-    	          // Mostrar los datos extraidos en cada iteracion
-
-    	          printf("i=%d | ram0[%d]=%d, ram0[%d]=%d, ram0[%d]=%d, ram0[%d]=%d\n",
-                	idx,
-                	idx, ram0[idx],         // ch0
-        		idx+ 1, ram0[idx+ 1],   // ch1
-        		idx + 2, ram0[idx + 2], // ch2
-        		idx + 3, ram0[idx + 3]);// ch3
-
-                  idx += 4;
-
-             }
-
-          TAILQ_INSERT_TAIL(&fifo_head, new_node, entries);
-          queue_size++;
-
-          // Notificar al consumidor que hay datos disponibles
-          pthread_cond_signal(&fifo_cond);
-          pthread_mutex_unlock(&fifo_mutex);
-
-          // Borramos el flag de datos listos
-          shared[PRU_SHD_ADC_DATARDY_INDEX] &= ~(1 << PRU_ADC_BUFFER0_DATARDY_FLAG);
-          }
-
-          // buffer1
-          if (shared[PRU_SHD_ADC_DATARDY_INDEX] & (1 << PRU_ADC_BUFFER1_DATARDY_FLAG)) {
-          // Cargamos los datos del buffer 0 desde RAM1
-          iteration++;
-          printf("buffer1 \n");
-
-          // Agregar nuevo dato a la cola
-          Node *new_node = malloc(sizeof(Node));
-          if (!new_node) {
-              perror("malloc failed");
-              exit(EXIT_FAILURE);
-          }
-          idx = 2048;
-          // Organizar los datos segun el formato especificado
-             for (int i = 0; i < args->adc_data->buffer_size; ++i) {
-                 new_node->channels[0][i] = ram0[idx];   // ch0
-                 new_node->channels[1][i] = ram0[idx + 1]; // ch1
-                 new_node->channels[2][i] = ram0[idx + 2]; // ch2
-                 new_node->channels[3][i] = ram0[idx + 3]; // ch3
-                 // Mostrar los datos extraidos en cada iteracion
-
-                 printf("i=%d | ram0[%d]=%d, ram0[%d]=%d, ram0[%d]=%d, ram0[%d]=%d\n",
-        		idx,
-        		idx, ram0[idx],         // ch0
-        		idx+ 1, ram0[idx+ 1],   // ch1
-        		idx + 2, ram0[idx + 2], // ch2
-        		idx + 3, ram0[idx + 3]);// ch3
-
-    	      idx += 4;
-              }
-
-          TAILQ_INSERT_TAIL(&fifo_head, new_node, entries);
-          queue_size++;
-
-          // Notificar al consumidor que hay datos disponibles
-          pthread_cond_signal(&fifo_cond);
-          pthread_mutex_unlock(&fifo_mutex);
-
-          // Borramos el flag de datos listos
-          shared[PRU_SHD_ADC_DATARDY_INDEX] &= ~(1 << PRU_ADC_BUFFER1_DATARDY_FLAG);
-          }
-
-          usleep(1000); //
+    if(args->adc_data->mode == 0){
+       num_iteration = args->adc_data->num_samples / args->adc_data->buffer_size;
+    }else{
+       num_iteration = MODE1_SAMPLES_MAX;
     }
-    // Borramos el flag para apagar el adquisidor
-    shared[PRU_SHD_FLAGS_INDEX] &= ~(1 << PRU_ADC_MODE0_FLAG);
 
+    trigger_flag = (args->adc_data->enable_external_trigger == 0) ?
+                 PRU_ADC_MODE0_FLAG : PRU_ADC_MODE1_FLAG;
+
+    // Configurar parametros compartidos con PRU
+    shared[PRU_SHD_SAMPLE_PERIOD_INDEX] = args->adc_data->sample_period;
+    shared[PRU_SHD_BUFFER_SIZE_INDEX] = pru_buffer_size;
+    shared[PRU_SHD_ADC_DATARDY_INDEX] = PRU_ERASE_MEM;
+
+    shared[PRU_SHD_FLAGS_INDEX] |= (1 << trigger_flag);  // Iniciar adquisicion
+
+    while ((shared[PRU_SHD_FLAGS_INDEX] & (1 << trigger_flag)) && (iteration < num_iteration)) {
+
+        bool buffer_processed = false;
+
+        pthread_mutex_lock(&fifo_mutex);
+
+        if (queue_size < MAX_QUEUE_SIZE) {
+            uint32_t flags = shared[PRU_SHD_ADC_DATARDY_INDEX];
+
+            if (flags & (1 << PRU_ADC_BUFFER0_DATARDY_FLAG)) {
+                idx = PRU_RAM0_INDEX_START;
+                buffer_processed = true;
+                shared[PRU_SHD_ADC_DATARDY_INDEX] &= ~(1 << PRU_ADC_BUFFER0_DATARDY_FLAG);
+                //printf("buffer0\n");
+            } else if (flags & (1 << PRU_ADC_BUFFER1_DATARDY_FLAG)) {
+                idx = PRU_RAM0_INDEX_MID;
+                buffer_processed = true;
+                shared[PRU_SHD_ADC_DATARDY_INDEX] &= ~(1 << PRU_ADC_BUFFER1_DATARDY_FLAG);
+                //printf("buffer1 \n");
+                iteration++;
+            }
+        }
+
+        if (buffer_processed) {
+            Node *new_node = malloc(sizeof(Node));
+            if (!new_node) {
+                perror("malloc failed");
+                exit(EXIT_FAILURE);
+            }
+
+            // Copiar datos por canal
+            for (int i = 0; i < pru_buffer_size; ++i) {
+                new_node->channels[0][i] = ram0[idx];
+                new_node->channels[1][i] = ram0[idx + 1];
+                new_node->channels[2][i] = ram0[idx + 2];
+                new_node->channels[3][i] = ram0[idx + 3];
+                idx += 4;
+            }
+
+            TAILQ_INSERT_TAIL(&fifo_head, new_node, entries);
+            queue_size++;
+            produced_count++;
+            pthread_cond_signal(&fifo_cond);  // Notifica al consumidor
+        }
+
+        pthread_mutex_unlock(&fifo_mutex);
+
+        if (!buffer_processed) {
+            sched_yield();  // Cede CPU si no hay buffer disponible
+        }
+    }
+
+    shared[PRU_SHD_FLAGS_INDEX] &= ~(1 << trigger_flag);  // Detener adquisicion
     return NULL;
 }
 
 void *consumer(void *arg) {
     ThreadArgs *args = (ThreadArgs *)arg;
-    printf("consumer running \n");
-/*
+    //printf("adc -> consumer running \n");
+
+    int total_produced = (args->adc_data->num_samples / args->adc_data->buffer_size) * PRU_CIRCULAR_BUFFER_SIZE;
+
+    // Abrir archivo binario
+    FILE *adc_file = fopen("adc_data.bin", "wb");
+    if (!adc_file) {
+        perror("Error al abrir archivo de datos");
+        return NULL;
+    }
+
     while (1) {
         pthread_mutex_lock(&fifo_mutex);
-        printf("consumed_count %d \n", consumed_count);
 
-        // Esperar si la cola esta vacia
-        while (TAILQ_EMPTY(&fifo_head) && produced_count < TOTAL_PRODUCED) {
+        while (TAILQ_EMPTY(&fifo_head) && produced_count < total_produced) {
             pthread_cond_wait(&fifo_cond, &fifo_mutex);
         }
 
-        // Si ya se produjeron todos los datos y la cola esta vacia, terminar el hilo
-        if (TAILQ_EMPTY(&fifo_head) && produced_count >= TOTAL_PRODUCED) {
+        if ((TAILQ_EMPTY(&fifo_head) && produced_count >= total_produced) || consumed_count >= total_produced) {
             pthread_mutex_unlock(&fifo_mutex);
             break;
         }
 
-        // Si se han procesado todos los datos, terminar el hilo
-        if (consumed_count >= TOTAL_PRODUCED) {
-            pthread_mutex_unlock(&fifo_mutex);
-            break;
-        }
-
-        // Procesar un elemento de la cola
+        // Sacar el nodo de la cola lo mas rapido posible
         Node *node = TAILQ_FIRST(&fifo_head);
         if (node) {
-            // Crear un objeto JSON para el mensaje
+            TAILQ_REMOVE(&fifo_head, node, entries);
+            queue_size--;
+            consumed_count++;
+            pthread_cond_signal(&fifo_not_full);
+        }
+
+        pthread_mutex_unlock(&fifo_mutex);
+
+        // Procesar nodo FUERA del mutex
+        if (node) {
+            int samples_per_node = args->adc_data->buffer_size / PRU_CIRCULAR_BUFFER_SIZE;
+
+            // Escribir en archivo
+            for (int j = 0; j < samples_per_node; j++) {
+                uint16_t sample[4];
+                for (int i = 0; i < 4; i++) {
+                    sample[i] = (uint16_t)node->channels[i][j];
+                }
+                fwrite(sample, sizeof(uint16_t), 4, adc_file);
+                //printf("Nodo %d - Muestra %d: ch0=%u ch1=%u ch2=%u ch3=%u\n", consumed_count, j, sample[0], sample[1], sample[2], sample[3]);
+            }
+
+            // Crear JSON
             cJSON *json_msg = cJSON_CreateObject();
             cJSON *json_channels = cJSON_CreateObject();
-
-            // Llenar los canales con los datos
             for (int i = 0; i < 4; i++) {
                 cJSON *json_channel = cJSON_CreateArray();
-
-                // Llenar el array de datos para cada canal
-                for (int j = 0; j < 16; j++) {
+                for (int j = 0; j < samples_per_node; j++) {
                     cJSON_AddItemToArray(json_channel, cJSON_CreateNumber(node->channels[i][j]));
-                    //printf("muestra agregada %d \n",node->channels[i][j]);
                 }
-
-                // Anadir el canal al objeto JSON de canales
                 char channel_name[10];
                 snprintf(channel_name, sizeof(channel_name), "ch%d", i);
                 cJSON_AddItemToObject(json_channels, channel_name, json_channel);
             }
-
-            // Anadir la tarea y los canales al mensaje
             cJSON_AddStringToObject(json_msg, "task", "adc");
             cJSON_AddItemToObject(json_msg, "channels", json_channels);
 
-            // Convertir el mensaje JSON a cadena
+            // Publicar
             char *json_str = cJSON_PrintUnformatted(json_msg);
-
-            // Publicar los datos en MQTT
-            //printf("Consumer: Enviando datos: %s (Queue size: %d)\n", json_str, queue_size - 1);
             mosquitto_publish(args->mosq, NULL, TOPIC_RSP_ADC, strlen(json_str), json_str, 0, false);
 
-            // Limpiar recursos de JSON
             cJSON_Delete(json_msg);
             free(json_str);
-
-            // Eliminar el nodo de la cola
-            TAILQ_REMOVE(&fifo_head, node, entries);
             free(node);
-            queue_size--;
-
-            // Notificar al productor que hay espacio disponible
-            pthread_cond_signal(&fifo_not_full);
         }
-
-        usleep(100);  // Pausa para no sobrecargar el sistema
-        pthread_mutex_unlock(&fifo_mutex);
     }
-*/
+
+    fclose(adc_file);
     return NULL;
 }
 
 // **FUNCION PRINCIPAL**
 void *adc_function(void *arg) {
     ThreadArgs *args = (ThreadArgs *)arg;
-    printf("adc function\n");
+    printf("Adc function running\n");
+    lcd_system_status(LCD_ADC_STATUS_RUNNING);
+
     int mode = args->adc_data->mode;
     // Bloquear el mutex antes de modificar execution_flags
     pthread_mutex_lock(&mode_mutex);
@@ -349,8 +311,6 @@ void *adc_function(void *arg) {
     pthread_join(producer_thread, NULL);
     pthread_join(consumer_thread, NULL);
 
-    printf("ADC funcion completada\n");
-
     // Liberar memoria mapeada
     unmap_memory(fd_ram0, map_base_ram0, ram0_size);
     unmap_memory(fd_shared, map_base_shared, shared_size);
@@ -359,8 +319,9 @@ void *adc_function(void *arg) {
     pthread_mutex_lock(&mode_mutex);
     execution_flags[0] = EXECUTION_ENABLED;
     pthread_mutex_unlock(&mode_mutex);
-    pthread_exit(NULL);
 
+    printf("Adc function finnish\n");
+    lcd_system_status(LCD_ADC_STATUS_FINNISH);
     free(args);  // Liberamos la memoria si `ThreadArgs` se aloca dinamicamente
     pthread_exit(NULL);
 }

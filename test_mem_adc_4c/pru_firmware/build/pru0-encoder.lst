@@ -1,4 +1,4 @@
-PRU Assembler Unix v2.3.3 Wed Apr  2 15:55:32 2025
+PRU Assembler Unix v2.3.3 Sat Apr  5 11:47:59 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru0-encoder.asm                                                 PAGE    1
@@ -58,7 +58,7 @@ src/pru0-encoder.asm                                                 PAGE    1
       53
       54        .asg 0x4C, ADC_TSC_CLKDIV                       ; clk
       55        .asg 0x00, ADC_TSC_CLKDIV_ADC_CLKDIV            ; valor a cargar para la division del clk. Car
-PRU Assembler Unix v2.3.3 Wed Apr  2 15:55:32 2025
+PRU Assembler Unix v2.3.3 Sat Apr  5 11:47:59 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru0-encoder.asm                                                 PAGE    2
@@ -92,7 +92,7 @@ src/pru0-encoder.asm                                                 PAGE    2
       82
       83        .asg 0x04, OFFSET_4_BYTES                        ; EL tamanio del dato es 4 bytes. Para 2 byte
       84        .asg 0x4000, N_SAMPLE                            ; Muestras a guardar en cada iteracion 0x1000
-      85        .asg "50000", DELAY_S                            ; fs aprox 99799->1KHz. 1000->
+      85        .asg 0x100, DELAY_S                              ; fs aprox 99799->1KHz. 1000->
       86
       87        .clink
       88        .global start
@@ -118,7 +118,7 @@ src/pru0-encoder.asm                                                 PAGE    2
      108 00000038 0000001D00E1E1          CLR     r1, r1, ADC_TSC_CTRL_ENABLE             ; ojo para realiazar
      109 0000003c 000000E1002081          SBBO    &r1, r0, 0, 4                           ; TRM pag. 1849 0b0110
      110
-PRU Assembler Unix v2.3.3 Wed Apr  2 15:55:32 2025
+PRU Assembler Unix v2.3.3 Sat Apr  5 11:47:59 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru0-encoder.asm                                                 PAGE    3
@@ -178,7 +178,7 @@ src/pru0-encoder.asm                                                 PAGE    3
      163; Configurar el divisor del reloj
      164 00000108 D04C802444E0C0          LDI32   r0, (ADC_TSC | ADC_TSC_CLKDIV)          ; load addr for ADS_TSC_CLKDIV
      165 00000110 000081240000C1          LDI32   r1, ADC_TSC_CLKDIV_ADC_CLKDIV           ; valor minimo
-PRU Assembler Unix v2.3.3 Wed Apr  2 15:55:32 2025
+PRU Assembler Unix v2.3.3 Sat Apr  5 11:47:59 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru0-encoder.asm                                                 PAGE    4
@@ -238,7 +238,7 @@ src/pru0-encoder.asm                                                 PAGE    4
      218; Clear interrupt
      219 000001b0                 CLEAR_IRQ_END_OF_SECUENCE:
      220 000001b0 D028802444E0C0          LDI32   r0, (ADC_TSC | ADC_TSC_IRQSTATUS)        ; load addr
-PRU Assembler Unix v2.3.3 Wed Apr  2 15:55:32 2025
+PRU Assembler Unix v2.3.3 Sat Apr  5 11:47:59 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru0-encoder.asm                                                 PAGE    5
@@ -272,7 +272,7 @@ src/pru0-encoder.asm                                                 PAGE    5
      247
      248 00000214 0000001D05FEFE          CLR r30, pruout_fs_sample_test                  ; Debug-> tiempo de cada conversion
      249
-     250 00000218 C35082240000C2          LDI32   r2, DELAY_S                             ;
+     250 00000218 010082240000C2          LDI32   r2, DELAY_S                             ;
      251
      252 00000220                 DELAY_SAMPLE:
      253 00000220 0000000501E2E2          SUB     r2, r2, 1                               ; index--

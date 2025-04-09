@@ -44,7 +44,6 @@ void handle_gpio_input_mode_0(ThreadArgs *args) {
    shared[PRU_SHD_FLAGS_INDEX] |= (1 << PRU_GPIO_INPUT_MODE0_FLAG);
    while (!(shared[PRU_SHD_GPIO_INPUT_MODE0_INDEX] & (1 << PRU_GPIO_INPUT_MODE0_DATARDY_FLAG))) {
         usleep(1000);
-        printf("estamos aca?\n");
    }
    // send response
    process_gpio_input_data(args, &gpio_input_data_send,PRU_SHD_GPIO_INPUT_MODE0_INDEX);

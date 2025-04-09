@@ -1,7 +1,7 @@
 ******************************************************************************
                      PRU Linker Unix v2.3.3                    
 ******************************************************************************
->> Linked Wed Apr  2 15:55:32 2025
+>> Linked Sat Apr  5 11:47:59 2025
 
 OUTPUT FILE NAME:   <fw/am335x-pru0-rc-encoder-fw>
 ENTRY POINT SYMBOL: "_c_int00_noinit_noargs"  address: 00000000

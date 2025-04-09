@@ -101,12 +101,13 @@
 #define ADC_MODE_MIN 			0
 #define ADC_MODE_MAX 			1
 #define ADC_SAMPLE_RATE_MIN 		1
-#define ADC_SAMPLE_RATE_MAX 		10000
-#define ADC_BUFFER_SIZE_MIN 		4
-#define ADC_BUFFER_SIZE_MAX 		512
-#define ADC_NUM_SAMPLES_MIN 		4
+#define ADC_SAMPLE_RATE_MAX 		40000
+#define ADC_BUFFER_SIZE_MIN 		8
+#define ADC_BUFFER_SIZE_MAX 		1024
+#define ADC_NUM_SAMPLES_MIN 		8
 #define ADC_NUM_SAMPLES_MAX 		5120
 #define ADC_SAMPLE_PERIOD_BASE          96000000
+#define PRU_LINUX_PROCESS               0.02  // duracion en segundos del proceso Linux (~20ms)
 
 #define GPIO_INPUT_CH_MIN 		0
 #define GPIO_INPUT_CH_MAX 		3

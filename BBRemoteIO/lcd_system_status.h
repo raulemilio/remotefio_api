@@ -31,10 +31,10 @@
 #define LCD_MQTT_MSG_RECEIVED_MOTOR_BUSY       "Motor busy     "
 #define LCD_MQTT_MSG_RECEIVED_SYSTEM_BUSY      "System busy    "
 
-#define LCD_ADC_RUNNING 		       "Adc running    "
+#define LCD_ADC_STATUS_RUNNING 		       "Adc running    "
 #define LCD_ADC_STATUS_ERROR  	               "Adc Err        "
 #define LCD_ADC_STATUS_OK                      "Adc done       "
-#define LCD_ADC_STATUS_FINNISH                 "Adc In stop    "
+#define LCD_ADC_STATUS_FINNISH                 "Adc Finnish    "
 
 #define LCD_GPIO_INPUT_MODE1_RUNNING	       "Gpio In running"
 #define LCD_GPIO_INPUT_STATUS_ERROR            "Gpio In Err    "
