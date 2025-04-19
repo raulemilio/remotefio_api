@@ -19,20 +19,31 @@
   .asg 0x00002000, RAM1_ADDR				; local addr ram1. In linux space addr is 0x4a302000
   .asg 0x00010000, SHARED_ADDR				; local addr shared. In linux space addr is 0x4a310000
 
-  .asg 0x00, SHD_FLAGS					; shared[0] flags linux
-  .asg 0x04, SHD_GPIO_INPUT_MODE0_DATA			; shared[1] gpio_input mode 0
-  .asg 0x08, SHD_GPIO_INPUT_MODE1_DATA			; shared[2] gpio_input mode 1
-  .asg 0x0C, SHD_GPIO_INPUT_MODE2_DATA			; shared[3] gpio_input mode 2
-  .asg 0x10, SHD_GPIO_OUTPUT_MODE0_DATA			; shared[4] gpio_output mode 0
-  .asg 0x14, SHD_GPIO_OUTPUT_MODE1_DATA			; shared[5] gpio_output mode 1
-  .asg 0x18, SHD_MOTOR_MODE0_DATA			; shared[6] motor mode 0
-  .asg 0x1C, SHD_MOTOR_MODE1_DATA			; shared[7] motor mode 1
-  .asg 0x20, SHD_MOTOR_MODE2_DATA			; shared[8] motor mode 2
-  .asg 0x24, SHD_MOTOR_MODE3_DATA			; shared[9] motor mode 3
-  .asg 0x28, SHD_MOTOR_STEP_PERIOD_A			; shared[10] motor_A STEP_PERIOD_A
-  .asg 0x2C, SHD_MOTOR_STEP_PERIOD_B			; shared[11] motor_B STEP_PERIOD_B
-  .asg 0x30, SHD_MOTOR_STEP_PERIOD_C			; shared[12] motor_C STEP_PERIOD_C
-  .asg 0x34, SHD_MOTOR_STEP_PERIOD_D			; shared[13] motor_D STEP_PERIOD_D
+  .asg 0x00, SHD_GPIO_INPUT_MODE0_FLAG			; shared[0] gpio_input mode 0 flag function
+  .asg 0x04, SHD_GPIO_INPUT_MODE0_DATA                  ; shared[1] gpio_input mode 0 data
+  .asg 0x08, SHD_GPIO_INPUT_MODE1_FLAG                  ; shared[2] gpio_input mode 1 flag function
+  .asg 0x0C, SHD_GPIO_INPUT_MODE1_DATA                  ; shared[3] gpio_input mode 1 data
+  .asg 0x10, SHD_GPIO_INPUT_MODE2_FLAG                  ; shared[4] gpio_input mode 2 flag function
+  .asg 0x14, SHD_GPIO_INPUT_MODE2_DATA                  ; shared[5] gpio_input mode 2 data
+
+  .asg 0x18, SHD_GPIO_OUTPUT_MODE0_FLAG                 ; shared[6] gpio_output mode 0 flag function
+  .asg 0x1C, SHD_GPIO_OUTPUT_MODE0_DATA                 ; shared[7] gpio_output mode 0 data
+  .asg 0x20, SHD_GPIO_OUTPUT_MODE1_FLAG                 ; shared[8] gpio_output mode 1 flag function
+  .asg 0x24, SHD_GPIO_OUTPUT_MODE1_DATA                 ; shared[9] gpio_output mode 1 data
+
+  .asg 0x28, SHD_MOTOR_MODE0_FLAG                       ; shared[10] motor mode 0 flag function
+  .asg 0x2C, SHD_MOTOR_MODE0_DATA                       ; shared[11] motor mode 0 data
+  .asg 0x30, SHD_MOTOR_MODE1_FLAG       	        ; shared[12] motor mode 1 flag function
+  .asg 0x34, SHD_MOTOR_MODE1_DATA                       ; shared[13] motor mode 1 data
+  .asg 0x38, SHD_MOTOR_MODE2_FLAG 	                ; shared[14] motor mode 2 flag function
+  .asg 0x3C, SHD_MOTOR_MODE2_DATA                       ; shared[15] motor mode 2 data
+  .asg 0x40, SHD_MOTOR_MODE3_FLAG                       ; shared[16] motor mode 3 flag function
+  .asg 0x44, SHD_MOTOR_MODE3_DATA                       ; shared[17] motor mode 3 data
+
+  .asg 0x48, SHD_MOTOR_STEP_PERIOD_A			; shared[18] motor_A STEP_PERIOD_A
+  .asg 0x4C, SHD_MOTOR_STEP_PERIOD_B			; shared[19] motor_B STEP_PERIOD_B
+  .asg 0x50, SHD_MOTOR_STEP_PERIOD_C			; shared[20] motor_C STEP_PERIOD_C
+  .asg 0x54, SHD_MOTOR_STEP_PERIOD_D			; shared[21] motor_D STEP_PERIOD_D
 
   .asg 0x0F, SHARED_MEM_SIZE				; 15 en decimal
   .asg 0x04, OFFSET_MEM					;
@@ -112,25 +123,25 @@
   .asg (1<<17), OUTPUT_MD_S				; P8_34 gpio2[17] output_MD_S
 
 ; functions flags
-  .asg 0, GPIO_INPUT_MODE0_FLAG				; shared[0] bit0
-  .asg 1, GPIO_INPUT_MODE1_FLAG				; shared[0] bit1
-  .asg 2, GPIO_INPUT_MODE2_FLAG				; shared[0] bit2
-  .asg 3, GPIO_OUTPUT_MODE0_FLAG			; shared[0] bit3
-  .asg 4, GPIO_OUTPUT_MODE1_FLAG			; shared[0] bit4
-  .asg 5, MOTOR_MODE0_FLAG				; shared[0] bit5
-  .asg 6, MOTOR_MODE1_FLAG				; shared[0] bit6
-  .asg 7, MOTOR_MODE2_FLAG				; shared[0] bit7
-  .asg 8, MOTOR_MODE3_FLAG				; shared[0] bit8
+  .asg 0, GPIO_INPUT_MODE0_FLAG				;
+  .asg 0, GPIO_INPUT_MODE1_FLAG				;
+  .asg 0, GPIO_INPUT_MODE2_FLAG				;
+  .asg 0, GPIO_OUTPUT_MODE0_FLAG			;
+  .asg 0, GPIO_OUTPUT_MODE1_FLAG			;
+  .asg 0, MOTOR_MODE0_FLAG				;
+  .asg 0, MOTOR_MODE1_FLAG				;
+  .asg 0, MOTOR_MODE2_FLAG				;
+  .asg 0, MOTOR_MODE3_FLAG				;
 
-  .asg 12, GPIO_INPUT_MODE0_DATARDY_FLAG		; shared[1] bit12
-  .asg 12, GPIO_INPUT_MODE1_DATARDY_FLAG		; shared[2] bit12
-  .asg 12, GPIO_INPUT_MODE2_DATARDY_FLAG		; shared[3] bit12
-  .asg 12, GPIO_OUTPUT_MODE0_DATARDY_FLAG		; shared[4] bit12
-  .asg 12, GPIO_OUTPUT_MODE1_DATARDY_FLAG		; shared[5] bit12
-  .asg 12, MOTOR_MODE0_DATARDY_FLAG			; shared[6] bit12
-  .asg 12, MOTOR_MODE1_DATARDY_FLAG			; shared[7] bit12
-  .asg 12, MOTOR_MODE2_DATARDY_FLAG			; shared[8] bit12
-  .asg 12, MOTOR_MODE3_DATARDY_FLAG			; shared[9] bit12
+  .asg 12, GPIO_INPUT_MODE0_DATARDY_FLAG		;
+  .asg 12, GPIO_INPUT_MODE1_DATARDY_FLAG		;
+  .asg 12, GPIO_INPUT_MODE2_DATARDY_FLAG		;
+  .asg 12, GPIO_OUTPUT_MODE0_DATARDY_FLAG		;
+  .asg 12, GPIO_OUTPUT_MODE1_DATARDY_FLAG		;
+  .asg 12, MOTOR_MODE0_DATARDY_FLAG			;
+  .asg 12, MOTOR_MODE1_DATARDY_FLAG			;
+  .asg 12, MOTOR_MODE2_DATARDY_FLAG			;
+  .asg 12, MOTOR_MODE3_DATARDY_FLAG			;
 
   .asg 32, PRU0_R31_VEC_VALID				; allows notification of program completion
   .asg 3,  PRU_EVTOUT_0					; the event number that is sent back
@@ -246,34 +257,34 @@ gpio_config:
 MAIN_LOOP:
 ;  SET   r30, pruout_fs_sample_test
 level_gpio_input_mode0:
-  LBBO  &r0, r20, SHD_FLAGS, 4				;
-  QBBS  GPIO_INPUT_MODE0, r0, GPIO_INPUT_MODE0_FLAG	; jump is set bit0
+  LBBO  &r0, r20, SHD_GPIO_INPUT_MODE0_FLAG, 4		;
+  QBBS  GPIO_INPUT_MODE0, r0, GPIO_INPUT_MODE0_FLAG	; jump is set bit14
 level_gpio_input_mode1:
-  LBBO  &r0, r20, SHD_FLAGS, 4				;
-  QBBS  GPIO_INPUT_MODE1, r0, GPIO_INPUT_MODE1_FLAG	; jump is set bit1
+  LBBO  &r0, r20, SHD_GPIO_INPUT_MODE1_FLAG, 4		;
+  QBBS  GPIO_INPUT_MODE1, r0, GPIO_INPUT_MODE1_FLAG	; jump is set bit14
 level_gpio_input_mode2:
-  LBBO  &r0, r20, SHD_FLAGS, 4				;
-  QBBS  GPIO_INPUT_MODE2, r0, GPIO_INPUT_MODE2_FLAG	; jump is set bit2
+  LBBO  &r0, r20, SHD_GPIO_INPUT_MODE2_FLAG, 4		;
+  QBBS  GPIO_INPUT_MODE2, r0, GPIO_INPUT_MODE2_FLAG	; jump is set bit14
 
 level_gpio_output_mode0:
-  LBBO  &r0, r20, SHD_FLAGS, 4				;
-  QBBS  GPIO_OUTPUT_MODE0, r0, GPIO_OUTPUT_MODE0_FLAG	; jump is set bit3
+  LBBO  &r0, r20, SHD_GPIO_OUTPUT_MODE0_FLAG, 4		;
+  QBBS  GPIO_OUTPUT_MODE0, r0, GPIO_OUTPUT_MODE0_FLAG	; jump is set bit14
 level_gpio_output_mode1:
-  LBBO  &r0, r20, SHD_FLAGS, 4				;
-  QBBS  GPIO_OUTPUT_MODE1, r0, GPIO_OUTPUT_MODE1_FLAG	; jump is set bit4
+  LBBO  &r0, r20, SHD_GPIO_OUTPUT_MODE1_FLAG, 4		;
+  QBBS  GPIO_OUTPUT_MODE1, r0, GPIO_OUTPUT_MODE1_FLAG	; jump is set bit14
 
 level_motor_mode0:
-  LBBO  &r0, r20, SHD_FLAGS, 4				;
-  QBBS  MOTOR_MODE0, r0, MOTOR_MODE0_FLAG		; jump is set bit5
+  LBBO  &r0, r20, SHD_MOTOR_MODE0_FLAG, 4		;
+  QBBS  MOTOR_MODE0, r0, MOTOR_MODE0_FLAG		; jump is set bit14
 level_motor_mode1:
-  LBBO  &r0, r20, SHD_FLAGS, 4				;
-  QBBS  MOTOR_MODE1, r0, MOTOR_MODE1_FLAG		; jump is set bit6
+  LBBO  &r0, r20, SHD_MOTOR_MODE1_FLAG, 4		;
+  QBBS  MOTOR_MODE1, r0, MOTOR_MODE1_FLAG		; jump is set bit14
 level_motor_mode2:
-  LBBO  &r0, r20, SHD_FLAGS, 4				;
-  QBBS  MOTOR_MODE2, r0, MOTOR_MODE2_FLAG		; jump is set bit7
+  LBBO  &r0, r20, SHD_MOTOR_MODE2_FLAG, 4		;
+  QBBS  MOTOR_MODE2, r0, MOTOR_MODE2_FLAG		; jump is set bit14
 level_motor_mode3:
-  LBBO  &r0, r20, SHD_FLAGS, 4				;
-  QBBS  MOTOR_MODE3, r0, MOTOR_MODE3_FLAG		; jump is set bit8
+  LBBO  &r0, r20, SHD_MOTOR_MODE3_FLAG, 4		;
+  QBBS  MOTOR_MODE3, r0, MOTOR_MODE3_FLAG		; jump is set bit14
 
 level_motorA_step_time:
   LDI32 r0, (GPIO2|GPIO_DATAOUT)			;
@@ -325,9 +336,9 @@ level_motorB_toggle:
 
 GPIO_INPUT_MODE0:
 ; clr flag gpio_input
-  LBBO  &r0, r20, SHD_FLAGS, 4				;
-  CLR   r0,r0, GPIO_INPUT_MODE0_FLAG			; bit0 flag gpio_input
-  SBBO  &r0, r20, SHD_FLAGS, 4				;
+  LBBO  &r0, r20, SHD_GPIO_INPUT_MODE0_FLAG, 4		;
+  CLR   r0,r0, GPIO_INPUT_MODE0_FLAG			;
+  SBBO  &r0, r20, SHD_GPIO_INPUT_MODE0_FLAG, 4		;
 ; read GPIO IN
   LDI32 r0, (GPIO0|GPIO_DATAIN)				;
   LBBO  &r1, r0, 0, 4					;
@@ -399,9 +410,9 @@ GPIO_INPUT_MODE2_A:
 
 GPIO_OUTPUT_MODE0:
 ; clr flag gpio_output
-  LBBO  &r0, r20, SHD_FLAGS, 4				;
+  LBBO  &r0, r20, SHD_GPIO_OUTPUT_MODE0_FLAG, 4		;
   CLR   r0, r0, GPIO_OUTPUT_MODE0_FLAG			;
-  SBBO  &r0, r20, SHD_FLAGS, 4				;
+  SBBO  &r0, r20, SHD_GPIO_OUTPUT_MODE0_FLAG, 4		;
 ; read GPIO_DATAOUT
   LDI32 r0, (GPIO2|GPIO_DATAOUT)			;
   LBBO  &r1, r0, 0, 4					;
@@ -417,9 +428,9 @@ GPIO_OUTPUT_MODE0:
 GPIO_OUTPUT_MODE1:
 ;  CLR   r30, pruout_fs_sample_test
 ; clr flag gpio_write
-  LBBO  &r0, r20, SHD_FLAGS, 4  			;
+  LBBO  &r0, r20, SHD_GPIO_OUTPUT_MODE1_FLAG, 4  	;
   CLR   r0, r0, GPIO_OUTPUT_MODE1_FLAG			; bit4 flag gpio_output set
-  SBBO  &r0, r20, SHD_FLAGS, 4  			;
+  SBBO  &r0, r20, SHD_GPIO_OUTPUT_MODE1_FLAG, 4  	;
 ; read gpio_output to set
   LBBO  &r0, r20, SHD_GPIO_OUTPUT_MODE1_DATA, 4  	;
   AND   r1, r0, 0x0F					; extrae los primeros 4 bits (0-3) en r1. Flag de mascaras
@@ -455,9 +466,9 @@ write_out_clr:
 
 MOTOR_MODE0:
 ; clr flag motor config get
-  LBBO  &r0, r20, SHD_FLAGS, 4				;
+  LBBO  &r0, r20, SHD_MOTOR_MODE0_FLAG, 4		;
   CLR   r0,r0, MOTOR_MODE0_FLAG				; bit5 flag get state
-  SBBO  &r0, r20, SHD_FLAGS, 4				;
+  SBBO  &r0, r20, SHD_MOTOR_MODE0_FLAG, 4		;
 ; read MOTOR
   LDI32 r0, (GPIO2|GPIO_DATAOUT)			; load addr for DATAOUT
   LBBO  &r1, r0, 0, 4					; Load the values at r0 into r1.
@@ -528,9 +539,9 @@ MOTOR_MODE3:
   LBBO  &r12, r20, SHD_MOTOR_STEP_PERIOD_C, 4		; read shared STEP_PERIOD_C
   LBBO  &r13, r20, SHD_MOTOR_STEP_PERIOD_D, 4		; read shared STEP_PERIOD_C
 ; clr flag motor set
-  LBBO  &r0, r20, SHD_FLAGS, 4				; Shared
+  LBBO  &r0, r20, SHD_MOTOR_MODE3_FLAG, 4		; Shared
   CLR   r0,r0, MOTOR_MODE3_FLAG 			; bit5 flag motor
-  SBBO  &r0, r20, SHD_FLAGS, 4				;
+  SBBO  &r0, r20, SHD_MOTOR_MODE3_FLAG, 4		;
 ; load data
   LBBO  &r0, r20, SHD_MOTOR_MODE3_DATA, 4		;
   AND   r1, r0, 0x0F					; extrae los priomeros 4 bits (0-3) en r1. Flag de mascaras

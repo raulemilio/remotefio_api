@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+
 #include <string.h>
 #include <signal.h>
 #include <pthread.h>
@@ -7,7 +9,6 @@
 #include <cjson/cJSON.h>
 
 #include <stdint.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/mman.h>
@@ -15,249 +16,261 @@
 #include <time.h>
 
 #include "mqtt_callback.h"
-#include "mem_map.h"
 #include "mqtt_response.h"
-#include "lcd_system_status.h"
+#include "pru_control.h"
+#include "system.h"
+#include "task_queue.h"
+#include "mqtt_publish.h"
 
-#define FUNC_COUNT FUNC_UNKNOWN  // Numero total de funciones validas
+volatile bool system_running;
+pthread_mutex_t system_running_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-// Mutex y flags de ejecucion (static para que sean locales al archivo)
-static pthread_mutex_t function_mutex = PTHREAD_MUTEX_INITIALIZER;
-static int execution_flags[FUNC_COUNT] = {EXECUTION_ENABLED}; // Se inicializan en habilitado
+TaskQueue system_queue;
+pthread_t system_thread;
 
-static int fd_shared;
-static void *map_base_shared;
-static uint32_t *shared; // SHARED es de 32 bits por dato
+static void handle_lcd_function(ThreadSystemDataArgs args);
+static void handle_pru0_function(ThreadSystemDataArgs args);
+static void handle_pru1_function(ThreadSystemDataArgs args);
+static void handle_adc_function(ThreadSystemDataArgs args);
+static void handle_gpio_input_function(ThreadSystemDataArgs args);
+static void handle_gpio_output_function(ThreadSystemDataArgs args);
+static void handle_motor_get_function(ThreadSystemDataArgs args);
+static void handle_motor_set_function(ThreadSystemDataArgs args);
+static void handle_all_functions_function(ThreadSystemDataArgs args);
+static void handle_pru_action(struct mosquitto *mosq, int action, const char *pru_path, const char *pru_firmware);
+static void handle_generic_system_function(struct mosquitto *mosq, const char *name, pthread_mutex_t *mutex, volatile bool *flag, int action);
+static void set_running(volatile bool *flag, pthread_mutex_t *mutex, bool value);
 
-static off_t target_shared = 0x4A310000; // Direccion base de SHARED
-static size_t shared_size = 0x3000;      // 12KB de memoria compartida
+void *system_thread_func(void *arg) {
+    ThreadSystemDataArgs args;
+    //char mensaje[128];
 
-//time_t start_time;
+    while (1) {
+        if (task_queue_dequeue(&system_queue, &args, sizeof(ThreadSystemDataArgs)) == 0) {
+            if (!args.system_data) continue;
 
-// Funciones auxiliares para cada tipo de funcion
-void handle_lcd_function(ThreadArgs *args) {
-    printf("System -> lcd clean\n");
+            LOG_INFO("Function: system running");
 
-    // Logica especifica para LCD
-     ActionType action = args->system_data->action;
-    if (action == ACTION_CLEAN){
-       lcd_system_init();
-       publish_system_response_status(args->mosq, FUNCTION_STATUS_OK);
-       lcd_system_status(LCD_SYSTEM_CLEAN);
+	    FunctionType function_type = args.system_data->function;
 
-    }else{
-      publish_gpio_input_response_status(args->mosq, FUNCTION_STATUS_ERROR);
+            switch (function_type) {
+        	case FUNC_LCD:
+            		handle_lcd_function(args);
+            		break;
+        	case FUNC_PRU0:
+            		handle_pru0_function(args);
+            		break;
+        	case FUNC_PRU1:
+            		handle_pru1_function(args);
+            		break;
+        	case FUNC_ADC:
+           		handle_adc_function(args);
+            		break;
+        	case FUNC_GPIO_INPUT:
+            		handle_gpio_input_function(args);
+            		break;
+        	case FUNC_GPIO_OUTPUT:
+            		handle_gpio_output_function(args);
+            		break;
+        	case FUNC_MOTOR_GET:
+            		handle_motor_get_function(args);
+            		break;
+                case FUNC_MOTOR_SET:
+                        handle_motor_set_function(args);
+                        break;
+        	case FUNC_ALL_FUNCTIONS:
+            		handle_all_functions_function(args);
+	    		break;
+        	default:
+            		LOG_ERROR(MSG_SYSTEM_INVALID_OPTION);
+            		break;
+    		}
+
+            pthread_mutex_lock(&system_running_mutex);
+            system_running = TASK_STOPPED;
+            pthread_mutex_unlock(&system_running_mutex);
+
+            publish_system_response_status(args.mosq, MSG_SYSTEM_FINISH);
+            //lcd_show_message(MSG_SYSTEM_FINNISH);
+            free(args.system_data);
+            //Limpieza del struct para evitar basura en la proxima iteracion
+            memset(&args, 0, sizeof(args));
+        }
+    }
+    return NULL;
+}
+// Auxilar functions
+// LCD
+static void handle_lcd_function(ThreadSystemDataArgs args) {
+    LOG_DEBUG("system lcd function");
+    publish_system_response_status(args.mosq, MSG_SYSTEM_LCD_CLEAN);
+    lcd_show_message(MSG_LCD_ERASE_SCREEN);
+}
+
+// PRU0
+static void handle_pru0_function(ThreadSystemDataArgs args) {
+    LOG_DEBUG("system pru0 function");
+    handle_pru_action(args.mosq, args.system_data->action, PRU0_PATH, PRU0_FIRMWARE);
+}
+// PRU1
+static void handle_pru1_function(ThreadSystemDataArgs args) {
+    LOG_DEBUG("system pru1 function");
+    handle_pru_action(args.mosq, args.system_data->action, PRU1_PATH, PRU1_FIRMWARE);
+}
+// ADC
+static void handle_adc_function(ThreadSystemDataArgs args) {
+    handle_generic_system_function(args.mosq, "adc", &adc_running_mutex, &adc_running, args.system_data->action);
+}
+// GPIO_INPUT
+static void handle_gpio_input_function(ThreadSystemDataArgs args) {
+    handle_generic_system_function(args.mosq, "gpio_input", &gpio_input_running_mutex, &gpio_input_running, args.system_data->action);
+}
+// GPIO_OUTPUT
+static void handle_gpio_output_function(ThreadSystemDataArgs args) {
+    handle_generic_system_function(args.mosq, "gpio_output", &gpio_output_running_mutex, &gpio_output_running, args.system_data->action);
+}
+// MOTOR GET
+static void handle_motor_get_function(ThreadSystemDataArgs args) {
+    handle_generic_system_function(args.mosq, "motor_get", &motor_get_running_mutex, &motor_get_running, args.system_data->action);
+}
+// MOTOR SET
+static void handle_motor_set_function(ThreadSystemDataArgs args) {
+    handle_generic_system_function(args.mosq, "motor_set", &motor_set_running_mutex, &motor_set_running, args.system_data->action);
+}
+// ALL_FUNCTIONS
+static void handle_all_functions_function(ThreadSystemDataArgs args) {
+    LOG_INFO("system all_functions function");
+    bool action;
+
+    switch (args.system_data->action) {
+        case ACTION_START:
+            action = true;
+            set_running(&adc_running, &adc_running_mutex, action);
+            set_running(&gpio_input_running, &gpio_input_running_mutex, action);
+            set_running(&gpio_output_running, &gpio_output_running_mutex, action);
+            set_running(&motor_get_running, &motor_get_running_mutex, action);
+            set_running(&motor_set_running, &motor_set_running_mutex, action);
+            publish_system_response_status(args.mosq, MSG_SYSTEM_ALL_FUNCTION_ON);
+            lcd_show_message(MSG_SYSTEM_ALL_FUNCTION_ON);
+            break;
+        case ACTION_STOP:
+            action = false;
+            set_running(&adc_running, &adc_running_mutex, action);
+            set_running(&gpio_input_running, &gpio_input_running_mutex, action);
+            set_running(&gpio_output_running, &gpio_output_running_mutex, action);
+            set_running(&motor_get_running, &motor_get_running_mutex, action);
+            set_running(&motor_set_running, &motor_set_running_mutex, action);
+            publish_system_response_status(args.mosq, MSG_SYSTEM_ALL_FUNCTION_OFF);
+            lcd_show_message(MSG_SYSTEM_ALL_FUNCTION_OFF);
+            break;
+        default:
+            publish_system_response_status(args.mosq, MSG_SYSTEM_INVALID_OPTION);
+            lcd_show_message(MSG_SYSTEM_INVALID_OPTION);
+            printf(MSG_SYSTEM_INVALID_OPTION);
+            break;
     }
 }
-
-void handle_pru0_function(ThreadArgs *args) {
-    printf("System -> pru0\n");
-
-    ActionType action = args->system_data->action;
-    handle_pru_action(action, PRU0_PATH, PRU0_FIRMWARE, args);
-}
-
-void handle_pru1_function(ThreadArgs *args) {
-    printf("System -> pru1\n");
-
-    ActionType action = args->system_data->action;
-    handle_pru_action(action, PRU1_PATH, PRU1_FIRMWARE, args);
-}
-
-void handle_adc_function(ThreadArgs *args) {
-    printf("System -> adc stop\n");
-    // Logica especifica para ADC
-}
-
-void handle_gpio_input_mode0_function(ThreadArgs *args) {
-    printf("System -> gpio_input mode0 stop\n");
-}
-void handle_gpio_input_mode1_function(ThreadArgs *args) {
-    printf("System -> gpio_input mode1 stop\n");
-    //  clr flag gpio_input MODE 1
-    pthread_mutex_lock(&gpio_mutex);
-    shared[PRU_SHD_FLAGS_INDEX] &= ~(1 << PRU_GPIO_INPUT_MODE1_FLAG);
-    pthread_mutex_unlock(&gpio_mutex);
-    lcd_system_status(LCD_GPIO_INPUT_STATUS_FINNISH);
-}
-void handle_gpio_input_mode2_function(ThreadArgs *args) {
-    printf("System -> gpio_input mode2 stop\n");
-}
-
-void handle_gpio_output_mode0_function(ThreadArgs *args) {
-    printf("System -> gpio_output mode0 stop\n");
-    // Logica especifica para GPIO Output
-    lcd_system_status(LCD_GPIO_OUTPUT_STATUS_FINNISH);
-}
-void handle_gpio_output_mode1_function(ThreadArgs *args) {
-    printf("System -> gpio_output mode1 stop\n");
-}
-
-void handle_motor_mode0_function(ThreadArgs *args) {
-    printf("System -> motor mode 0 stop\n");
-}
-
-void handle_motor_mode1_function(ThreadArgs *args) {
-    printf("System -> motor mode 1 stop\n");
-    //  clr flag motor MODE 1
-    pthread_mutex_lock(&gpio_mutex);
-    shared[PRU_SHD_FLAGS_INDEX] &= ~(1 << PRU_MOTOR_MODE1_FLAG);
-    pthread_mutex_unlock(&gpio_mutex);
-    lcd_system_status(LCD_MOTOR_STATUS_FINNISH);
-}
-void handle_motor_mode2_function(ThreadArgs *args) {
-    printf("System -> motor mode 2 stop\n");
-}
-void handle_motor_mode3_function(ThreadArgs *args) {
-    printf("System -> motor mode 3 stop\n");
-}
-
-
-void handle_all_stop_functions(ThreadArgs *args) {
-    printf("System -> function all stop\n");
-   //  clr all flags shd0
-    pthread_mutex_lock(&gpio_mutex);
-    shared[PRU_SHD_FLAGS_INDEX] = PRU_ERASE_MEM;
-    pthread_mutex_unlock(&gpio_mutex);
-    lcd_system_status(LCD_FUNCTION_ALL_STATUS_FINNISH);
-
-    // Liberar la memoria de los argumentos
-    free(args);
-    pthread_exit(NULL);
-
-
-}
-
 // Funciones auxiliares
-void handle_pru_action(int action, const char *pru_path, const char *pru_firmware, ThreadArgs *args) {
+static void handle_pru_action(struct mosquitto *mosq, int action, const char *pru_path, const char *pru_firmware) {
+    const char *on_success_msg;
+    const char *on_error_msg;
+    const char *off_success_msg;
+    const char *off_error_msg;
+
+    // Determinar mensajes segun pru_path
+    if (strcmp(pru_path, PRU0_PATH) == 0) {
+        on_success_msg = MSG_LCD_PRU0_ON_SUCCESS;
+        on_error_msg = MSG_LCD_PRU0_ON_ERROR;
+        off_success_msg = MSG_LCD_PRU0_OFF_SUCCESS;
+        off_error_msg = MSG_LCD_PRU0_OFF_ERROR;
+    } else {
+        on_success_msg = MSG_LCD_PRU1_ON_SUCCESS;
+        on_error_msg = MSG_LCD_PRU1_ON_ERROR;
+        off_success_msg = MSG_LCD_PRU1_OFF_SUCCESS;
+        off_error_msg = MSG_LCD_PRU1_OFF_ERROR;
+    }
+
     switch (action) {
         case ACTION_START:
             // Encender PRU
             if (control_pru(1, pru_path, pru_firmware) == 0) {
-                printf(PRU1_ON_SUCCESS);
-                publish_system_response_status(args->mosq, FUNCTION_STATUS_OK);
-                lcd_system_status(LCD_PRU0_START);
+                LOG_INFO("%s", on_success_msg);
+                publish_system_response_status(mosq, on_success_msg);
+                lcd_show_message(on_success_msg);
             } else {
-                printf(PRU1_ON_ERROR);
-                publish_system_response_status(args->mosq, FUNCTION_STATUS_ERROR);
-                lcd_system_status(LCD_PRU0_ERROR);
+                LOG_ERROR("%s", on_error_msg);
+                publish_system_response_status(mosq, on_error_msg);
+                lcd_show_message(on_error_msg);
             }
             break;
         case ACTION_STOP:
             // Apagar PRU
             if (control_pru(0, pru_path, pru_firmware) == 0) {
-                printf(PRU1_OFF_SUCCESS);
-                publish_system_response_status(args->mosq, FUNCTION_STATUS_OK);
-                lcd_system_status(LCD_PRU1_STOP);
+                LOG_INFO("%s", off_success_msg);
+                publish_system_response_status(mosq, off_success_msg);
+                lcd_show_message(off_success_msg);
             } else {
-                printf(PRU1_OFF_ERROR);
-                publish_system_response_status(args->mosq, FUNCTION_STATUS_ERROR);
-                lcd_system_status(LCD_PRU1_ERROR);
+                LOG_ERROR("%s", off_error_msg);
+                publish_system_response_status(mosq, off_error_msg);
+                lcd_show_message(off_error_msg);
             }
             break;
         default:
-            printf(SYSTEM_INVALID_OPTION);
+            publish_system_response_status(mosq, MSG_SYSTEM_INVALID_OPTION);
+            lcd_show_message(MSG_SYSTEM_INVALID_OPTION);
+            LOG_ERROR(MSG_SYSTEM_INVALID_OPTION);
             break;
     }
 }
+static void handle_generic_system_function(struct mosquitto *mosq, const char *name, pthread_mutex_t *mutex, volatile bool *flag, int action) {
+    LOG_INFO("system %s function", name);
 
-// **FUNCION PRINCIPAL**
-void *system_function(void *arg) {
-    ThreadArgs *args = (ThreadArgs *)arg;
+    char lcd_msg[16];  // 15 + 1 para null terminator
+    char pub_msg[64];  // mensaje mas largo para publicacion si se desea mas detalle
 
-    // Recuperar el tipo de funcion de la estructura SystemData
-    FunctionType function_type = args->system_data->function;
+    // Truncar el nombre si es muy largo
+    char short_name[8];  // Hasta 8 caracteres del nombre (para dejar espacio al estado)
+    snprintf(short_name, sizeof(short_name), "%.7s", name);
 
-    // Verificar si el tipo de funcion es valido
-    if (function_type < 0 || function_type >= FUNC_COUNT) {
-        printf("Invalid function type\n");
-        pthread_exit(NULL);
-    }
+    switch (action) {
+        case ACTION_START:
+            pthread_mutex_lock(mutex);
+            *flag = true;
+            pthread_mutex_unlock(mutex);
 
-    // Bloquear el mutex antes de modificar execution_flags
-    pthread_mutex_lock(&function_mutex);
+            snprintf(pub_msg, sizeof(pub_msg), "%s ON", short_name);
+            publish_system_response_status(mosq, pub_msg);
+            LOG_INFO("%s", pub_msg);
 
-    // Verificar si la funcion ya esta en ejecucion
-    if (execution_flags[function_type] == EXECUTION_DISABLED) {
-        printf(MODE_ALREADY_RUNNING, function_type);
-        lcd_system_status(LCD_MQTT_MSG_RECEIVED_SYSTEM_BUSY);
-        pthread_mutex_unlock(&function_mutex);
-        pthread_exit(NULL);
-    }
+            snprintf(lcd_msg, sizeof(lcd_msg), "%s ON", short_name);
+            lcd_show_message(lcd_msg);
+            break;
+        case ACTION_STOP:
+            pthread_mutex_lock(mutex);
+            *flag = false;
+            pthread_mutex_unlock(mutex);
 
-    // Marcar la funcion como en ejecucion
-    execution_flags[function_type] = EXECUTION_DISABLED;
-    pthread_mutex_unlock(&function_mutex);
+            snprintf(pub_msg, sizeof(pub_msg), "%s OFF", short_name);
+            publish_system_response_status(mosq, pub_msg);
+            LOG_INFO("%s", pub_msg);
 
-    // Mapear SHARED (32 bits por dato)
-    if (map_memory(&fd_shared, &map_base_shared, (void **)&shared, target_shared, shared_size) == -1) {
-        // Si falla el mapeo, liberar el flag y el mutex
-        pthread_mutex_lock(&function_mutex);
-        execution_flags[function_type] = EXECUTION_ENABLED;
-        pthread_mutex_unlock(&function_mutex);
-        pthread_exit(NULL);  // Abortamos el hilo
-        return -1;
-    }
-
-    // Ejecutar la funcion correspondiente segun el tipo de funcion
-    switch (function_type) {
-        case FUNC_LCD:
-            handle_lcd_function(args);
+            snprintf(lcd_msg, sizeof(lcd_msg), "%s OFF", short_name);
+            lcd_show_message(lcd_msg);
             break;
-        case FUNC_PRU0:
-            handle_pru0_function(args);
-            break;
-        case FUNC_PRU1:
-            handle_pru1_function(args);
-            break;
-        case FUNC_ADC:
-            handle_adc_function(args);
-            break;
-        case FUNC_GPIO_INPUT_MODE0:
-            handle_gpio_input_mode0_function(args);
-            break;
-        case FUNC_GPIO_INPUT_MODE1:
-            handle_gpio_input_mode1_function(args);
-            break;
-        case FUNC_GPIO_INPUT_MODE2:
-            handle_gpio_input_mode2_function(args);
-            break;
-        case FUNC_GPIO_OUTPUT_MODE0:
-            handle_gpio_output_mode0_function(args);
-            break;
-        case FUNC_GPIO_OUTPUT_MODE1:
-            handle_gpio_output_mode1_function(args);
-            break;
-        case FUNC_MOTOR_MODE0:
-            handle_motor_mode0_function(args);
-            break;
-        case FUNC_MOTOR_MODE1:
-            handle_motor_mode1_function(args);
-            break;
-        case FUNC_MOTOR_MODE2:
-            handle_motor_mode2_function(args);
-            break;
-        case FUNC_MOTOR_MODE3:
-            handle_motor_mode3_function(args);
-            break;
-        case FUNC_ALL_STOP_FUNCTIONS:
-            handle_all_stop_functions(args);
-	    break;
         default:
-            printf(GPIO_SYSTEM_INVALID_OPTION);
+            snprintf(pub_msg, sizeof(pub_msg), "%s INVALID", short_name);
+            publish_system_response_status(mosq, pub_msg);
+            LOG_ERROR("%s", pub_msg);
+
+            snprintf(lcd_msg, sizeof(lcd_msg), "%s INVALID", short_name);
+            lcd_show_message(lcd_msg);
+            LOG_ERROR(MSG_SYSTEM_INVALID_OPTION);
             break;
     }
-
-    // Liberar memoria mapeada
-    unmap_memory(fd_shared, map_base_shared, shared_size);
-
-    // Marcar la funcion como finalizada
-    pthread_mutex_lock(&function_mutex);
-    execution_flags[function_type] = EXECUTION_ENABLED;
-    pthread_mutex_unlock(&function_mutex);
-
-    // Liberar la memoria de los argumentos
-    free(args);
-    pthread_exit(NULL);
 }
 
+static void set_running(volatile bool *flag, pthread_mutex_t *mutex, bool value) {
+    pthread_mutex_lock(mutex);
+    *flag = value;
+    pthread_mutex_unlock(mutex);
+}

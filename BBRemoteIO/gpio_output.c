@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+
 #include <string.h>
 #include <signal.h>
 #include <pthread.h>
@@ -7,7 +9,6 @@
 #include <cjson/cJSON.h>
 
 #include <stdint.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/mman.h>
@@ -15,133 +16,264 @@
 #include <time.h>
 
 #include "mqtt_callback.h"
-#include "mem_map.h"
 #include "mqtt_response.h"
-#include "lcd_system_status.h"
+#include "pru_control.h"
+#include "gpio_output.h"
+#include "task_queue.h"
+#include "mqtt_publish.h"
+#include "lcd_display.h"
+#include "log.h"
 
-#define OFFSET_STATE       4
-#define MODE_COUNT         3  // modos 0, 1 y 2
-#define EXECUTION_ENABLED  1
-#define EXECUTION_DISABLED 0
+#define GPIO_OUTPUT_OFFSET_STATE       4
 
-// No pueden existir dos instancias del mismo modo simultaneamente
-static pthread_mutex_t mode_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t shared_mutex = PTHREAD_MUTEX_INITIALIZER;
-static int execution_flags[MODE_COUNT] = {EXECUTION_ENABLED, EXECUTION_ENABLED, EXECUTION_ENABLED};
+volatile bool gpio_output_running;
+pthread_mutex_t gpio_output_running_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-static int fd_shared;
-static void *map_base_shared;
-static uint32_t *shared; // SHARED es de 32 bits por dato
+TaskQueue gpio_output_queue;
+pthread_t gpio_output_thread;
 
-static off_t target_shared = 0x4A310000; // Direccion base de SHARED
-static size_t shared_size = 0x3000;      // 12KB de memoria compartida
+// mode 0
+static void gpio_output_on_demand_get(ThreadGpioOutputDataArgs args,
+                                int flag_index,
+                                int trigger_flag,
+                                int data_index,
+                                int datardy_flag,
+                                int timeout_ms);
+// mode 1
+static void gpio_output_on_demand_set(ThreadGpioOutputDataArgs args,
+                              int flag_index,
+                              int trigger_flag,
+                              int data_index,
+                              int datardy_flag,
+                              int timeout_ms);
+// aux 1
+static int wait_for_gpio_output_data_and_process_get(ThreadGpioOutputDataArgs args,
+                                          int data_index,
+                                          int datardy_flag,
+                                          int timeout_ms,
+                                          int clear_after_read);
+// aux 2
+static int wait_for_gpio_output_data_and_process_done(ThreadGpioOutputDataArgs args,
+                                                          int data_index,
+                                                          int datardy_flag,
+                                                          int timeout_ms);
+// Aux 3
+static void process_gpio_output_data_get(ThreadGpioOutputDataArgs args, GpioOutputData *gpio_output_data_send, int data_shd_index);
+// Aux 4
+static void process_gpio_output_data_set(ThreadGpioOutputDataArgs args, int data_shd_index);
+// Aux 5
+static void notify_gpio_output_status_message(struct mosquitto *mosq, const char *msg);
 
-// MODE 0 get state
-void handle_gpio_output_mode_0(ThreadArgs *args) {
-    printf("gpio_output -> mode 0\n");
+
+
+void *gpio_output_thread_func(void *arg) {
+    ThreadGpioOutputDataArgs args;
+    char mensaje[128];
+    int timeout_ms;
+
+    while (1) {
+        if (task_queue_dequeue(&gpio_output_queue, &args, sizeof(ThreadGpioOutputDataArgs)) == 0) {
+            if (!args.gpio_output_data) continue;
+
+	    LOG_INFO("Function: gpio_output -> mode %d running", args.gpio_output_data->mode);
+            snprintf(mensaje, sizeof(mensaje), "Gpio out mode %d", args.gpio_output_data->mode);
+            lcd_show_message(mensaje);
+
+            pthread_mutex_lock(&gpio_output_running_mutex);
+	    gpio_output_running = true;
+            pthread_mutex_unlock(&gpio_output_running_mutex);
+
+            int flag_index, data_index, trigger_flag, datardy_flag;
+
+            switch (args.gpio_output_data->mode) {
+                case 0:
+                    // logica de modo 0
+                    flag_index = PRU_SHD_GPIO_OUTPUT_MODE0_FLAG_INDEX;
+                    data_index = PRU_SHD_GPIO_OUTPUT_MODE0_DATA_INDEX;
+                    trigger_flag = PRU_GPIO_OUTPUT_MODE0_FLAG;
+                    datardy_flag = PRU_GPIO_OUTPUT_MODE0_DATARDY_FLAG;
+                    timeout_ms = GPIO_OUTPUT_TIMEOUT_MS_MODE0;
+                    gpio_output_on_demand_get(args, flag_index, trigger_flag, data_index, datardy_flag, timeout_ms);
+                    break;
+                case 1:
+                    // logica de modo 1
+                    flag_index = PRU_SHD_GPIO_OUTPUT_MODE1_FLAG_INDEX;
+                    data_index = PRU_SHD_GPIO_OUTPUT_MODE1_DATA_INDEX;
+                    trigger_flag = PRU_GPIO_OUTPUT_MODE1_FLAG;
+                    datardy_flag = PRU_GPIO_OUTPUT_MODE1_DATARDY_FLAG;
+                    timeout_ms = GPIO_OUTPUT_TIMEOUT_MS_MODE1;
+                    gpio_output_on_demand_set(args, flag_index,trigger_flag,data_index,datardy_flag,timeout_ms);
+                    break;
+                default:
+		    notify_gpio_output_status_message(args.mosq, MSG_GPIO_OUTPUT_INVALID_MODE);
+                    break;
+            }
+
+            pthread_mutex_lock(&gpio_output_running_mutex);
+            gpio_output_running = TASK_STOPPED;
+            pthread_mutex_unlock(&gpio_output_running_mutex);
+
+            notify_gpio_output_status_message(args.mosq, MSG_GPIO_OUTPUT_FINISH);
+            free(args.gpio_output_data);
+            //Limpieza del struct para evitar basura en la proxima iteracion
+            memset(&args, 0, sizeof(args));
+        }
+    }
+    return NULL;
+}
+// mode 0
+static void gpio_output_on_demand_get(ThreadGpioOutputDataArgs args,
+                                int flag_index,
+                                int trigger_flag,
+                                int data_index,
+                                int datardy_flag,
+                                int timeout_ms)
+{
+    pthread_mutex_lock(&shm->shared_mutex[MUTEX_GPIO_OUTPUT]);
+    shm->shared[flag_index] |= (1 << trigger_flag);
+    pthread_mutex_unlock(&shm->shared_mutex[MUTEX_GPIO_OUTPUT]);
+
+    wait_for_gpio_output_data_and_process_get(args, data_index, datardy_flag, timeout_ms, 0);
+}
+// mode 1
+static void gpio_output_on_demand_set(ThreadGpioOutputDataArgs args,
+                              int flag_index,
+                              int trigger_flag,
+                              int data_index,
+                              int datardy_flag,
+                              int timeout_ms)
+{
+    // write data into shared
+    pthread_mutex_lock(&shm->shared_mutex[MUTEX_GPIO_OUTPUT]);
+    process_gpio_output_data_set(args, data_index);
+    shm->shared[flag_index] |= (1 << trigger_flag); // Aviso al pru
+    pthread_mutex_unlock(&shm->shared_mutex[MUTEX_GPIO_OUTPUT]);
+
+    // Esperamos que cumpla la tarea
+    wait_for_gpio_output_data_and_process_done(args,data_index, datardy_flag, timeout_ms);
+}
+
+// aux 1
+static int wait_for_gpio_output_data_and_process_get(ThreadGpioOutputDataArgs args,
+                                          int data_index,
+                                          int datardy_flag,
+                                          int timeout_ms,
+                                          int clear_after_read)
+{
+    int elapsed = 0;
     GpioOutputData gpio_output_data_send;
+    bool is_gpio_output_running = false;
 
-    pthread_mutex_lock(&shared_mutex);
-    shared[PRU_SHD_FLAGS_INDEX] |= (1 << PRU_GPIO_OUTPUT_MODE0_FLAG);
-    while (!(shared[PRU_SHD_GPIO_OUTPUT_MODE0_INDEX] & (1 << PRU_GPIO_OUTPUT_MODE0_DATARDY_FLAG))) {
-        usleep(1000);
-    }
-    for (int i = 0; i < args->gpio_output_data->num_output; i++) {
-        int pin = args->gpio_output_data->output[i];
-        gpio_output_data_send.state[i] = (shared[PRU_SHD_GPIO_OUTPUT_MODE0_INDEX] >> (pin + OFFSET_STATE)) & 1;
-	gpio_output_data_send.output[i] = pin;
-    }
-    gpio_output_data_send.num_output = args->gpio_output_data->num_output;
-    publish_gpio_output_response(args->mosq, gpio_output_data_send, FUNCTION_STATUS_OK);
-    lcd_system_status(LCD_GPIO_OUTPUT_STATUS_OK);
-    pthread_mutex_unlock(&shared_mutex);
+    while (timeout_ms < 0 || elapsed < timeout_ms) {
 
-    // Liberar el flag del modo
-    pthread_mutex_lock(&mode_mutex);
-    execution_flags[0] = EXECUTION_ENABLED;
-    pthread_mutex_unlock(&mode_mutex);
-    pthread_exit(NULL);
+        pthread_mutex_lock(&gpio_output_running_mutex);
+        is_gpio_output_running = gpio_output_running;
+        pthread_mutex_unlock(&gpio_output_running_mutex);
+
+        pthread_mutex_lock(&shm->shared_mutex[MUTEX_GPIO_OUTPUT]);
+        int ready = shm->shared[data_index] & (1 << datardy_flag);
+        pthread_mutex_unlock(&shm->shared_mutex[MUTEX_GPIO_OUTPUT]);
+
+        if (ready) {
+            pthread_mutex_lock(&shm->shared_mutex[MUTEX_GPIO_OUTPUT]);
+            process_gpio_output_data_get(args, &gpio_output_data_send, data_index);
+            if (clear_after_read)
+                shm->shared[data_index] = PRU_ERASE_MEM;
+            pthread_mutex_unlock(&shm->shared_mutex[MUTEX_GPIO_OUTPUT]);
+
+            publish_gpio_output_response(args.mosq, gpio_output_data_send, MSG_GPIO_OUTPUT_DONE);
+            LOG_INFO(MSG_GPIO_OUTPUT_DONE);
+            lcd_show_message(MSG_GPIO_OUTPUT_DONE);
+            return 0; //exito
+        }
+
+        if (!is_gpio_output_running) {
+	    notify_gpio_output_status_message(args.mosq, MSG_GPIO_OUTPUT_STOPPED);
+            return -1;
+        }
+
+        usleep(1000);  // 1 ms
+        elapsed += 1;
+    }
+
+    if (timeout_ms > 0 && elapsed >= timeout_ms) {
+        notify_gpio_output_status_message(args.mosq, MSG_GPIO_OUTPUT_TIMEOUT_EXPIRED);
+        return -2;
+    }
+
+    return -3; // sin exito pero sin timeout
 }
 
-// MODE 1 set state
-void handle_gpio_output_mode_1(ThreadArgs *args) {
-    printf("gpio_output -> mode 1\n");
+// aux 2
+static int wait_for_gpio_output_data_and_process_done(ThreadGpioOutputDataArgs args,
+							  int data_index,
+                                          	          int datardy_flag,
+                                          		  int timeout_ms){
 
-    pthread_mutex_lock(&shared_mutex);
-    // cargamos los datos en la memoria shd
-    for (int i = 0; i < args->gpio_output_data->num_output; i++) {
-        int pin = args->gpio_output_data->output[i];
-        int state = args->gpio_output_data->state[i] & 1;
+    int elapsed = 0;
+    bool is_gpio_output_running = false;
 
-        if (pin >= 0 && pin < 4) shared[PRU_SHD_GPIO_OUTPUT_MODE1_INDEX] |= (1 << pin);
-        if (i < 4) shared[PRU_SHD_GPIO_OUTPUT_MODE1_INDEX] |= (state << (OFFSET_STATE + pin));
+    while (timeout_ms < 0 || elapsed < timeout_ms) {
+
+        pthread_mutex_lock(&gpio_output_running_mutex);
+        is_gpio_output_running = gpio_output_running;
+        pthread_mutex_unlock(&gpio_output_running_mutex);
+
+        pthread_mutex_lock(&shm->shared_mutex[MUTEX_GPIO_OUTPUT]);
+        int ready = shm->shared[data_index] & (1 << datardy_flag);
+        pthread_mutex_unlock(&shm->shared_mutex[MUTEX_GPIO_OUTPUT]);
+
+        if (ready) {
+            notify_gpio_output_status_message(args.mosq, MSG_GPIO_OUTPUT_DONE);
+            return 0; //exito
+        }
+
+        if (!is_gpio_output_running) {
+            notify_gpio_output_status_message(args.mosq, MSG_GPIO_OUTPUT_STOPPED);
+            return -1;
+        }
+
+        usleep(1000);  // 1 ms
+        elapsed += 1;
     }
-    shared[PRU_SHD_FLAGS_INDEX] |= (1 << PRU_GPIO_OUTPUT_MODE1_FLAG);
-    while (!(shared[PRU_SHD_GPIO_OUTPUT_MODE1_INDEX] & (1 << PRU_GPIO_OUTPUT_MODE1_DATARDY_FLAG))) {
-      usleep(1000);
-    }
-    // send data
-    publish_gpio_output_response_status(args->mosq, FUNCTION_STATUS_OK);
-    lcd_system_status(LCD_GPIO_OUTPUT_STATUS_OK);
-    pthread_mutex_unlock(&shared_mutex);
 
-    // Liberar el flag del modo
-    pthread_mutex_lock(&mode_mutex);
-    execution_flags[1] = EXECUTION_ENABLED;
-    pthread_mutex_unlock(&mode_mutex);
-    pthread_exit(NULL);
+    if (timeout_ms > 0 && elapsed >= timeout_ms) {
+        notify_gpio_output_status_message(args.mosq, MSG_GPIO_OUTPUT_TIMEOUT_EXPIRED);
+        return -2;
+    }
+
+    return -3; // sin exito pero sin timeout
 }
 
-// MODE 2 set state
-void handle_gpio_output_mode_2(ThreadArgs *args) {
-    printf("gpio_output -> mode 2\n");
-    // Implementaciones futuras
+// Aux 3
+static void process_gpio_output_data_get(ThreadGpioOutputDataArgs args, GpioOutputData *gpio_output_data_send, int data_shd_index){
+
+    for (int i = 0; i < args.gpio_output_data->num_output; i++) {
+        int pin = args.gpio_output_data->output[i];
+        gpio_output_data_send->state[i] = (shm->shared[data_shd_index] >> (pin + GPIO_OUTPUT_OFFSET_STATE)) & 1; // <-shm
+        gpio_output_data_send->output[i] = pin;
+        //LOG_DEBUG("state [i] %d",gpio_output_data_send->state[i]);
+    }
+    gpio_output_data_send->num_output = args.gpio_output_data->num_output;
 }
 
-// **FUNCION PRINCIPAL**
-void *gpio_output_function(void *arg) {
-    ThreadArgs *args = (ThreadArgs *)arg;
+// Aux 4
+static void process_gpio_output_data_set(ThreadGpioOutputDataArgs args, int data_shd_index){
 
-    int mode = args->gpio_output_data->mode;
-
-    // Bloquear el mutex antes de modificar execution_flags
-    pthread_mutex_lock(&mode_mutex);
-
-    if (mode < 0 || mode >= MODE_COUNT) {
-        printf(FUNCTION_INVALID_MODE);
-        pthread_mutex_unlock(&mode_mutex);  // Desbloquear el mutex antes de salir
-        pthread_exit(NULL);
+    for (int i = 0; i < args.gpio_output_data->num_output; i++) {
+        int pin = args.gpio_output_data->output[i];
+        int state = args.gpio_output_data->state[i] & 1;
+        if (pin >= 0 && pin < 4){
+	    shm->shared[data_shd_index] |= (1 << pin);
+        }
+        if (i < 4){
+	    shm->shared[data_shd_index] |= (state << (GPIO_OUTPUT_OFFSET_STATE + pin));
+        }
     }
-    // si ya hay en ejecucion una instancia de este modo se sale
-    if (execution_flags[mode] == EXECUTION_DISABLED) {
-        printf(MODE_ALREADY_RUNNING, mode);
-        lcd_system_status(LCD_MQTT_MSG_RECEIVED_GPIO_OUTPUT_BUSY);
-        pthread_mutex_unlock(&mode_mutex);
-        pthread_exit(NULL);
-    }
-
-    // Marcar el modo como en ejecucion
-    execution_flags[mode] = EXECUTION_DISABLED;
-    pthread_mutex_unlock(&mode_mutex);
-
-    // Mapear SHARED (32 bits por dato)
-    if (map_memory(&fd_shared, &map_base_shared, (void **)&shared, target_shared, shared_size) == -1) {
-        // Si falla el mapeo, liberar el flag y el mutex
-        pthread_mutex_lock(&mode_mutex);
-        execution_flags[mode] = EXECUTION_ENABLED;
-        pthread_mutex_unlock(&mode_mutex);
-        pthread_exit(NULL);  // Abortamos el hilo
-        return -1;
-    }
-
-    switch (args->gpio_output_data->mode) {
-        case 0: handle_gpio_output_mode_0(args); break;
-        case 1: handle_gpio_output_mode_1(args); break;
-        case 2: handle_gpio_output_mode_2(args); break;
-        default: printf(GPIO_OUTPUT_INVALID_OPTION); break;
-    }
-
-    // Liberar memoria mapeada
-    unmap_memory(fd_shared, map_base_shared, shared_size);
 }
-
+// Aux 5
+static void notify_gpio_output_status_message(struct mosquitto *mosq, const char *msg) {
+    publish_gpio_output_response_status(mosq, msg);
+    LOG_INFO("%s", msg);
+    lcd_show_message(msg);
+}

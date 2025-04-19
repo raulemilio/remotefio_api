@@ -1,4 +1,4 @@
-PRU Assembler Unix v2.3.3 Sat Apr  5 23:40:34 2025
+PRU Assembler Unix v2.3.3 Sun Apr  6 20:47:04 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru0-analog.asm                                                  PAGE    1
@@ -26,10 +26,10 @@ src/pru0-analog.asm                                                  PAGE    1
       21
       22  .asg 0x02, OFFSET_2_BYTES                             ; el tamanio del dato es 2 bytes
       23
-      24  .asg 0x50, SHD_FLAGS_INDEX                            ; SHD[20] flags linux bit0-> mode0 bit1-> mode
-      25  .asg 0x54, SHD_DATARDY_FLAGS_INDEX                    ; SHD[21] data ready flag bit0 [ram0-ram4095] 
-      26  .asg 0x58, SHD_SAMPLE_PERIOD_INDEX                    ; SHD[22] periodo de muestreo
-      27  .asg 0x5C, SHD_BUFFER_SIZE_INDEX                      ; SHD[23] Cantidad de muestras por iteracion
+      24  .asg 0xA0, SHD_FLAGS_INDEX                            ; SHD[40] flags linux bit0-> mode0 bit1-> mode
+      25  .asg 0xA4, SHD_DATARDY_FLAGS_INDEX                    ; SHD[41] data ready flag bit0 [ram0-ram4095] 
+      26  .asg 0xA8, SHD_SAMPLE_PERIOD_INDEX                    ; SHD[42] periodo de muestreo
+      27  .asg 0xAC, SHD_BUFFER_SIZE_INDEX                      ; SHD[43] Cantidad de muestras por iteracion
       28
       29  .asg 0x22000, PRU0_CTRL
       30  .asg 0x24000, PRU1_CTRL                               ; page 19
@@ -58,7 +58,7 @@ src/pru0-analog.asm                                                  PAGE    1
       53
       54; end-of-sequence interrupt
       55  .asg 0x28, ADC_TSC_IRQSTATUS                         ;
-PRU Assembler Unix v2.3.3 Sat Apr  5 23:40:34 2025
+PRU Assembler Unix v2.3.3 Sun Apr  6 20:47:04 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru0-analog.asm                                                  PAGE    2
@@ -118,7 +118,7 @@ src/pru0-analog.asm                                                  PAGE    2
      108  .asg 0xE4, ADC_TSC_FIFO_0_COUNT                      ; registro de conteo de datos en FIFO0
      109  .asg 0x100, ADC_TSC_FIFO_0_DATA                      ; registro FIFO0
      110  .asg 0xFFF, MASK_12_BIT                              ; FIFO0_DATA
-PRU Assembler Unix v2.3.3 Sat Apr  5 23:40:34 2025
+PRU Assembler Unix v2.3.3 Sun Apr  6 20:47:04 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru0-analog.asm                                                  PAGE    3
@@ -152,7 +152,7 @@ src/pru0-analog.asm                                                  PAGE    3
      137
      138; inicializacion
      139 00000000 000080240000C0    LDI32 r0, 0                                          ;
-     140 00000008 000000E1502A80    SBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ; borramos todos los flags
+     140 00000008 000000E1A02A80    SBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ; borramos todos los flags
      141 0000000c 000083240000C3    LDI32 r3, RAM0_ADDR_BASE                             ; registro que almancena la direccion base, con
      142 00000014 0000002EFF8184    ZERO  &r4, 4                                         ; offset inicial en RAM0[0]
      143 00000018 000085240000C5    LDI32 r5, 0                                          ; tamanio maximo buffer0 recordar que va de a 4
@@ -178,7 +178,7 @@ src/pru0-analog.asm                                                  PAGE    3
      163 00000074 0000001F12E1E1    SET   r1, r1, ADC_INPUT_TRIGGER                      ;
      164 00000078 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; Load the values at r0 into r1.
      165
-PRU Assembler Unix v2.3.3 Sat Apr  5 23:40:34 2025
+PRU Assembler Unix v2.3.3 Sun Apr  6 20:47:04 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru0-analog.asm                                                  PAGE    4
@@ -238,7 +238,7 @@ src/pru0-analog.asm                                                  PAGE    4
      218 00000130 D07C802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_STEPCONFIG_4)             ; load addr
      219 00000138 000081240018C1    LDI32 r1, ADC_TSC_STEPCONFIG_4_MASK                  ;
      220 00000140 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en registro
-PRU Assembler Unix v2.3.3 Sat Apr  5 23:40:34 2025
+PRU Assembler Unix v2.3.3 Sun Apr  6 20:47:04 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru0-analog.asm                                                  PAGE    5
@@ -298,7 +298,7 @@ src/pru0-analog.asm                                                  PAGE    5
      273; CONFIG
      274;  LDI32 r0, 0xff                                      ; test ram0
      275;  SBBO  &r0, r11, 0, 4                                ; ram0[0]
-PRU Assembler Unix v2.3.3 Sat Apr  5 23:40:34 2025
+PRU Assembler Unix v2.3.3 Sun Apr  6 20:47:04 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru0-analog.asm                                                  PAGE    6
@@ -322,10 +322,10 @@ src/pru0-analog.asm                                                  PAGE    6
      292
      293 000001f8                 MAIN_LOOP:
      294 000001f8                 level_adc_mode0:
-     295 000001f8 000000F1502A80    LBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ;
+     295 000001f8 000000F1A02A80    LBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ;
      296 000001fc 000000D100E009    QBBS  ADC_MODE0, r0, ADC_MODE0_FLAG                  ; jump is set bit0
      297 00000200                 level_adc_mode1:
-     298 00000200 000000F1502A80    LBBO  &r0, r10, SHD_FLAGS_INDEX, 4                  ;
+     298 00000200 000000F1A02A80    LBBO  &r0, r10, SHD_FLAGS_INDEX, 4                  ;
      299 00000204 000000D101E012    QBBS  ADC_MODE1, r0, ADC_MODE1_FLAG                  ; jump is set bit1
      300; clear IRQ_GPIO_IRQSTATUS_1
      301 00000208 C03080244804C0    LDI32 r0, (GPIO1|GPIO_IRQSTATUS_1)                   ;
@@ -340,11 +340,11 @@ src/pru0-analog.asm                                                  PAGE    6
      310;  CLR   r0, r0, ADC_MODE1_FLAG                        ;
      311;  SBBO  &r0, r10, SHD_FLAGS_INDEX, 4                  ;
      312 00000220 000084240000C4    LDI32  r4, 0                                         ; RAM0 index init 0
-     313 00000228 000000F15C2A85    LBBO  &r5, r10, SHD_BUFFER_SIZE_INDEX, 4             ; SHD[3] buffer por canal maximo 512
+     313 00000228 000000F1AC2A85    LBBO  &r5, r10, SHD_BUFFER_SIZE_INDEX, 4             ; SHD[3] buffer por canal maximo 512
      314 0000022c FFFC87240000C7    LDI32 r7, 0xFFFC                                     ; mascara para asegurar multiplo de 4
      315 00000234 00000010E7E5E5    AND   r5, r5, r7                                     ; aseguramos multiplo de 4
      316 00000238 00000000E5E5E6    ADD   r6, r5, r5                                     ; r6 es doble de r5
-     317 0000023c 000000F1582A8B    LBBO   &r11, r10, SHD_SAMPLE_PERIOD_INDEX, 4         ; read SHD[2] SAMPLES PERIOD
+     317 0000023c 000000F1A82A8B    LBBO   &r11, r10, SHD_SAMPLE_PERIOD_INDEX, 4         ; read SHD[2] SAMPLES PERIOD
      318 00000240 00008C240000CC    LDI32  r12, 0x0                                      ; RAM0 buffer count
      319 00000248 00000079000010    QBA   ADC_READ_CH                                    ;
      320
@@ -353,12 +353,12 @@ src/pru0-analog.asm                                                  PAGE    6
      323;  CLR   r0, r0, ADC_MODE0_FLAG                         ;
      324;  SBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ;
      325 0000024c 000084240000C4    LDI32  r4, 0                                         ; RAM0 index init 0
-     326 00000254 000000F15C2A85    LBBO  &r5, r10, SHD_BUFFER_SIZE_INDEX, 4             ; SHD[3] buffer por canal maximo 512
+     326 00000254 000000F1AC2A85    LBBO  &r5, r10, SHD_BUFFER_SIZE_INDEX, 4             ; SHD[3] buffer por canal maximo 512
      327 00000258 FFFC87240000C7    LDI32 r7, 0xFFFC                                     ; mascara para asegurar multiplo de 4
      328 00000260 00000010E7E5E5    AND   r5, r5, r7                                     ; aseguramos multiplo de 4
      329 00000264 00000000E5E5E6    ADD   r6, r5, r5                                     ; r6 es doble de r5
-     330 00000268 000000F1582A8B    LBBO   &r11, r10, SHD_SAMPLE_PERIOD_INDEX, 4         ; read SHD[2] SAMPLES PERIOD
-PRU Assembler Unix v2.3.3 Sat Apr  5 23:40:34 2025
+     330 00000268 000000F1A82A8B    LBBO   &r11, r10, SHD_SAMPLE_PERIOD_INDEX, 4         ; read SHD[2] SAMPLES PERIOD
+PRU Assembler Unix v2.3.3 Sun Apr  6 20:47:04 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru0-analog.asm                                                  PAGE    7
@@ -418,7 +418,7 @@ src/pru0-analog.asm                                                  PAGE    7
      383 00000314 0000001D00E1E1    CLR   r1, r1, ADC_TSC_CTRL_ENABLE                    ; disable module
      384 00000318 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; TRM pag. 1849
      385
-PRU Assembler Unix v2.3.3 Sat Apr  5 23:40:34 2025
+PRU Assembler Unix v2.3.3 Sun Apr  6 20:47:04 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru0-analog.asm                                                  PAGE    8
@@ -442,16 +442,16 @@ src/pru0-analog.asm                                                  PAGE    8
      402 0000034c 0000007F0000CF    QBA ADC_READ_CH                                      ;
      403
      404 00000350                 SET_BUFFER0_FLAG:
-     405 00000350 000000F1542A80    LBBO &r0, r10, SHD_DATARDY_FLAGS_INDEX, 4            ; read RAM1[1] flags de iteracion
+     405 00000350 000000F1A42A80    LBBO &r0, r10, SHD_DATARDY_FLAGS_INDEX, 4            ; read RAM1[1] flags de iteracion
      406 00000354 0000001F00E0E0    SET  r0, r0, 0                                       ; activamos el flag bit0 indicando que hay dato
-     407 00000358 000000E1542A80    SBBO &r0, r10, SHD_DATARDY_FLAGS_INDEX, 4            ; cargamos set flag bit0 en RAM1[1]
+     407 00000358 000000E1A42A80    SBBO &r0, r10, SHD_DATARDY_FLAGS_INDEX, 4            ; cargamos set flag bit0 en RAM1[1]
      408 0000035c 100084240000C4    LDI32 r4, RAM0_BUFFER1_INDEX0                        ; 0x1000 4096 mitad de ram0
      409 00000364 0000007F0000F9    QBA   level_A1                                       ;
      410
      411 00000368                 SET_BUFFER1_FLAG:
-     412 00000368 000000F1542A80    LBBO &r0, r10, SHD_DATARDY_FLAGS_INDEX, 4            ; read RAM1[1] flags de iteracion
+     412 00000368 000000F1A42A80    LBBO &r0, r10, SHD_DATARDY_FLAGS_INDEX, 4            ; read RAM1[1] flags de iteracion
      413 0000036c 0000001F01E0E0    SET  r0, r0, 1                                       ; activamos el flag bit1 indicando que hay dato
-     414 00000370 000000E1542A80    SBBO &r0, r10, SHD_DATARDY_FLAGS_INDEX, 4            ; cargamos set flag bit1 en RAM1[1]
+     414 00000370 000000E1A42A80    SBBO &r0, r10, SHD_DATARDY_FLAGS_INDEX, 4            ; cargamos set flag bit1 en RAM1[1]
      415 00000374 000084240000C4    LDI32 r4, RAM0_BUFFER0_INDEX0                        ; 0x0 inicio de ram0
      416 0000037c 00008C240000CC    LDI32 r12, 0x0                                       ; buffer count va desde 0 a tamanio de buffer x
      417 00000384 0000007F0000A6    QBA   level_adc_end                                  ; se llenan los dos buffer y se vuelve al loop 

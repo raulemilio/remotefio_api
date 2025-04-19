@@ -21,10 +21,10 @@
 
   .asg 0x02, OFFSET_2_BYTES                             ; el tamanio del dato es 2 bytes
 
-  .asg 0x50, SHD_FLAGS_INDEX                            ; SHD[20] flags linux bit0-> mode0 bit1-> mode1 (asc flanc adq)
-  .asg 0x54, SHD_DATARDY_FLAGS_INDEX                    ; SHD[21] data ready flag bit0 [ram0-ram4095] bit1 [ram4096-ram8191]
-  .asg 0x58, SHD_SAMPLE_PERIOD_INDEX		        ; SHD[22] periodo de muestreo
-  .asg 0x5C, SHD_BUFFER_SIZE_INDEX	                ; SHD[23] Cantidad de muestras por iteracion
+  .asg 0xA0, SHD_FLAGS_INDEX                            ; SHD[40] flags linux bit0-> mode0 bit1-> mode1 (asc flanc adq)
+  .asg 0xA4, SHD_DATARDY_FLAGS_INDEX                    ; SHD[41] data ready flag bit0 [ram0-ram4095] bit1 [ram4096-ram8191]
+  .asg 0xA8, SHD_SAMPLE_PERIOD_INDEX		        ; SHD[42] periodo de muestreo
+  .asg 0xAC, SHD_BUFFER_SIZE_INDEX	                ; SHD[43] Cantidad de muestras por iteracion
 
   .asg 0x22000, PRU0_CTRL
   .asg 0x24000, PRU1_CTRL                               ; page 19

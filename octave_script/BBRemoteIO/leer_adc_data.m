@@ -9,13 +9,13 @@ channel_names = {'CH0', 'CH1', 'CH2', 'CH3'};
 % - Para ver TODOS los canales: selected_channels = 1:4;
 % - Para ver SOLO un canal (por ejemplo, CH0): selected_channels = 1;
 % - Para ver dos canales (por ejemplo, CH2 y CH3): selected_channels = [3 4];
-selected_channels = 4;  % <- MODIFICAR ESTA LÍNEA SEGÚN NECESIDAD
+selected_channels = 1;  % <- MODIFICAR ESTA LÍNEA SEGÚN NECESIDAD
 
 % Estilo de figura para publicación científica
 figure_size = [800 400];            % Tamaño en píxeles [ancho, alto]
 line_width = 1.2;                   % Grosor de línea de las curvas
-marker_size = 12;                    % Tamaño del marcador
-font_size = 12;                     % Tamaño de fuente de ejes y título
+marker_size = 22;                    % Tamaño del marcador
+font_size = 22;                     % Tamaño de fuente de ejes y título
 export_filename = 'adc_plot.png';   % Nombre del archivo a guardar
 export_dpi = 300;                   % Resolución para guardar (DPI)
 
@@ -41,14 +41,14 @@ plot_data = data(1:n, selected_channels);
 selected_names = channel_names(selected_channels);
 
 % Crear figura para graficar
-f = figure('Name', 'Datos ADC', 'Color', 'w', 'Units', 'pixels', ...
+f = figure('Name', 'Canal 3', 'Color', 'w', 'Units', 'pixels', ...
            'Position', [100 100 figure_size]);
 
 plot(plot_data, '.-', 'LineWidth', line_width, 'MarkerSize', marker_size);
 grid on;
-title('Datos ADC por canal', 'FontSize', font_size + 2);
+title('Canal 3', 'FontSize', font_size + 2);
 xlabel('Índice de muestra', 'FontSize', font_size);
-ylabel('Valor ADC', 'FontSize', font_size);
+ylabel('Canal 3 [0 - 4095]', 'FontSize', font_size);
 legend(selected_names, 'FontSize', font_size);
 set(gca, 'FontSize', font_size);
 
