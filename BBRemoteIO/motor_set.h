@@ -7,9 +7,6 @@
 #include "motor.h"
 
 #define MOTOR_SET_TIMEOUT_MS_MODE0   5000
-#define MOTOR_SET_TIMEOUT_MS_MODE1   5000
-#define MOTOR_SET_TIMEOUT_MS_MODE2   5000
-#define MOTOR_SET_TIMEOUT_MS_MODE3   5000
 
 #define MOTOR_SET_MODE_MIN           0
 #define MOTOR_SET_MODE_MAX           1
@@ -31,6 +28,7 @@ typedef struct {
     int ena[MOTOR_NUM_MAX];     // Habilitacion de los motores, hasta 4 valores (0 o 1)
     int step_time[MOTOR_NUM_MAX];     // tiempo de medio ciclo de step
     int mode;       // Modo del motor
+    uint64_t ts;    // sin uso por el momento
 } MotorSetData;
 
 // Argumentos enviados al hilo a traves de la cola

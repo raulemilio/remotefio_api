@@ -15,7 +15,7 @@
 #define MSG_MOTOR_INVALID_MODE          "Motor inv mod   "
 #define MSG_MOTOR_DONE                  "Motor done      "
 #define MSG_MOTOR_STOPPED               "Motor in stopped"
-#define MSG_MOTOR_TIMEOUT_EXPIRED       "Expired timeout "
+#define MSG_MOTOR_TIMEOUT_EXPIRED       "Motor exp TO    "
 #define MSG_MOTOR_FINISH                "Motor finish    "
 
 #define JSON_KEY_MOTOR                  "motor"

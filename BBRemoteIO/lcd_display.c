@@ -4,6 +4,9 @@
 #include <unistd.h>
 #include "log.h"
 
+#define LCD_SLEEP      100000 // 100 ms
+#define LCD_MSG_SLEEP  500000 // 500 ms en prueba originalmente esta linea no la puse
+
 LcdQueue lcd_display_queue;
 pthread_t lcd_display_thread;
 
@@ -54,14 +57,15 @@ void *lcd_display_thread_func(void *arg) {
         }
 
         if (lcd_available && lcd_queue_dequeue(&lcd_display_queue, &msg) == 0) {
-            //printf(MSG_LCD_MESSAGE_RECEIVED"\n", msg.text);
+            LOG_DEBUG(MSG_LCD_MESSAGE_RECEIVED, msg.text);
             lcd_cursor_pos(2, 1);
             lcd_put_str(MSG_LCD_ERASE_SCREEN); // limpiar linea
             lcd_cursor_pos(2, 1);
             lcd_put_str(msg.text);
+            usleep(LCD_MSG_SLEEP);
         }
 
-        usleep(100000); // 100 ms
+        usleep(LCD_SLEEP);
     }
 
     return NULL;

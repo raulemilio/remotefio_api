@@ -43,6 +43,12 @@
 #define MAX_QUEUE_SIZE 			 10240  // Limite de almacenamiento de la cola
 #define MODE1_SAMPLES_MAX		 1000
 
+#define ADC_VREF			 1.8
+#define ADC_RESOLUTION 			 4096
+#define ADC_SLEEP_TIME_1MS               1    // 1 milisegundo
+#define ADC_SLEEP_TIME_10MS              10   // 10 milisegundos
+#define BUFFER_DURATION_THRESHOLD_SEC    1.0f  // 1 segundo
+
 #define FILE_DATA_NAME			"adc_data.bin"
 
 volatile bool adc_running;
@@ -79,15 +85,14 @@ static void notify_adc_status_message(struct mosquitto *mosq, const char *msg);
 
 void *adc_thread_func(void *arg) {
     ThreadAdcDataArgs args;
-    char mensaje[128];
+    char message[128];
 
     while (1) {
         if (task_queue_dequeue(&adc_queue, &args, sizeof(ThreadAdcDataArgs)) == 0) {
             if (!args.adc_data) continue;
 
-            LOG_INFO("Function: adc -> mode %d running", args.adc_data->mode);
-            snprintf(mensaje, sizeof(mensaje), "Adc mode %d run", args.adc_data->mode);
-            lcd_show_message(mensaje);
+            snprintf(message, sizeof(message), "Adc mode %d run", args.adc_data->mode);
+            notify_adc_status_message(args.mosq, message);
 
             pthread_mutex_lock(&producer_running_mutex);
             producer_running = TASK_RUNNING;
@@ -131,17 +136,25 @@ void *producer(void *arg) {
 
     ThreadAdcDataArgs *args = (ThreadAdcDataArgs *)arg;
 
-    int timeout_ms = ADC_TIMEOUT_MS;
     int idx;
     produced_count = 0;
     int iteration = 0;
     int trigger_flag = 0;
     int num_iteration = 0;
+
     bool buffer_processed = false;
     bool can_enqueue = false;
-    long elapsed_ms;
     bool is_adc_running = false;
+
+    bool finished_due_to_timeout = false;
+    bool finished_due_to_adc_stopped = false;
+    bool finished_normally = false;
+
     const char *msg;
+
+    int timeout_ms = ADC_TIMEOUT_MS;
+    long elapsed_ms;
+    int sleep_time_ms = 1; // 1 ms default
 
     int pru_buffer_size = args->adc_data->buffer_size / PRU_CIRCULAR_BUFFER_SIZE;
 
@@ -149,6 +162,15 @@ void *producer(void *arg) {
        num_iteration = args->adc_data->num_samples / args->adc_data->buffer_size;
     } else{
        num_iteration = MODE1_SAMPLES_MAX;
+    }
+
+    float samples_per_second = (float)args->adc_data->sample_rate;
+    float buffer_duration_sec = (float)pru_buffer_size / samples_per_second;
+
+    if (buffer_duration_sec >= BUFFER_DURATION_THRESHOLD_SEC) {
+        sleep_time_ms = ADC_SLEEP_TIME_10MS;
+    } else {
+        sleep_time_ms = ADC_SLEEP_TIME_1MS;
     }
 
     trigger_flag = (args->adc_data->enable_external_trigger == 0) ?
@@ -165,10 +187,6 @@ void *producer(void *arg) {
     // Guardamos el tiempo de inicio
     struct timespec start_time;
     clock_gettime(CLOCK_MONOTONIC, &start_time);
-
-    bool finished_due_to_timeout = false;
-    bool finished_due_to_adc_stopped = false;
-    bool finished_normally = false;
 
     while (1) {
 
@@ -258,10 +276,9 @@ void *producer(void *arg) {
             pthread_mutex_unlock(&fifo_mutex);
         } else {
             struct timespec ts;
-            ts.tv_sec = 0;
-            ts.tv_nsec = 1000000; // 1 ms (1,000,000 ns)
-            nanosleep(&ts, NULL); // Dormir 1 ms si no hay buffer disponible
-            //sched_yield();  // Cede CPU si no hay buffer disponible
+            ts.tv_sec = sleep_time_ms / 1000;
+            ts.tv_nsec = (sleep_time_ms % 1000) * 1000000; // convierte ms a ns
+            nanosleep(&ts, NULL);
         }
     }
 
@@ -295,6 +312,8 @@ void *consumer(void *arg) {
 
     ThreadAdcDataArgs *args = (ThreadAdcDataArgs *)arg;
     LOG_DEBUG("adc -> consumer running");
+
+    int sample_rate = args->adc_data->sample_rate;
 
     // Abrir archivo binario
     FILE *adc_file = fopen(FILE_DATA_NAME, "wb");
@@ -350,6 +369,14 @@ void *consumer(void *arg) {
             // Crear JSON
             cJSON *json_msg = cJSON_CreateObject();
             cJSON *json_channels = cJSON_CreateObject();
+	    // Agregar task
+	    cJSON_AddStringToObject(json_msg, "task", "adc");
+
+	    // Agregar metadata: vref, resolution y fsample
+	    cJSON_AddNumberToObject(json_msg, "vref", 	ADC_VREF);         // 1.8V
+	    cJSON_AddNumberToObject(json_msg, "resolution", ADC_RESOLUTION);  // 4096 niveles
+	    cJSON_AddNumberToObject(json_msg, "sample_rate", sample_rate);   // 100 kHz
+
             for (int i = 0; i < 4; i++) {
                 cJSON *json_channel = cJSON_CreateArray();
                 for (int j = 0; j < samples_per_node; j++) {
@@ -359,7 +386,7 @@ void *consumer(void *arg) {
                 snprintf(channel_name, sizeof(channel_name), "ch%d", i);
                 cJSON_AddItemToObject(json_channels, channel_name, json_channel);
             }
-            cJSON_AddStringToObject(json_msg, "task", "adc");
+
             cJSON_AddItemToObject(json_msg, "channels", json_channels);
 
             // Publicar

@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <sys/time.h>
 #include <sys/mman.h>
 #include <errno.h>
 #include <time.h>
@@ -26,6 +27,8 @@
 #include "mqtt_publish.h"
 #include "lcd_display.h"
 #include "log.h"
+
+#define GPIO_INPUT_SLEEP_TIME_MS 5
 
 volatile bool gpio_input_running;
 pthread_mutex_t gpio_input_running_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -63,16 +66,15 @@ pthread_t gpio_input_thread;
 
 void *gpio_input_thread_func(void *arg) {
     ThreadGpioInputDataArgs args;
-    char mensaje[128];
+    char message[128];
     int timeout_ms;
 
     while (1) {
         if (task_queue_dequeue(&gpio_input_queue, &args, sizeof(ThreadGpioInputDataArgs)) == 0) {
             if (!args.gpio_input_data) continue;
 
-            LOG_INFO("Function: gpio_input -> mode %d running", args.gpio_input_data->mode);
-            snprintf(mensaje, sizeof(mensaje), "Gpio in mode %d", args.gpio_input_data->mode);
-            lcd_show_message(mensaje);
+            snprintf(message, sizeof(message), "Gpio in mode %d", args.gpio_input_data->mode);
+            notify_gpio_input_status_message(args.mosq, message);
 
             int flag_index, data_index, trigger_flag, datardy_flag;
 
@@ -150,8 +152,19 @@ static void gpio_input_trigger_get(ThreadGpioInputDataArgs args,
 
     bool is_gpio_input_running = false;
 
+    /*DEBUG
+    struct timespec start, end;
+    double elapsed_ms;
+    DEBUG*/
+
     while (1) {
+
+	/*DEBUG
+        clock_gettime(CLOCK_MONOTONIC, &start); // Tomamos tiempo antes de la vuelta
+	DEBUG*/
+
         // Bloqueamos el mutex para leer gpio_input_running de forma segura
+
         pthread_mutex_lock(&gpio_input_running_mutex);
         is_gpio_input_running = gpio_input_running;
         pthread_mutex_unlock(&gpio_input_running_mutex);
@@ -168,7 +181,20 @@ static void gpio_input_trigger_get(ThreadGpioInputDataArgs args,
         // entramos a un loop de medicion
         int result = wait_for_gpio_input_data_and_process_get(args, data_index, datardy_flag, timeout_ms, 1);
         if (result != 0) break; // salir si hubo timeout, parada o error
+
+        /*DEBUG
+        clock_gettime(CLOCK_MONOTONIC, &end); // Tomamos tiempo después de la vuelta
+        elapsed_ms = (end.tv_sec - start.tv_sec) * 1000.0 +
+                 (end.tv_nsec - start.tv_nsec) / 1000000.0;
+        printf("Tiempo de vuelta: %.3f ms\n", elapsed_ms);
+        DEBUG*/
+
     }
+
+    pthread_mutex_lock(&shm->shared_mutex[MUTEX_GPIO_INPUT]);
+    shm->shared[flag_index] &= ~(1 << trigger_flag);  // Detener pru function mode
+    pthread_mutex_unlock(&shm->shared_mutex[MUTEX_GPIO_INPUT]);
+
 }
 
 // aux 1
@@ -179,6 +205,8 @@ static int wait_for_gpio_input_data_and_process_get(ThreadGpioInputDataArgs args
 					  int clear_after_read){
 
     int elapsed = 0;
+    int sleep_time_ms = GPIO_INPUT_SLEEP_TIME_MS;
+
     GpioInputData gpio_input_data_send;
     bool is_gpio_input_running = false;
 
@@ -200,8 +228,8 @@ static int wait_for_gpio_input_data_and_process_get(ThreadGpioInputDataArgs args
             pthread_mutex_unlock(&shm->shared_mutex[MUTEX_GPIO_INPUT]);
 
             publish_gpio_input_response(args.mosq, gpio_input_data_send, MSG_GPIO_INPUT_DONE);
-            LOG_INFO(MSG_GPIO_INPUT_DONE);
-            lcd_show_message(MSG_GPIO_INPUT_DONE);
+            LOG_DEBUG(MSG_GPIO_INPUT_DONE);
+            //lcd_show_message(MSG_GPIO_INPUT_DONE);
             return 0; //exito
         }
 
@@ -210,8 +238,8 @@ static int wait_for_gpio_input_data_and_process_get(ThreadGpioInputDataArgs args
             return -1;
         }
 
-        usleep(1000);  // 1 ms
-        elapsed += 1;
+        usleep(sleep_time_ms * 1000); // usleep recibe microsegundos (1 ms = 1000 us)
+        elapsed += sleep_time_ms;     // sumamos correctamente segun cuanto dormimos
     }
 
     if (timeout_ms > 0 && elapsed >= timeout_ms) {
@@ -232,6 +260,11 @@ static void process_gpio_input_data_get(ThreadGpioInputDataArgs args, GpioInputD
         //LOG_DEBUG("state [i] %d",gpio_input_data_send->state[i]);
     }
     gpio_input_data_send->num_input = args.gpio_input_data->num_input;
+    // Cargar timestamp en milisegundos
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    uint64_t ts_ms = (uint64_t)tv.tv_sec * 1000 + (tv.tv_usec / 1000);
+    gpio_input_data_send->ts = ts_ms;
 }
 // Aux 3
 static void notify_gpio_input_status_message(struct mosquitto *mosq, const char *msg) {

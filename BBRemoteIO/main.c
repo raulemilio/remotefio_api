@@ -20,7 +20,8 @@
 #include "lcd_queue.h"
 #include "pru_control.h"
 #include "gpio_input.h"
-#include "gpio_output.h"
+#include "gpio_output_get.h"
+#include "gpio_output_set.h"
 #include "motor_get.h"
 #include "motor_set.h"
 #include "task_queue.h"
@@ -124,7 +125,8 @@ int main() {
     // Iniciamos la cola
     task_queue_init(&adc_queue);
     task_queue_init(&gpio_input_queue);
-    task_queue_init(&gpio_output_queue);
+    task_queue_init(&gpio_output_get_queue);
+    task_queue_init(&gpio_output_set_queue);
     task_queue_init(&motor_get_queue);
     task_queue_init(&motor_set_queue);
     task_queue_init(&system_queue);
@@ -132,7 +134,8 @@ int main() {
     // Iniciamos hilo
     pthread_create(&adc_thread, NULL, adc_thread_func, NULL);
     pthread_create(&gpio_input_thread, NULL, gpio_input_thread_func, NULL);
-    pthread_create(&gpio_output_thread, NULL, gpio_output_thread_func, NULL);
+    pthread_create(&gpio_output_get_thread, NULL, gpio_output_get_thread_func, NULL);
+    pthread_create(&gpio_output_set_thread, NULL, gpio_output_set_thread_func, NULL);
     pthread_create(&motor_get_thread, NULL, motor_get_thread_func, NULL);
     pthread_create(&motor_set_thread, NULL, motor_set_thread_func, NULL);
     pthread_create(&system_thread, NULL, system_thread_func, NULL);
@@ -148,7 +151,8 @@ int main() {
     // Suscribirse a los cuatro tpicos
     if (mosquitto_subscribe(mosq, NULL, TOPIC_CMDS_ADC, 0) ||
         mosquitto_subscribe(mosq, NULL, TOPIC_CMDS_GPIO_INPUT, 0) ||
-        mosquitto_subscribe(mosq, NULL, TOPIC_CMDS_GPIO_OUTPUT, 0) ||
+        mosquitto_subscribe(mosq, NULL, TOPIC_CMDS_GPIO_OUTPUT_GET, 0) ||
+        mosquitto_subscribe(mosq, NULL, TOPIC_CMDS_GPIO_OUTPUT_SET, 0) ||
         mosquitto_subscribe(mosq, NULL, TOPIC_CMDS_MOTOR_GET, 0) ||
         mosquitto_subscribe(mosq, NULL, TOPIC_CMDS_MOTOR_SET, 0) ||
         mosquitto_subscribe(mosq, NULL, TOPIC_CMDS_SYSTEM, 0)) {
@@ -164,7 +168,8 @@ int main() {
     LOG_INFO("Connected to the MQTT broker and subscribed to the topics:");
     LOG_INFO("%s", TOPIC_CMDS_ADC);
     LOG_INFO("%s", TOPIC_CMDS_GPIO_INPUT);
-    LOG_INFO("%s", TOPIC_CMDS_GPIO_OUTPUT);
+    LOG_INFO("%s", TOPIC_CMDS_GPIO_OUTPUT_GET);
+    LOG_INFO("%s", TOPIC_CMDS_GPIO_OUTPUT_SET);
     LOG_INFO("%s", TOPIC_CMDS_MOTOR_GET);
     LOG_INFO("%s", TOPIC_CMDS_MOTOR_SET);
     LOG_INFO("%s", TOPIC_CMDS_SYSTEM);
@@ -197,7 +202,8 @@ int main() {
     }
     pthread_mutex_destroy(&adc_running_mutex);
     pthread_mutex_destroy(&gpio_input_running_mutex);
-    pthread_mutex_destroy(&gpio_output_running_mutex);
+    pthread_mutex_destroy(&gpio_output_get_running_mutex);
+    pthread_mutex_destroy(&gpio_output_set_running_mutex);
     pthread_mutex_destroy(&motor_get_running_mutex);
     pthread_mutex_destroy(&motor_set_running_mutex);
     pthread_mutex_destroy(&system_running_mutex);

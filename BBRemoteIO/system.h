@@ -18,16 +18,16 @@
 
 
 #define MSG_SYSTEM_LCD_CLEAN		"System lcd clr  "
-#define MSG_SYSTEM_ALL_FUNCTION_ON	"System func on  "
-#define MSG_SYSTEM_ALL_FUNCTION_OFF	"System func off "
+#define MSG_SYSTEM_ALL_FUNCTION_ON	"System all on   "
+#define MSG_SYSTEM_ALL_FUNCTION_OFF	"System all off  "
 #define MSG_SYSTEM_FUNCTION_ON		"System func on  "
 #define MSG_SYSTEM_FUNCTION_OFF		"System func off "
 
 // 16 caracteres maximo
-#define MSG_SYSTEM_INVALID_OPTION       "System  inv opt "
+#define MSG_SYSTEM_INVALID_OPTION       "System inv opt  "
 #define MSG_SYSTEM_DONE                 "System done     "
 #define MSG_SYSTEM_STOPPED              "System stopped  "
-#define MSG_SYSTEM_TIMEOUT_EXPIRED      "Expired timeout "
+#define MSG_SYSTEM_TIMEOUT_EXPIRED      "System exp TO   "
 #define MSG_SYSTEM_FINISH               "System finish   "
 
 // TASK
@@ -40,7 +40,8 @@
 #define JSON_KEY_SYSTEM_PRU1               "pru1"
 #define JSON_KEY_SYSTEM_ADC                "adc"
 #define JSON_KEY_SYSTEM_GPIO_INPUT         "gpio_input"
-#define JSON_KEY_SYSTEM_GPIO_OUTPUT        "gpio_out"
+#define JSON_KEY_SYSTEM_GPIO_OUTPUT_GET    "gpio_out_get"
+#define JSON_KEY_SYSTEM_GPIO_OUTPUT_SET    "gpio_out_set"
 #define JSON_KEY_SYSTEM_MOTOR_GET          "motor_get"
 #define JSON_KEY_SYSTEM_MOTOR_SET          "motor_set"
 #define JSON_KEY_SYSTEM_ALL_FUNCTIONS      "all_functions"
@@ -64,7 +65,8 @@ typedef enum {
     FUNC_PRU1,
     FUNC_ADC,
     FUNC_GPIO_INPUT,
-    FUNC_GPIO_OUTPUT,
+    FUNC_GPIO_OUTPUT_GET,
+    FUNC_GPIO_OUTPUT_SET,
     FUNC_MOTOR_GET,
     FUNC_MOTOR_SET,
     FUNC_ALL_FUNCTIONS,

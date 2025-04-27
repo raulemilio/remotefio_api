@@ -20,10 +20,10 @@
 #define LCD_LINE_2      0xC0
 #define LCD_WIDTH       16
 
-#define INIT_DELAY      5000
-#define CMD_DELAY       100
-#define EN_CYCLE_DELAY  100
-#define EN_PULSE_WIDTH  100
+#define INIT_DELAY      5000 //us
+#define CMD_DELAY       100  //us
+#define EN_CYCLE_DELAY  100  //us
+#define EN_PULSE_WIDTH  100  //us
 
 extern int lcd_available;
 

@@ -25,6 +25,7 @@
 #include "log.h"
 
 #define GPIO_OUTPUT_OFFSET_STATE       4
+#define GPIO_OUTPUT_SLEEP_TIME_MS      10
 
 volatile bool gpio_output_running;
 pthread_mutex_t gpio_output_running_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -161,6 +162,7 @@ static int wait_for_gpio_output_data_and_process_get(ThreadGpioOutputDataArgs ar
                                           int clear_after_read)
 {
     int elapsed = 0;
+    int sleep_time_ms = GPIO_OUTPUT_SLEEP_TIME_MS;
     GpioOutputData gpio_output_data_send;
     bool is_gpio_output_running = false;
 
@@ -182,8 +184,8 @@ static int wait_for_gpio_output_data_and_process_get(ThreadGpioOutputDataArgs ar
             pthread_mutex_unlock(&shm->shared_mutex[MUTEX_GPIO_OUTPUT]);
 
             publish_gpio_output_response(args.mosq, gpio_output_data_send, MSG_GPIO_OUTPUT_DONE);
-            LOG_INFO(MSG_GPIO_OUTPUT_DONE);
-            lcd_show_message(MSG_GPIO_OUTPUT_DONE);
+            LOG_DEBUG(MSG_GPIO_OUTPUT_DONE);
+            //lcd_show_message(MSG_GPIO_OUTPUT_DONE);
             return 0; //exito
         }
 
@@ -192,8 +194,8 @@ static int wait_for_gpio_output_data_and_process_get(ThreadGpioOutputDataArgs ar
             return -1;
         }
 
-        usleep(1000);  // 1 ms
-        elapsed += 1;
+        usleep(sleep_time_ms * 1000); // usleep recibe microsegundos (1 ms = 1000 us)
+        elapsed += sleep_time_ms;
     }
 
     if (timeout_ms > 0 && elapsed >= timeout_ms) {
@@ -211,6 +213,7 @@ static int wait_for_gpio_output_data_and_process_done(ThreadGpioOutputDataArgs a
                                           		  int timeout_ms){
 
     int elapsed = 0;
+    int sleep_time_ms = GPIO_OUTPUT_SLEEP_TIME_MS;
     bool is_gpio_output_running = false;
 
     while (timeout_ms < 0 || elapsed < timeout_ms) {
@@ -233,8 +236,8 @@ static int wait_for_gpio_output_data_and_process_done(ThreadGpioOutputDataArgs a
             return -1;
         }
 
-        usleep(1000);  // 1 ms
-        elapsed += 1;
+        usleep(sleep_time_ms * 1000); // usleep recibe microsegundos (1 ms = 1000 us)
+        elapsed += sleep_time_ms;
     }
 
     if (timeout_ms > 0 && elapsed >= timeout_ms) {

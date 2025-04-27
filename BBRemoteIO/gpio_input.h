@@ -18,7 +18,7 @@
 #define MSG_GPIO_INPUT_INVALID_MODE       "Gpio in inv mod "
 #define MSG_GPIO_INPUT_DONE               "Gpio in done"
 #define MSG_GPIO_INPUT_STOPPED            "Gpio in stopped "
-#define MSG_GPIO_INPUT_TIMEOUT_EXPIRED    "Expired timeout "
+#define MSG_GPIO_INPUT_TIMEOUT_EXPIRED    "Gpio in exp TO  "
 #define MSG_GPIO_INPUT_FINISH             "Gpio in finish  "
 
 // TASK
@@ -43,6 +43,7 @@ typedef struct {
     int state[GPIO_INPUT_NUM_MAX];    // Arreglo para almacenar los estados de las entradas (maximo 4 estados)
     int num_input; // Numero de entradas leidas
     int mode;     // Modo de operacion (0, 1 o 2)
+    uint64_t ts; // timestamp
 } GpioInputData;
 
 // Argumentos enviados al hilo a traves de la cola

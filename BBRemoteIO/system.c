@@ -33,7 +33,8 @@ static void handle_pru0_function(ThreadSystemDataArgs args);
 static void handle_pru1_function(ThreadSystemDataArgs args);
 static void handle_adc_function(ThreadSystemDataArgs args);
 static void handle_gpio_input_function(ThreadSystemDataArgs args);
-static void handle_gpio_output_function(ThreadSystemDataArgs args);
+static void handle_gpio_output_get_function(ThreadSystemDataArgs args);
+static void handle_gpio_output_set_function(ThreadSystemDataArgs args);
 static void handle_motor_get_function(ThreadSystemDataArgs args);
 static void handle_motor_set_function(ThreadSystemDataArgs args);
 static void handle_all_functions_function(ThreadSystemDataArgs args);
@@ -49,7 +50,7 @@ void *system_thread_func(void *arg) {
         if (task_queue_dequeue(&system_queue, &args, sizeof(ThreadSystemDataArgs)) == 0) {
             if (!args.system_data) continue;
 
-            LOG_INFO("Function: system running");
+            publish_system_response_status(args.mosq, "System start");
 
 	    FunctionType function_type = args.system_data->function;
 
@@ -69,9 +70,12 @@ void *system_thread_func(void *arg) {
         	case FUNC_GPIO_INPUT:
             		handle_gpio_input_function(args);
             		break;
-        	case FUNC_GPIO_OUTPUT:
-            		handle_gpio_output_function(args);
+        	case FUNC_GPIO_OUTPUT_GET:
+            		handle_gpio_output_get_function(args);
             		break;
+                case FUNC_GPIO_OUTPUT_SET:
+                        handle_gpio_output_set_function(args);
+                        break;
         	case FUNC_MOTOR_GET:
             		handle_motor_get_function(args);
             		break;
@@ -125,9 +129,13 @@ static void handle_adc_function(ThreadSystemDataArgs args) {
 static void handle_gpio_input_function(ThreadSystemDataArgs args) {
     handle_generic_system_function(args.mosq, "gpio_input", &gpio_input_running_mutex, &gpio_input_running, args.system_data->action);
 }
-// GPIO_OUTPUT
-static void handle_gpio_output_function(ThreadSystemDataArgs args) {
-    handle_generic_system_function(args.mosq, "gpio_output", &gpio_output_running_mutex, &gpio_output_running, args.system_data->action);
+// GPIO_OUTPUT GET
+static void handle_gpio_output_get_function(ThreadSystemDataArgs args) {
+    handle_generic_system_function(args.mosq, "gpio_output_get", &gpio_output_get_running_mutex, &gpio_output_get_running, args.system_data->action);
+}
+// GPIO_OUTPUT SET
+static void handle_gpio_output_set_function(ThreadSystemDataArgs args) {
+    handle_generic_system_function(args.mosq, "gpio_output_set", &gpio_output_set_running_mutex, &gpio_output_set_running, args.system_data->action);
 }
 // MOTOR GET
 static void handle_motor_get_function(ThreadSystemDataArgs args) {
@@ -147,7 +155,8 @@ static void handle_all_functions_function(ThreadSystemDataArgs args) {
             action = true;
             set_running(&adc_running, &adc_running_mutex, action);
             set_running(&gpio_input_running, &gpio_input_running_mutex, action);
-            set_running(&gpio_output_running, &gpio_output_running_mutex, action);
+            set_running(&gpio_output_get_running, &gpio_output_get_running_mutex, action);
+            set_running(&gpio_output_set_running, &gpio_output_set_running_mutex, action);
             set_running(&motor_get_running, &motor_get_running_mutex, action);
             set_running(&motor_set_running, &motor_set_running_mutex, action);
             publish_system_response_status(args.mosq, MSG_SYSTEM_ALL_FUNCTION_ON);
@@ -157,7 +166,8 @@ static void handle_all_functions_function(ThreadSystemDataArgs args) {
             action = false;
             set_running(&adc_running, &adc_running_mutex, action);
             set_running(&gpio_input_running, &gpio_input_running_mutex, action);
-            set_running(&gpio_output_running, &gpio_output_running_mutex, action);
+            set_running(&gpio_output_get_running, &gpio_output_get_running_mutex, action);
+            set_running(&gpio_output_set_running, &gpio_output_set_running_mutex, action);
             set_running(&motor_get_running, &motor_get_running_mutex, action);
             set_running(&motor_set_running, &motor_set_running_mutex, action);
             publish_system_response_status(args.mosq, MSG_SYSTEM_ALL_FUNCTION_OFF);

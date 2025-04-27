@@ -28,6 +28,8 @@
 #include "lcd_display.h"
 #include "log.h"
 
+#define MOTOR_SET_SLEEP_TIME_MS 10
+
 volatile bool motor_set_running;
 pthread_mutex_t motor_set_running_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -54,16 +56,15 @@ static void notify_motor_set_status_message(struct mosquitto *mosq, const char *
 
 void *motor_set_thread_func(void *arg) {
     ThreadMotorSetDataArgs args;
-    char mensaje[128];
+    char message[128];
     int timeout_ms;
 
     while (1) {
         if (task_queue_dequeue(&motor_set_queue, &args, sizeof(ThreadMotorSetDataArgs)) == 0) {
             if (!args.motor_set_data) continue;
 
-            LOG_INFO("Function: motor_set -> mode %d running", args.motor_set_data->mode);
-            snprintf(mensaje, sizeof(mensaje), "Motor set mode %d", args.motor_set_data->mode);
-            lcd_show_message(mensaje);
+            snprintf(message, sizeof(message), "Motor set mode %d", args.motor_set_data->mode);
+            notify_motor_set_status_message(args.mosq, message);
 
             int flag_index, data_index, trigger_flag, datardy_flag;
 
@@ -120,6 +121,7 @@ static int wait_for_motor_set_data_and_process_done(ThreadMotorSetDataArgs args,
                                                           int timeout_ms){
 
     int elapsed = 0;
+    int sleep_time_ms = MOTOR_SET_SLEEP_TIME_MS;
     bool is_motor_set_running = false;
 
     while (timeout_ms < 0 || elapsed < timeout_ms) {
@@ -142,8 +144,9 @@ static int wait_for_motor_set_data_and_process_done(ThreadMotorSetDataArgs args,
             return -1;
         }
 
-        usleep(1000);  // 1 ms
-        elapsed += 1;
+        usleep(sleep_time_ms * 1000); // usleep recibe microsegundos (1 ms = 1000 us)
+        elapsed += sleep_time_ms;
+
     }
 
     if (timeout_ms > 0 && elapsed >= timeout_ms) {

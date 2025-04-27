@@ -13,6 +13,7 @@
 #include <sys/mman.h>
 #include <errno.h>
 #include <time.h>
+#include <sys/time.h>
 
 #include "mqtt_callback.h"
 #include "mqtt_response.h"
@@ -27,6 +28,8 @@
 #include "mqtt_publish.h"
 #include "lcd_display.h"
 #include "log.h"
+
+#define MOTOR_GET_SLEEP_TIME_MS 5
 
 volatile bool motor_get_running;
 pthread_mutex_t motor_get_running_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -63,16 +66,15 @@ static void notify_motor_get_status_message(struct mosquitto *mosq, const char *
 
 void *motor_get_thread_func(void *arg) {
     ThreadMotorGetDataArgs args;
-    char mensaje[128];
+    char message[128];
     int timeout_ms;
 
     while (1) {
         if (task_queue_dequeue(&motor_get_queue, &args, sizeof(ThreadMotorGetDataArgs)) == 0) {
             if (!args.motor_get_data) continue;
 
-            LOG_INFO("Function: motor_get -> mode %d running", args.motor_get_data->mode);
-            snprintf(mensaje, sizeof(mensaje), "Motor_get mode %d", args.motor_get_data->mode);
-            lcd_show_message(mensaje);
+            snprintf(message, sizeof(message), "Motor get mode %d", args.motor_get_data->mode);
+            notify_motor_get_status_message(args.mosq, message);
 
             int flag_index, data_index, trigger_flag, datardy_flag;
 
@@ -168,6 +170,11 @@ static void motor_get_trigger_get(ThreadMotorGetDataArgs args,
         int result = wait_for_motor_get_data_and_process_get(args, data_index, datardy_flag, timeout_ms, 1);
         if (result != 0) break; // salir si hubo timeout, parada o error
     }
+
+    pthread_mutex_lock(&shm->shared_mutex[MUTEX_MOTOR_GET]);
+    shm->shared[flag_index] &= ~(1 << trigger_flag);  // Detener pru function mode
+    pthread_mutex_unlock(&shm->shared_mutex[MUTEX_MOTOR_GET]);
+
 }
 
 // aux 1
@@ -178,6 +185,7 @@ static int wait_for_motor_get_data_and_process_get(ThreadMotorGetDataArgs args,
                                           int clear_after_read){
 
     int elapsed = 0;
+    int sleep_time_ms = MOTOR_GET_SLEEP_TIME_MS;
     bool is_motor_get_running = false;
     MotorGetData motor_get_data_send;
 
@@ -199,8 +207,8 @@ static int wait_for_motor_get_data_and_process_get(ThreadMotorGetDataArgs args,
             pthread_mutex_unlock(&shm->shared_mutex[MUTEX_MOTOR_GET]);
 
             publish_motor_get_response(args.mosq, motor_get_data_send, MSG_MOTOR_DONE);
-            LOG_INFO(MSG_MOTOR_DONE);
-            lcd_show_message(MSG_MOTOR_DONE);
+            LOG_DEBUG(MSG_MOTOR_DONE);
+            //lcd_show_message(MSG_MOTOR_DONE);
             return 0; //exito
         }
 
@@ -209,8 +217,9 @@ static int wait_for_motor_get_data_and_process_get(ThreadMotorGetDataArgs args,
             return -1;
         }
 
-        usleep(1000);  // 1 ms
-        elapsed += 1;
+        usleep(sleep_time_ms * 1000); // usleep recibe microsegundos (1 ms = 1000 us)
+        elapsed += sleep_time_ms;
+
     }
 
     if (timeout_ms > 0 && elapsed >= timeout_ms) {
@@ -232,6 +241,11 @@ static void process_motor_get_data_get(ThreadMotorGetDataArgs args, MotorGetData
         motor_get_data_send->step_time[i] = shm->shared[(MOTOR_OFFSET_STEPTIME_SHD_INDEX + motor)];
     }
     motor_get_data_send->num_motor = args.motor_get_data->num_motor;
+    // Cargar timestamp en milisegundos
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    uint64_t ts_ms = (uint64_t)tv.tv_sec * 1000 + (tv.tv_usec / 1000);
+    motor_get_data_send->ts = ts_ms;
 }
 // Aux 3
 static void notify_motor_get_status_message(struct mosquitto *mosq, const char *msg) {

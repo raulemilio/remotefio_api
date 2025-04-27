@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#define SEND_QUEUE_MAX_ITEMS 64
+#define SEND_QUEUE_MAX_ITEMS 128
 
 typedef struct {
     void *data;

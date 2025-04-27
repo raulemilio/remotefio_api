@@ -113,7 +113,7 @@
   .asg 0, ADC_MODE0_FLAG                               ; SHD[20] bit0
   .asg 1, ADC_MODE1_FLAG                               ; SHD[20] bit1
 
-  .asg r30.t5, pruout_fs_sample_test		       ; debug-> usamos esta salida para validad fs. config-pin P9_27 pruout
+;  .asg r30.t5, pruout_fs_sample_test		       ; debug-> usamos esta salida para validad fs. config-pin P9_27 pruout
 
   .asg 32, PRU0_R31_VEC_VALID                          ; allows notification of program completion
   .asg 3,  PRU_EVTOUT_0                                ; the event number that is sent back
@@ -145,7 +145,7 @@ start:
   LDI32 r10, SHD_ADDR_BASE
   LDI32 r11, 0					       ; sample_period
   LDI32 r12, 0					       ; buffer count
-  CLR   r30, pruout_fs_sample_test                     ; debug-> pru0_pru_r30_5 as an output P9_27
+;  CLR   r30, pruout_fs_sample_test                     ; debug-> pru0_pru_r30_5 as an output P9_27
 
 SETUP:
 ;GPIO1
@@ -337,7 +337,7 @@ ADC_MODE1:
   QBA   level_adc_end                                  ;
 
 ADC_READ_CH:
-  SET r30, pruout_fs_sample_test		       ; debug-> period de muestreo de 4 canales, ojo no es el tiempo de buffer
+;  SET r30, pruout_fs_sample_test		       ; debug-> period de muestreo de 4 canales, ojo no es el tiempo de buffer
 
 ; habilitar steps ENABLE VER MANUAL TRM pag. 1839 (solo puede escribirse en STEPCONFIG si ADC_TSC esta disable )
   LDI32 r0, (ADC_TSC|ADC_TSC_STEPENABLE)               ; load addr
@@ -388,7 +388,7 @@ ADC_READ_4SAMPLES:
   LDI32 r1, ADC_TSC_STEPENABLE_DISABLE_MASK            ; usamos mascaras cuando queremos configurar muchos bit juntos
   SBBO  &r1, r0, 0, 4                                  ; escribir en registro. En esta instruccion la FSM del modulo arranca a medir
 
-  CLR r30, pruout_fs_sample_test                       ; debug-> tiempo de cada conversion 4 muestras
+;  CLR r30, pruout_fs_sample_test                       ; debug-> tiempo de cada conversion 4 muestras
 
   MOV r0, r11					       ; no lo hacemos leyendo desde shared porque es muy lento
 LEVEL_SAMPLE_PERIOD:

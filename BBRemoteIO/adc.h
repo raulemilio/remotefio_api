@@ -16,12 +16,11 @@
 #define ERR_INVALID_TRIGGER             "Err: trigger val"
 #define ERR_INVALID_SAMPLE_PERIOD       "Err: period val "
 
-
 // 16 caracteres maximo
 #define MSG_ADC_INVALID_MODE       	"Adc invalid mode"
 #define MSG_ADC_DONE               	"Adc done        "
 #define MSG_ADC_STOPPED            	"Adc stopped     "
-#define MSG_ADC_TIMEOUT_EXPIRED    	"Expired timeout "
+#define MSG_ADC_TIMEOUT_EXPIRED    	"Adc exp TO      "
 #define MSG_ADC_FINISH             	"Adc finish      "
 
 // TASK

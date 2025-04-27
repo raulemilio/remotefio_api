@@ -7,12 +7,13 @@
 #include <stddef.h>
 
 // Mutex index assignment for shared memory regions
-#define MUTEX_GPIO_INPUT   0
-#define MUTEX_GPIO_OUTPUT  1
-#define MUTEX_MOTOR_GET    2
-#define MUTEX_MOTOR_SET    3
-#define MUTEX_ADC          4
-#define SHARED_MUTEX_COUNT 5  // Por ejemplo: GPIO_INPUT, GPIO_OUTPUT, MOTOR, ADC
+#define MUTEX_GPIO_INPUT       0
+#define MUTEX_GPIO_OUTPUT_GET  1
+#define MUTEX_GPIO_OUTPUT_SET  2
+#define MUTEX_MOTOR_GET        3
+#define MUTEX_MOTOR_SET        4
+#define MUTEX_ADC              5
+#define SHARED_MUTEX_COUNT     6
 
 typedef struct {
     volatile uint16_t *ram0;

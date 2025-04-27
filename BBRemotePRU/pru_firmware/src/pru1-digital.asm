@@ -148,12 +148,14 @@
 
   ; para ver pruout_fs_sample_test en debug hay que cargarlo en el PRU0
   ; porque en PRU1  se utilizaron todos los pines
-  ;.asg r30.t5, pruout_fs_sample_test                   ; debug-> usando PRU usamos esta salida para validad fs. config-pin P9_27 pruout
+  ; ojo como no hay mas salidas pru usamos la 46 pero es la direccion de MA recordar volver a setearlo asi
+  ;.asg r30.t1, pruout_fs_sample_test                   ; debug-> config-pin P8_46 pruout
 
   .clink
   .global start
 
 start:
+;  CLR   r30, pruout_fs_sample_test
 ; Registro fijos
   LDI32 r20, SHARED_ADDR				; shared_addr_base
   ; r10-> STEP_PERIOD_A
@@ -163,7 +165,6 @@ start:
   ; r21-r25-> DEBUG
 
 SETUP:
-;  CLR   r30, pruout_fs_sample_test
 ; borrado de momoria
   ZERO  &r0, 4						; zero put register
   LDI32 r1, 0						; offset_mem
@@ -323,18 +324,11 @@ level_motorB_toggle:
   LDI32 r0, (GPIO0|GPIO_IRQSTATUS_1)			;
   LBBO  &r1, r0, 0, 4					;
   QBBS  TOGGLE_DIR_MB, r1, GPIO0_27_INPUT_MB_TOGGLE_DIR	; toggle direction el motor_MB si flanco GPIO0_27 is set
-
-  ; limpiamos las interrupciones que quedaron sin limpiar
-  ; clear IRQ_GPIO_IRQSTATUS_1
-  LDI32 r0, (GPIO0|GPIO_IRQSTATUS_1)                    ;
-  LBBO  &r1, r0, 0, 4                                   ;
-  SET   r1, r1, GPIO0_22_INPUT_MA_DISABLE               ;
-  SET   r1, r1, GPIO0_26_INPUT_MB_DISABLE               ;
-  SBBO  &r1, r0, 0, 4                                   ;
-
+level_end:
   QBA   MAIN_LOOP					; program loop
 
 GPIO_INPUT_MODE0:
+;  CLR   r30, pruout_fs_sample_test
 ; clr flag gpio_input
   LBBO  &r0, r20, SHD_GPIO_INPUT_MODE0_FLAG, 4		;
   CLR   r0,r0, GPIO_INPUT_MODE0_FLAG			;
@@ -378,6 +372,7 @@ GPIO_INPUT_MODE1_A:
   QBA   level_gpio_input_mode2				;
 
 GPIO_INPUT_MODE2:
+;  CLR   r30, pruout_fs_sample_test
 ; no clr flag shared[0]para que quede continuamente leyendo
 ; get irq status
   LDI32 r0, (GPIO0|GPIO_IRQSTATUS_1)                    ;
@@ -388,6 +383,7 @@ GPIO_INPUT_MODE2:
   QBBS  GPIO_INPUT_MODE2_A, r1, GPIO0_11_GPIO_INPUT_3	;
   QBA   level_gpio_output_mode0                         ;
 GPIO_INPUT_MODE2_A:
+;  CLR   r30, pruout_fs_sample_test
 ; clear IRQ_GPIO_IRQSTATUS_1
   LDI32 r0, (GPIO0|GPIO_IRQSTATUS_1)                    ;
   LBBO  &r1, r0, 0, 4                                   ;
@@ -519,7 +515,14 @@ MOTOR_MODE2:
   QBBS  MOTOR_MODE2_A, r1, GPIO0_27_INPUT_MB_TOGGLE_DIR ;
   QBA   level_motor_mode3                               ;
 MOTOR_MODE2_A:
-; no borramos las interrupciones lo hacemos despues de evaluar todas las funciones al final del main loop
+; clear IRQ_GPIO_IRQSTATUS_1
+  LDI32 r0, (GPIO2|GPIO_IRQSTATUS_1)                    ;
+  LBBO  &r1, r0, 0, 4                                   ;
+  SET   r1, r1, GPIO0_22_INPUT_MA_DISABLE               ;
+  SET   r1, r1, GPIO0_23_INPUT_MA_TOGGLE_DIR            ;
+  SET   r1, r1, GPIO0_26_INPUT_MB_DISABLE               ;
+  SET   r1, r1, GPIO0_27_INPUT_MB_TOGGLE_DIR            ;
+  SBBO  &r1, r0, 0, 4                                   ;
 ; read MOTOR
   LDI32 r0, (GPIO2|GPIO_DATAOUT)                        ;
   LBBO  &r1, r0, 0, 4                                   ;
@@ -713,7 +716,7 @@ TOGGLE_DIR_MB:
   LBBO  &r1, r0, 0, 4					;
   SET   r1, r1, GPIO0_27_INPUT_MB_TOGGLE_DIR		;
   SBBO  &r1, r0, 0, 4					; Load the values at r0 into r1.
-  QBA   MAIN_LOOP					; volvemos al loop principal
+  QBA   level_end					; volvemos al loop principal
 
   LDI32   R31, (PRU0_R31_VEC_VALID|PRU_EVTOUT_0)        ;
   HALT    					        ; halt the pru program
