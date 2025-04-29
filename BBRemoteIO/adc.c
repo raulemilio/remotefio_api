@@ -56,6 +56,7 @@ static volatile bool producer_running;
 
 pthread_mutex_t adc_running_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t producer_running_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t args_mutex = PTHREAD_MUTEX_INITIALIZER; // los datos se pasan por puntero a producer y consumer
 
 TaskQueue adc_queue;
 pthread_t adc_thread;
@@ -135,6 +136,16 @@ void *producer(void *arg) {
     LOG_DEBUG("adc -> producer running");
 
     ThreadAdcDataArgs *args = (ThreadAdcDataArgs *)arg;
+    // acceso protegido a args
+    pthread_mutex_lock(&args_mutex);
+    int pru_buffer_size = args->adc_data->buffer_size / PRU_CIRCULAR_BUFFER_SIZE;
+    int mode = args->adc_data->mode;
+    int num_samples = args->adc_data->num_samples;
+    int buffer_size = args->adc_data->buffer_size;
+    float samples_rate = (float)args->adc_data->sample_rate;
+    int enable_external_trigger = args->adc_data->enable_external_trigger;
+    int sample_period = args->adc_data->sample_period;
+    pthread_mutex_unlock(&args_mutex);
 
     int idx;
     produced_count = 0;
@@ -156,16 +167,13 @@ void *producer(void *arg) {
     long elapsed_ms;
     int sleep_time_ms = 1; // 1 ms default
 
-    int pru_buffer_size = args->adc_data->buffer_size / PRU_CIRCULAR_BUFFER_SIZE;
-
-    if(args->adc_data->mode == 0){
-       num_iteration = args->adc_data->num_samples / args->adc_data->buffer_size;
+    if(mode == 0){
+       num_iteration = num_samples / buffer_size;
     } else{
        num_iteration = MODE1_SAMPLES_MAX;
     }
 
-    float samples_per_second = (float)args->adc_data->sample_rate;
-    float buffer_duration_sec = (float)pru_buffer_size / samples_per_second;
+    float buffer_duration_sec = (float)pru_buffer_size / samples_rate; // dinamic sleep thread time
 
     if (buffer_duration_sec >= BUFFER_DURATION_THRESHOLD_SEC) {
         sleep_time_ms = ADC_SLEEP_TIME_10MS;
@@ -173,14 +181,15 @@ void *producer(void *arg) {
         sleep_time_ms = ADC_SLEEP_TIME_1MS;
     }
 
-    trigger_flag = (args->adc_data->enable_external_trigger == 0) ?
+    // recordar que en pru las funciones son distintas si es por extarnal flag o no
+    trigger_flag = (enable_external_trigger == 0) ?
                     PRU_ADC_MODE0_FLAG : PRU_ADC_MODE1_FLAG;
 
     // Configurar parametros compartidos con PRU
     pthread_mutex_lock(&shm->shared_mutex[MUTEX_ADC]);
-    shm->shared[PRU_SHD_SAMPLE_PERIOD_INDEX] = args->adc_data->sample_period; // cargamos periodo de muestreo
+    shm->shared[PRU_SHD_SAMPLE_PERIOD_INDEX] = sample_period; // cargamos periodo de muestreo
     shm->shared[PRU_SHD_BUFFER_SIZE_INDEX] = pru_buffer_size; // cargamos tamanio de buffer
-    shm->shared[PRU_SHD_ADC_DATARDY_INDEX] = PRU_ERASE_MEM; // flags data rdy
+    shm->shared[PRU_SHD_ADC_DATARDY_INDEX] = PRU_ERASE_MEM;   // flags data rdy
     shm->shared[PRU_SHD_FLAGS_INDEX] |= (1 << trigger_flag);  // Iniciar adquisicion
     pthread_mutex_unlock(&shm->shared_mutex[MUTEX_ADC]);
 
@@ -303,7 +312,10 @@ void *producer(void *arg) {
     } else if (finished_normally) {
         msg = MSG_ADC_DONE;
     }
+
+    pthread_mutex_lock(&args_mutex);
     notify_adc_status_message(args->mosq, msg);
+    pthread_mutex_unlock(&args_mutex);
 
     return NULL;
 }
@@ -313,7 +325,10 @@ void *consumer(void *arg) {
     ThreadAdcDataArgs *args = (ThreadAdcDataArgs *)arg;
     LOG_DEBUG("adc -> consumer running");
 
+    pthread_mutex_lock(&args_mutex);
     int sample_rate = args->adc_data->sample_rate;
+    int samples_per_node = args->adc_data->buffer_size / PRU_CIRCULAR_BUFFER_SIZE;
+    pthread_mutex_unlock(&args_mutex);
 
     // Abrir archivo binario
     FILE *adc_file = fopen(FILE_DATA_NAME, "wb");
@@ -354,7 +369,6 @@ void *consumer(void *arg) {
 
         // Procesar nodo FUERA del mutex
         if (node) {
-            int samples_per_node = args->adc_data->buffer_size / PRU_CIRCULAR_BUFFER_SIZE;
 
             // Escribir en archivo
             for (int j = 0; j < samples_per_node; j++) {

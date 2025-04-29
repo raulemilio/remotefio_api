@@ -274,7 +274,7 @@
         "tab": "d9f7b3ee5ffe864b",
         "order": 1,
         "disp": true,
-        "width": 3,
+        "width": 2,
         "collapse": false,
         "className": ""
     },
@@ -292,7 +292,7 @@
     {
         "id": "9bb9dc7f18611a59",
         "type": "ui_group",
-        "name": "Step time control",
+        "name": "Speed control [RPM]",
         "tab": "d9f7b3ee5ffe864b",
         "order": 5,
         "disp": true,
@@ -303,7 +303,7 @@
     {
         "id": "a0bb5838a582ce10",
         "type": "ui_group",
-        "name": "Step time 0",
+        "name": "M 0 Speed",
         "tab": "d9f7b3ee5ffe864b",
         "order": 8,
         "disp": true,
@@ -329,14 +329,14 @@
         "tab": "d9f7b3ee5ffe864b",
         "order": 2,
         "disp": true,
-        "width": 3,
+        "width": 2,
         "collapse": false,
         "className": ""
     },
     {
         "id": "907edce3d642b8ac",
         "type": "ui_group",
-        "name": "Step time 1",
+        "name": "M 1 Speed",
         "tab": "d9f7b3ee5ffe864b",
         "order": 9,
         "disp": true,
@@ -347,7 +347,7 @@
     {
         "id": "0be7dc5733d3c5a2",
         "type": "ui_group",
-        "name": "Step time 2",
+        "name": "M 2 Speed",
         "tab": "d9f7b3ee5ffe864b",
         "order": 10,
         "disp": true,
@@ -358,7 +358,7 @@
     {
         "id": "c534c2cc743d8d74",
         "type": "ui_group",
-        "name": "Step time 3",
+        "name": "M 3 Speed",
         "tab": "d9f7b3ee5ffe864b",
         "order": 11,
         "disp": true,
@@ -371,7 +371,7 @@
         "type": "ui_group",
         "name": "Selector control",
         "tab": "d9f7b3ee5ffe864b",
-        "order": 6,
+        "order": 12,
         "disp": true,
         "width": 4,
         "collapse": false,
@@ -382,7 +382,7 @@
         "type": "ui_group",
         "name": "Logs",
         "tab": "d9f7b3ee5ffe864b",
-        "order": 12,
+        "order": 14,
         "disp": true,
         "width": "8",
         "collapse": false,
@@ -442,45 +442,15 @@
         "className": ""
     },
     {
-        "id": "5daf508229927d35",
-        "type": "ui_spacer",
-        "z": "693713ade92e377d",
-        "name": "spacer",
-        "group": "981532734606cbb6",
-        "order": 2,
-        "width": "5",
-        "height": "2"
-    },
-    {
         "id": "b1a5f87ddd67268a",
         "type": "ui_group",
         "name": "Button control",
         "tab": "d9f7b3ee5ffe864b",
-        "order": 7,
+        "order": 13,
         "disp": true,
-        "width": "3",
+        "width": 3,
         "collapse": false,
         "className": ""
-    },
-    {
-        "id": "1b3e13d0651504bd",
-        "type": "ui_spacer",
-        "z": "693713ade92e377d",
-        "name": "spacer",
-        "group": "b1a5f87ddd67268a",
-        "order": 2,
-        "width": "0",
-        "height": "0"
-    },
-    {
-        "id": "30e96a4f1be3116d",
-        "type": "ui_spacer",
-        "z": "693713ade92e377d",
-        "name": "spacer",
-        "group": "d94e13d63798c8df",
-        "order": 2,
-        "width": "0",
-        "height": "0"
     },
     {
         "id": "60362c2b6b575234",
@@ -532,26 +502,6 @@
         "order": 5,
         "width": 1,
         "height": 1
-    },
-    {
-        "id": "b898507c373362d0",
-        "type": "ui_spacer",
-        "z": "62edeeffab35bf12",
-        "name": "spacer",
-        "group": "d94e13d63798c8df",
-        "order": 11,
-        "width": "0",
-        "height": "0"
-    },
-    {
-        "id": "53c8a53bd4382929",
-        "type": "ui_spacer",
-        "z": "62edeeffab35bf12",
-        "name": "spacer",
-        "group": "b1a5f87ddd67268a",
-        "order": 12,
-        "width": "0",
-        "height": "0"
     },
     {
         "id": "e0486b4c357469b9",
@@ -637,6 +587,68 @@
         "width": 13,
         "collapse": false,
         "className": ""
+    },
+    {
+        "id": "1ac04ecd9219c320",
+        "type": "ui_group",
+        "name": "Step per rev control",
+        "tab": "d9f7b3ee5ffe864b",
+        "order": 6,
+        "disp": true,
+        "width": 4,
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "ebb100812dc65198",
+        "type": "ui_group",
+        "name": "Micro step control",
+        "tab": "d9f7b3ee5ffe864b",
+        "order": 7,
+        "disp": true,
+        "width": 4,
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "843f12282e2c00e9",
+        "type": "ui_spacer",
+        "z": "693713ade92e377d",
+        "name": "spacer",
+        "group": "d94e13d63798c8df",
+        "order": 2,
+        "width": 4,
+        "height": 1
+    },
+    {
+        "id": "483d12fac005e864",
+        "type": "ui_spacer",
+        "z": "693713ade92e377d",
+        "name": "spacer",
+        "group": "b1a5f87ddd67268a",
+        "order": 2,
+        "width": 3,
+        "height": 1
+    },
+    {
+        "id": "a6b317e6ae7c2255",
+        "type": "ui_spacer",
+        "z": "693713ade92e377d",
+        "name": "spacer",
+        "group": "b1a5f87ddd67268a",
+        "order": 7,
+        "width": "0",
+        "height": "0"
+    },
+    {
+        "id": "6b3517556bb15e1c",
+        "type": "ui_spacer",
+        "z": "693713ade92e377d",
+        "name": "spacer",
+        "group": "d94e13d63798c8df",
+        "order": 6,
+        "width": "0",
+        "height": "0"
     },
     {
         "id": "0522d77f619fe957",
@@ -1128,7 +1140,6 @@
         "id": "7d07d12531fb2c70",
         "type": "inject",
         "z": "6b7e0e36eaf59013",
-        "d": true,
         "name": "",
         "props": [
             {
@@ -1188,7 +1199,7 @@
         "type": "function",
         "z": "6b7e0e36eaf59013",
         "name": "Diff timeStamp",
-        "func": "// Guardamos el timestamp del último mensaje procesado\nlet lastTimestamp = context.get('lastTimestamp') || 0;\nlet currentTimestamp = msg.payload.ts;  // Timestamp del mensaje actual\n\n// Si ya tenemos un timestamp anterior, calculamos la diferencia\nif (lastTimestamp !== 0) {\n    let diff = currentTimestamp - lastTimestamp;  // Diferencia en milisegundos\n    msg.payload = diff * 0.001;  // [s] Directamente asignamos la diferencia a msg.payload\n} else {\n    msg.payload = 0;  // Si es el primer mensaje, no hay diferencia\n}\n\n// Actualizamos el timestamp actual para el próximo mensaje\ncontext.set('lastTimestamp', currentTimestamp);\n\nreturn msg;\n\n",
+        "func": "// Guardamos el timestamp del último mensaje procesado\nlet lastTimestamp = context.get('lastTimestamp') || 0;\nlet currentTimestamp = msg.payload.ts;  // Timestamp del mensaje actual\n\n// Si ya tenemos un timestamp anterior, calculamos la diferencia\nif (lastTimestamp !== 0) {\n    let diff = currentTimestamp - lastTimestamp;  // Diferencia en milisegundos\n    // [s] Directamente asignamos la diferencia a msg.payload\n     msg.payload = (diff * 0.001).toFixed(3);\n} else {\n    msg.payload = 0;  // Si es el primer mensaje, no hay diferencia\n}\n\n// Actualizamos el timestamp actual para el próximo mensaje\ncontext.set('lastTimestamp', currentTimestamp);\n\nreturn msg;\n\n",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -2279,7 +2290,9 @@
             [
                 "ff65f4ba6a9e5401",
                 "b38054b7ba59a58f",
-                "8c15229b2dfc3df4"
+                "8c15229b2dfc3df4",
+                "b0763be08319019d",
+                "31af643436f6e2c3"
             ]
         ]
     },
@@ -2442,8 +2455,8 @@
         "topic": "",
         "topicType": "str",
         "className": "",
-        "x": 320,
-        "y": 620,
+        "x": 340,
+        "y": 940,
         "wires": [
             [
                 "36a883395b745fe7"
@@ -2461,8 +2474,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 630,
-        "y": 620,
+        "x": 650,
+        "y": 940,
         "wires": []
     },
     {
@@ -2485,8 +2498,8 @@
         "payloadType": "str",
         "topic": "",
         "topicType": "str",
-        "x": 300,
-        "y": 660,
+        "x": 320,
+        "y": 980,
         "wires": [
             [
                 "8aa14c5606cfae71"
@@ -2505,8 +2518,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 650,
-        "y": 660,
+        "x": 670,
+        "y": 980,
         "wires": [
             [
                 "9736626addb97677"
@@ -2527,8 +2540,8 @@
         "correl": "",
         "expiry": "",
         "broker": "ee27f07affeb044c",
-        "x": 1000,
-        "y": 660,
+        "x": 1020,
+        "y": 980,
         "wires": []
     },
     {
@@ -2648,8 +2661,9 @@
         "type": "function",
         "z": "693713ade92e377d",
         "name": "function 5",
-        "func": "let step = msg.payload.step_time;\n\nif (!Array.isArray(step) || step.length !== 4) {\n    node.warn(\"Esperado array de 4 posiciones en 'step_time'\");\n    return [null, null, null, null];\n}\n\n// Cada mensaje va a una salida distinta\nreturn [\n    { payload: step[0] },\n    { payload: step[1] },\n    { payload: step[2] },\n    { payload: step[3] }\n];\n",
+        "func": "let rpm = msg.payload.rpm;\n\nif (!Array.isArray(rpm) || rpm.length !== 4) {\n    node.warn(\"Esperado array de 4 posiciones en 'step_time'\");\n    return [null, null, null, null];\n}\n\n// Cada mensaje va a una salida distinta\nreturn [\n    { payload: rpm[0] },\n    { payload: rpm[1] },\n    { payload: rpm[2] },\n    { payload: rpm[3] }\n];\n",
         "outputs": 4,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
@@ -2675,17 +2689,17 @@
         "id": "c934bc4df1239d78",
         "type": "ui_gauge",
         "z": "693713ade92e377d",
-        "name": "Motor 0 step_time ind",
+        "name": "Motor 0 rpm ind",
         "group": "a0bb5838a582ce10",
         "order": 1,
         "width": 0,
         "height": 0,
         "gtype": "gage",
-        "title": "M 0",
+        "title": "[RPM]",
         "label": "units",
         "format": "{{value}}",
-        "min": "10",
-        "max": "1000000",
+        "min": "1",
+        "max": "1000",
         "colors": [
             "#00b500",
             "#e6e600",
@@ -2695,7 +2709,7 @@
         "seg2": "",
         "diff": false,
         "className": "",
-        "x": 980,
+        "x": 960,
         "y": 400,
         "wires": []
     },
@@ -2703,17 +2717,17 @@
         "id": "9c12651e0bfd6681",
         "type": "ui_gauge",
         "z": "693713ade92e377d",
-        "name": "Motor 1 step_time ind",
+        "name": "Motor 1 rpm ind",
         "group": "907edce3d642b8ac",
         "order": 1,
         "width": 0,
         "height": 0,
         "gtype": "gage",
-        "title": "M 1",
+        "title": "[RPM]",
         "label": "units",
         "format": "{{value}}",
-        "min": "10",
-        "max": "1000000",
+        "min": "1",
+        "max": "1000",
         "colors": [
             "#00b500",
             "#e6e600",
@@ -2723,7 +2737,7 @@
         "seg2": "",
         "diff": false,
         "className": "",
-        "x": 980,
+        "x": 960,
         "y": 440,
         "wires": []
     },
@@ -2731,17 +2745,17 @@
         "id": "de334fc7179e1775",
         "type": "ui_gauge",
         "z": "693713ade92e377d",
-        "name": "Motor 2 step_time ind",
+        "name": "Motor 2 rpm ind",
         "group": "0be7dc5733d3c5a2",
         "order": 1,
         "width": 0,
         "height": 0,
         "gtype": "gage",
-        "title": "M 2",
+        "title": "[RPM]",
         "label": "units",
         "format": "{{value}}",
-        "min": "10",
-        "max": "1000000",
+        "min": "1",
+        "max": "1000",
         "colors": [
             "#00b500",
             "#e6e600",
@@ -2751,7 +2765,7 @@
         "seg2": "",
         "diff": false,
         "className": "",
-        "x": 980,
+        "x": 960,
         "y": 480,
         "wires": []
     },
@@ -2759,17 +2773,17 @@
         "id": "02763aaae862204c",
         "type": "ui_gauge",
         "z": "693713ade92e377d",
-        "name": "Motor 3 step_time ind",
+        "name": "Motor 3 rpm ind",
         "group": "c534c2cc743d8d74",
         "order": 1,
         "width": 0,
         "height": 0,
         "gtype": "gage",
-        "title": "M 3",
+        "title": "[RPM]",
         "label": "units",
         "format": "{{value}}",
-        "min": "10",
-        "max": "1000000",
+        "min": "1",
+        "max": "1000",
         "colors": [
             "#00b500",
             "#e6e600",
@@ -2779,7 +2793,7 @@
         "seg2": "",
         "diff": false,
         "className": "",
-        "x": 980,
+        "x": 960,
         "y": 520,
         "wires": []
     },
@@ -2794,8 +2808,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 630,
-        "y": 780,
+        "x": 650,
+        "y": 1100,
         "wires": []
     },
     {
@@ -2818,8 +2832,8 @@
         "payloadType": "str",
         "topic": "",
         "topicType": "str",
-        "x": 300,
-        "y": 820,
+        "x": 320,
+        "y": 1140,
         "wires": [
             [
                 "6a0eb95b3aeed44f"
@@ -2831,15 +2845,15 @@
         "type": "function",
         "z": "693713ade92e377d",
         "name": "Crear mensaje JSON",
-        "func": "let mode = global.get(\"motor_modo_seleccionado\");\n\nif (mode === undefined) {\n    node.warn(\"Modo no seleccionado\");\n    return null;\n}\n\n// Obtenemos los datos de los otros campos (por ejemplo desde flow)\nlet ena = [\n    flow.get(\"ena_0\") || 0,\n    flow.get(\"ena_1\") || 0,\n    flow.get(\"ena_2\") || 0,\n    flow.get(\"ena_3\") || 0\n];\n\nlet dir = [\n    flow.get(\"dir_0\") || 0,\n    flow.get(\"dir_1\") || 0,\n    flow.get(\"dir_2\") || 0,\n    flow.get(\"dir_3\") || 0\n];\n\nlet step_time = [\n    flow.get(\"step_0\") || 1000,\n    flow.get(\"step_1\") || 1000,\n    flow.get(\"step_2\") || 1000,\n    flow.get(\"step_3\") || 1000\n];\n\nlet mensaje = {\n    task: \"motor_set\",\n    motor: [0, 1, 2, 3],\n    ena: ena,\n    dir: dir,\n    step_time: step_time,\n    mode: mode\n};\n\nmsg.payload = mensaje;\nreturn msg;\n",
+        "func": "let mode = global.get(\"motor_modo_seleccionado\");\n\nif (mode === undefined) {\n    node.warn(\"Modo no seleccionado\");\n    return null;\n}\n\n// Obtenemos los datos de los otros campos (por ejemplo desde flow)\nlet ena = [\n    flow.get(\"ena_0\") || 0,\n    flow.get(\"ena_1\") || 0,\n    flow.get(\"ena_2\") || 0,\n    flow.get(\"ena_3\") || 0\n];\n\nlet dir = [\n    flow.get(\"dir_0\") || 0,\n    flow.get(\"dir_1\") || 0,\n    flow.get(\"dir_2\") || 0,\n    flow.get(\"dir_3\") || 0\n];\n\nlet rpm = [\n    flow.get(\"rpm_0\") || 1000,\n    flow.get(\"rpm_1\") || 1000,\n    flow.get(\"rpm_2\") || 1000,\n    flow.get(\"rpm_3\") || 1000\n];\n\nlet step_per_rev = [\n    flow.get(\"step_per_rev_0\") || 200,\n    flow.get(\"step_per_rev_1\") || 200,\n    flow.get(\"step_per_rev_2\") || 200,\n    flow.get(\"step_per_rev_3\") || 200\n];\n\nlet micro_step = [\n    global.get(\"micro_step_0\") || 1,\n    global.get(\"micro_step_1\") || 1,\n    global.get(\"micro_step_2\") || 1,\n    global.get(\"micro_step_3\") || 1\n];\n\nlet mensaje = {\n    task: \"motor_set\",\n    motor: [0, 1, 2, 3],\n    ena: ena,\n    dir: dir,\n    rpm: rpm,\n    step_per_rev: step_per_rev,\n    micro_step: micro_step,\n    mode: mode\n};\n\nmsg.payload = mensaje;\nreturn msg;\n",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 620,
-        "y": 820,
+        "x": 640,
+        "y": 1140,
         "wires": [
             [
                 "bdbdf9fa291bcaa9"
@@ -2860,15 +2874,15 @@
         "correl": "",
         "expiry": "",
         "broker": "ee27f07affeb044c",
-        "x": 1000,
-        "y": 820,
+        "x": 1020,
+        "y": 1140,
         "wires": []
     },
     {
         "id": "87e9ba570c579e60",
         "type": "function",
         "z": "693713ade92e377d",
-        "name": "function 6",
+        "name": "ena 0",
         "func": "flow.set(\"ena_0\", msg.payload); // Cambiá el número según el switch\nreturn null;",
         "outputs": 1,
         "timeout": "",
@@ -2876,8 +2890,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 460,
-        "y": 1020,
+        "x": 505,
+        "y": 1281.6666870117188,
         "wires": [
             []
         ]
@@ -2886,15 +2900,16 @@
         "id": "c6549f6b29baea6b",
         "type": "function",
         "z": "693713ade92e377d",
-        "name": "function 7",
+        "name": "ena 1",
         "func": "flow.set(\"ena_1\", msg.payload); // Cambiá el número según el switch\nreturn null;",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 460,
-        "y": 1060,
+        "x": 505,
+        "y": 1321.6666870117188,
         "wires": [
             []
         ]
@@ -2903,15 +2918,16 @@
         "id": "cbd0f5a7838a3c20",
         "type": "function",
         "z": "693713ade92e377d",
-        "name": "function 8",
+        "name": "ena 2",
         "func": "flow.set(\"ena_2\", msg.payload); // Cambiá el número según el switch\nreturn null;",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 460,
-        "y": 1100,
+        "x": 505,
+        "y": 1361.6666870117188,
         "wires": [
             []
         ]
@@ -2920,15 +2936,16 @@
         "id": "87434c71519c59d4",
         "type": "function",
         "z": "693713ade92e377d",
-        "name": "function 9",
+        "name": "ena 3",
         "func": "flow.set(\"ena_3\", msg.payload); // Cambiá el número según el switch\nreturn null;",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 460,
-        "y": 1140,
+        "x": 505,
+        "y": 1401.6666870117188,
         "wires": [
             []
         ]
@@ -2959,8 +2976,8 @@
         "offcolor": "",
         "animate": false,
         "className": "",
-        "x": 270,
-        "y": 1140,
+        "x": 285,
+        "y": 1401.6666870117188,
         "wires": [
             [
                 "87434c71519c59d4"
@@ -2993,8 +3010,8 @@
         "offcolor": "",
         "animate": false,
         "className": "",
-        "x": 270,
-        "y": 1100,
+        "x": 285,
+        "y": 1361.6666870117188,
         "wires": [
             [
                 "cbd0f5a7838a3c20"
@@ -3027,8 +3044,8 @@
         "offcolor": "",
         "animate": false,
         "className": "",
-        "x": 270,
-        "y": 1020,
+        "x": 285,
+        "y": 1281.6666870117188,
         "wires": [
             [
                 "87e9ba570c579e60"
@@ -3061,8 +3078,8 @@
         "offcolor": "",
         "animate": false,
         "className": "",
-        "x": 270,
-        "y": 1060,
+        "x": 285,
+        "y": 1321.6666870117188,
         "wires": [
             [
                 "c6549f6b29baea6b"
@@ -3073,15 +3090,16 @@
         "id": "f6d7c0b86dee0476",
         "type": "function",
         "z": "693713ade92e377d",
-        "name": "function 10",
+        "name": "dir 0",
         "func": "flow.set(\"dir_0\", msg.payload); // Cambiá el número según el switch\nreturn null;",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 470,
-        "y": 1180,
+        "x": 505,
+        "y": 1441.6666870117188,
         "wires": [
             []
         ]
@@ -3090,15 +3108,16 @@
         "id": "3fb572b9751ecfa8",
         "type": "function",
         "z": "693713ade92e377d",
-        "name": "function 11",
+        "name": "dir 1",
         "func": "flow.set(\"dir_1\", msg.payload); // Cambiá el número según el switch\nreturn null;",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 470,
-        "y": 1220,
+        "x": 505,
+        "y": 1481.6666870117188,
         "wires": [
             []
         ]
@@ -3107,15 +3126,16 @@
         "id": "439eaee3d513e069",
         "type": "function",
         "z": "693713ade92e377d",
-        "name": "function 12",
+        "name": "dir 2",
         "func": "flow.set(\"dir_2\", msg.payload); // Cambiá el número según el switch\nreturn null;",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 470,
-        "y": 1260,
+        "x": 505,
+        "y": 1521.6666870117188,
         "wires": [
             []
         ]
@@ -3124,15 +3144,16 @@
         "id": "f64f4ab785342d93",
         "type": "function",
         "z": "693713ade92e377d",
-        "name": "function 13",
+        "name": "dir 3",
         "func": "flow.set(\"dir_3\", msg.payload); // Cambiá el número según el switch\nreturn null;",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 470,
-        "y": 1300,
+        "x": 505,
+        "y": 1561.6666870117188,
         "wires": [
             []
         ]
@@ -3163,8 +3184,8 @@
         "offcolor": "",
         "animate": false,
         "className": "",
-        "x": 270,
-        "y": 1300,
+        "x": 285,
+        "y": 1561.6666870117188,
         "wires": [
             [
                 "f64f4ab785342d93"
@@ -3197,8 +3218,8 @@
         "offcolor": "",
         "animate": false,
         "className": "",
-        "x": 270,
-        "y": 1260,
+        "x": 285,
+        "y": 1521.6666870117188,
         "wires": [
             [
                 "439eaee3d513e069"
@@ -3231,8 +3252,8 @@
         "offcolor": "",
         "animate": false,
         "className": "",
-        "x": 270,
-        "y": 1180,
+        "x": 285,
+        "y": 1441.6666870117188,
         "wires": [
             [
                 "f6d7c0b86dee0476"
@@ -3265,8 +3286,8 @@
         "offcolor": "",
         "animate": false,
         "className": "",
-        "x": 270,
-        "y": 1220,
+        "x": 285,
+        "y": 1481.6666870117188,
         "wires": [
             [
                 "3fb572b9751ecfa8"
@@ -3277,7 +3298,7 @@
         "id": "158657d86b0b5068",
         "type": "ui_numeric",
         "z": "693713ade92e377d",
-        "name": "step_time 0 control",
+        "name": "rpm 0 control",
         "label": "M 0",
         "tooltip": "",
         "group": "9bb9dc7f18611a59",
@@ -3289,12 +3310,12 @@
         "topic": "topic",
         "topicType": "msg",
         "format": "{{value}}",
-        "min": "10",
-        "max": "1000000",
+        "min": "1",
+        "max": "1000",
         "step": 1,
         "className": "",
-        "x": 290,
-        "y": 1340,
+        "x": 285,
+        "y": 1601.6666870117188,
         "wires": [
             [
                 "7ed83f7425f4463c"
@@ -3305,15 +3326,16 @@
         "id": "7ed83f7425f4463c",
         "type": "function",
         "z": "693713ade92e377d",
-        "name": "function 14",
-        "func": "flow.set(\"step_0\", msg.payload); // Cambiá el número según el switch\nreturn null;",
+        "name": "rpm 0",
+        "func": "flow.set(\"rpm_0\", msg.payload); // Cambiá el número según el switch\nreturn null;",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 470,
-        "y": 1340,
+        "x": 505,
+        "y": 1601.6666870117188,
         "wires": [
             []
         ]
@@ -3322,7 +3344,7 @@
         "id": "db3b07a10b35c075",
         "type": "ui_numeric",
         "z": "693713ade92e377d",
-        "name": "step_time 1 control",
+        "name": "rpm 1 control",
         "label": "M 1",
         "tooltip": "",
         "group": "9bb9dc7f18611a59",
@@ -3334,12 +3356,12 @@
         "topic": "topic",
         "topicType": "msg",
         "format": "{{value}}",
-        "min": "10",
-        "max": "1000000",
+        "min": "1",
+        "max": "1000",
         "step": 1,
         "className": "",
-        "x": 290,
-        "y": 1380,
+        "x": 285,
+        "y": 1641.6666870117188,
         "wires": [
             [
                 "a8a114613b41a45b"
@@ -3350,15 +3372,16 @@
         "id": "a8a114613b41a45b",
         "type": "function",
         "z": "693713ade92e377d",
-        "name": "function 15",
-        "func": "flow.set(\"step_1\", msg.payload); // Cambiá el número según el switch\nreturn null;",
+        "name": "rpm 1",
+        "func": "flow.set(\"rpm_1\", msg.payload); // Cambiá el número según el switch\nreturn null;",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 470,
-        "y": 1380,
+        "x": 505,
+        "y": 1641.6666870117188,
         "wires": [
             []
         ]
@@ -3367,7 +3390,7 @@
         "id": "b8b8f8c90d3ae90c",
         "type": "ui_numeric",
         "z": "693713ade92e377d",
-        "name": "step_time 2 control",
+        "name": "rpm 2 control",
         "label": "M 2",
         "tooltip": "",
         "group": "9bb9dc7f18611a59",
@@ -3379,12 +3402,12 @@
         "topic": "topic",
         "topicType": "msg",
         "format": "{{value}}",
-        "min": "10",
-        "max": "1000000",
+        "min": "1",
+        "max": "1000",
         "step": 1,
         "className": "",
-        "x": 290,
-        "y": 1420,
+        "x": 285,
+        "y": 1681.6666870117188,
         "wires": [
             [
                 "adac158739591c53"
@@ -3395,15 +3418,16 @@
         "id": "adac158739591c53",
         "type": "function",
         "z": "693713ade92e377d",
-        "name": "function 16",
-        "func": "flow.set(\"step_2\", msg.payload); // Cambiá el número según el switch\nreturn null;",
+        "name": "rpm 2",
+        "func": "flow.set(\"rpm_2\", msg.payload); // Cambiá el número según el switch\nreturn null;",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 470,
-        "y": 1420,
+        "x": 505,
+        "y": 1681.6666870117188,
         "wires": [
             []
         ]
@@ -3412,7 +3436,7 @@
         "id": "0ef5d52a3b63c9ca",
         "type": "ui_numeric",
         "z": "693713ade92e377d",
-        "name": "step_time 3 control",
+        "name": "rpm 3 control",
         "label": "M 3",
         "tooltip": "",
         "group": "9bb9dc7f18611a59",
@@ -3424,12 +3448,12 @@
         "topic": "topic",
         "topicType": "msg",
         "format": "{{value}}",
-        "min": "10",
-        "max": "1000000",
+        "min": "1",
+        "max": "1000",
         "step": 1,
         "className": "",
-        "x": 290,
-        "y": 1460,
+        "x": 285,
+        "y": 1721.6666870117188,
         "wires": [
             [
                 "cbb19d603dcf0966"
@@ -3440,15 +3464,16 @@
         "id": "cbb19d603dcf0966",
         "type": "function",
         "z": "693713ade92e377d",
-        "name": "function 17",
-        "func": "flow.set(\"step_3\", msg.payload); // Cambiá el número según el switch\nreturn null;",
+        "name": "rpm 3",
+        "func": "flow.set(\"rpm_3\", msg.payload); // Cambiá el número según el switch\nreturn null;",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 470,
-        "y": 1460,
+        "x": 505,
+        "y": 1721.6666870117188,
         "wires": [
             []
         ]
@@ -3478,8 +3503,8 @@
         "topic": "",
         "topicType": "str",
         "className": "",
-        "x": 320,
-        "y": 780,
+        "x": 340,
+        "y": 1100,
         "wires": [
             [
                 "ceb3f4e71fdc32f0"
@@ -3508,8 +3533,8 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 270,
-        "y": 700,
+        "x": 290,
+        "y": 1020,
         "wires": [
             [
                 "8aa14c5606cfae71"
@@ -3538,8 +3563,8 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 270,
-        "y": 880,
+        "x": 290,
+        "y": 1200,
         "wires": [
             [
                 "6a0eb95b3aeed44f"
@@ -3567,8 +3592,8 @@
         "topic": "",
         "payload": "0",
         "payloadType": "num",
-        "x": 80,
-        "y": 620,
+        "x": 100,
+        "y": 940,
         "wires": [
             [
                 "e7bb0b36f551c054"
@@ -3596,8 +3621,8 @@
         "topic": "",
         "payload": "0",
         "payloadType": "num",
-        "x": 80,
-        "y": 780,
+        "x": 100,
+        "y": 1100,
         "wires": [
             [
                 "057f21aab817b218"
@@ -3625,8 +3650,8 @@
         "topic": "",
         "payload": "0",
         "payloadType": "num",
-        "x": 65,
-        "y": 1018.3333129882812,
+        "x": 80,
+        "y": 1280,
         "wires": [
             [
                 "646cb88553d84d10",
@@ -3657,8 +3682,8 @@
         "topic": "",
         "payload": "0",
         "payloadType": "num",
-        "x": 60,
-        "y": 1180,
+        "x": 75,
+        "y": 1441.6666870117188,
         "wires": [
             [
                 "93c67b59eef75f34",
@@ -3687,10 +3712,10 @@
         "once": true,
         "onceDelay": 0.1,
         "topic": "",
-        "payload": "200000",
+        "payload": "1",
         "payloadType": "num",
-        "x": 60,
-        "y": 1340,
+        "x": 75,
+        "y": 1601.6666870117188,
         "wires": [
             [
                 "158657d86b0b5068",
@@ -3698,6 +3723,572 @@
                 "b8b8f8c90d3ae90c",
                 "0ef5d52a3b63c9ca"
             ]
+        ]
+    },
+    {
+        "id": "9f2e5dc1d30d71be",
+        "type": "ui_numeric",
+        "z": "693713ade92e377d",
+        "name": "step_per_rev 0 control",
+        "label": "M 0",
+        "tooltip": "",
+        "group": "1ac04ecd9219c320",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "wrap": false,
+        "passthru": true,
+        "topic": "topic",
+        "topicType": "msg",
+        "format": "{{value}}",
+        "min": "10",
+        "max": "400",
+        "step": 1,
+        "className": "",
+        "x": 315,
+        "y": 1781.6666870117188,
+        "wires": [
+            [
+                "a553b96ca25bbd5e"
+            ]
+        ]
+    },
+    {
+        "id": "fdd66c51f082ce6a",
+        "type": "inject",
+        "z": "693713ade92e377d",
+        "name": "init config",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "200",
+        "payloadType": "num",
+        "x": 75,
+        "y": 1781.6666870117188,
+        "wires": [
+            [
+                "9f2e5dc1d30d71be",
+                "854eca814e3ab54e",
+                "e8f2cabecf3cfc1d",
+                "3dd603ca7bfac025"
+            ]
+        ]
+    },
+    {
+        "id": "a553b96ca25bbd5e",
+        "type": "function",
+        "z": "693713ade92e377d",
+        "name": "step_per_rev 0",
+        "func": "flow.set(\"step_per_rev_0\", msg.payload); // Cambiá el número según el switch\nreturn null;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 535,
+        "y": 1781.6666870117188,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "854eca814e3ab54e",
+        "type": "ui_numeric",
+        "z": "693713ade92e377d",
+        "name": "step_per_rev 1 control",
+        "label": "M 1",
+        "tooltip": "",
+        "group": "1ac04ecd9219c320",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "wrap": false,
+        "passthru": true,
+        "topic": "topic",
+        "topicType": "msg",
+        "format": "{{value}}",
+        "min": "10",
+        "max": "400",
+        "step": 1,
+        "className": "",
+        "x": 315,
+        "y": 1821.6666870117188,
+        "wires": [
+            [
+                "854a36d0707a66fa"
+            ]
+        ]
+    },
+    {
+        "id": "e8f2cabecf3cfc1d",
+        "type": "ui_numeric",
+        "z": "693713ade92e377d",
+        "name": "step_per_rev 2 control",
+        "label": "M 2",
+        "tooltip": "",
+        "group": "1ac04ecd9219c320",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "wrap": false,
+        "passthru": true,
+        "topic": "topic",
+        "topicType": "msg",
+        "format": "{{value}}",
+        "min": "10",
+        "max": "400",
+        "step": 1,
+        "className": "",
+        "x": 315,
+        "y": 1861.6666870117188,
+        "wires": [
+            [
+                "5d7062357121802d"
+            ]
+        ]
+    },
+    {
+        "id": "3dd603ca7bfac025",
+        "type": "ui_numeric",
+        "z": "693713ade92e377d",
+        "name": "step_per_rev 3 control",
+        "label": "M 3",
+        "tooltip": "",
+        "group": "1ac04ecd9219c320",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "wrap": false,
+        "passthru": true,
+        "topic": "topic",
+        "topicType": "msg",
+        "format": "{{value}}",
+        "min": "10",
+        "max": "400",
+        "step": 1,
+        "className": "",
+        "x": 315,
+        "y": 1901.6666870117188,
+        "wires": [
+            [
+                "2a7bb488cf55ff07"
+            ]
+        ]
+    },
+    {
+        "id": "854a36d0707a66fa",
+        "type": "function",
+        "z": "693713ade92e377d",
+        "name": "step_per_rev 1",
+        "func": "flow.set(\"step_per_rev_1\", msg.payload); // Cambiá el número según el switch\nreturn null;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 535,
+        "y": 1821.6666870117188,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "5d7062357121802d",
+        "type": "function",
+        "z": "693713ade92e377d",
+        "name": "step_per_rev 2",
+        "func": "flow.set(\"step_per_rev_2\", msg.payload); // Cambiá el número según el switch\nreturn null;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 535,
+        "y": 1861.6666870117188,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "2a7bb488cf55ff07",
+        "type": "function",
+        "z": "693713ade92e377d",
+        "name": "step_per_rev 3",
+        "func": "flow.set(\"step_per_rev_3\", msg.payload); // Cambiá el número según el switch\nreturn null;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 535,
+        "y": 1901.6666870117188,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "0c7410cc56a3dda2",
+        "type": "ui_dropdown",
+        "z": "693713ade92e377d",
+        "name": "micro_step 0",
+        "label": "Seleccionar modo",
+        "tooltip": "",
+        "place": "Elegir",
+        "group": "ebb100812dc65198",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "multiple": false,
+        "options": [
+            {
+                "label": "Full step",
+                "value": 1,
+                "type": "num"
+            },
+            {
+                "label": "Half step",
+                "value": 2,
+                "type": "num"
+            },
+            {
+                "label": "Quarter step",
+                "value": 4,
+                "type": "num"
+            },
+            {
+                "label": "Eigth step",
+                "value": 8,
+                "type": "num"
+            },
+            {
+                "label": "Sixteenth",
+                "value": 16,
+                "type": "num"
+            }
+        ],
+        "payload": "",
+        "topic": "",
+        "topicType": "str",
+        "className": "",
+        "x": 285,
+        "y": 1961.6666870117188,
+        "wires": [
+            [
+                "5697ea572366823b"
+            ]
+        ]
+    },
+    {
+        "id": "f479c7501b0500da",
+        "type": "inject",
+        "z": "693713ade92e377d",
+        "name": "init config",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "1",
+        "payloadType": "num",
+        "x": 75,
+        "y": 1961.6666870117188,
+        "wires": [
+            [
+                "0c7410cc56a3dda2",
+                "3d646271047ccf69",
+                "ffac7733902294d9",
+                "952a983d57526979"
+            ]
+        ]
+    },
+    {
+        "id": "5697ea572366823b",
+        "type": "function",
+        "z": "693713ade92e377d",
+        "name": "micro step 0",
+        "func": "global.set(\"micro_step_0\", msg.payload);\nreturn null;",
+        "outputs": 0,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 525,
+        "y": 1961.6666870117188,
+        "wires": []
+    },
+    {
+        "id": "3d646271047ccf69",
+        "type": "ui_dropdown",
+        "z": "693713ade92e377d",
+        "name": "micro_step 1",
+        "label": "Seleccionar modo",
+        "tooltip": "",
+        "place": "Elegir",
+        "group": "ebb100812dc65198",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "multiple": false,
+        "options": [
+            {
+                "label": "Full step",
+                "value": 1,
+                "type": "num"
+            },
+            {
+                "label": "Half step",
+                "value": 2,
+                "type": "num"
+            },
+            {
+                "label": "Quarter step",
+                "value": 4,
+                "type": "num"
+            },
+            {
+                "label": "Eigth step",
+                "value": 8,
+                "type": "num"
+            },
+            {
+                "label": "Sixteenth",
+                "value": 16,
+                "type": "num"
+            }
+        ],
+        "payload": "",
+        "topic": "",
+        "topicType": "str",
+        "className": "",
+        "x": 285,
+        "y": 2001.6666870117188,
+        "wires": [
+            [
+                "135130b5816a9ce1"
+            ]
+        ]
+    },
+    {
+        "id": "135130b5816a9ce1",
+        "type": "function",
+        "z": "693713ade92e377d",
+        "name": "micro step 1",
+        "func": "global.set(\"micro_step_1\", msg.payload);\nreturn null;",
+        "outputs": 0,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 525,
+        "y": 2001.6666870117188,
+        "wires": []
+    },
+    {
+        "id": "ffac7733902294d9",
+        "type": "ui_dropdown",
+        "z": "693713ade92e377d",
+        "name": "micro_step 2",
+        "label": "Seleccionar modo",
+        "tooltip": "",
+        "place": "Elegir",
+        "group": "ebb100812dc65198",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "multiple": false,
+        "options": [
+            {
+                "label": "Full step",
+                "value": 1,
+                "type": "num"
+            },
+            {
+                "label": "Half step",
+                "value": 2,
+                "type": "num"
+            },
+            {
+                "label": "Quarter step",
+                "value": 4,
+                "type": "num"
+            },
+            {
+                "label": "Eigth step",
+                "value": 8,
+                "type": "num"
+            },
+            {
+                "label": "Sixteenth",
+                "value": 16,
+                "type": "num"
+            }
+        ],
+        "payload": "",
+        "topic": "",
+        "topicType": "str",
+        "className": "",
+        "x": 285,
+        "y": 2041.6666870117188,
+        "wires": [
+            [
+                "9fd11ec41c84b089"
+            ]
+        ]
+    },
+    {
+        "id": "9fd11ec41c84b089",
+        "type": "function",
+        "z": "693713ade92e377d",
+        "name": "micro step 2",
+        "func": "global.set(\"micro_step_2\", msg.payload);\nreturn null;",
+        "outputs": 0,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 525,
+        "y": 2041.6666870117188,
+        "wires": []
+    },
+    {
+        "id": "952a983d57526979",
+        "type": "ui_dropdown",
+        "z": "693713ade92e377d",
+        "name": "micro_step 3",
+        "label": "Seleccionar modo",
+        "tooltip": "",
+        "place": "Elegir",
+        "group": "ebb100812dc65198",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "multiple": false,
+        "options": [
+            {
+                "label": "Full step",
+                "value": 1,
+                "type": "num"
+            },
+            {
+                "label": "Half step",
+                "value": 2,
+                "type": "num"
+            },
+            {
+                "label": "Quarter step",
+                "value": 4,
+                "type": "num"
+            },
+            {
+                "label": "Eigth step",
+                "value": 8,
+                "type": "num"
+            },
+            {
+                "label": "Sixteenth",
+                "value": 16,
+                "type": "num"
+            }
+        ],
+        "payload": "",
+        "topic": "",
+        "topicType": "str",
+        "className": "",
+        "x": 285,
+        "y": 2081.6666870117188,
+        "wires": [
+            [
+                "4ad308e6b6724b4d"
+            ]
+        ]
+    },
+    {
+        "id": "4ad308e6b6724b4d",
+        "type": "function",
+        "z": "693713ade92e377d",
+        "name": "micro step 3",
+        "func": "global.set(\"micro_step_3\", msg.payload);\nreturn null;",
+        "outputs": 0,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 525,
+        "y": 2081.6666870117188,
+        "wires": []
+    },
+    {
+        "id": "b0763be08319019d",
+        "type": "function",
+        "z": "693713ade92e377d",
+        "name": "function 1",
+        "func": "let step_per_rev = msg.payload.step_per_rev;\n\nif (!Array.isArray(step_per_rev) || step_per_rev.length !== 4) {\n    node.warn(\"Esperado array de 4 posiciones en 'step_time'\");\n    return [null, null, null, null];\n}\n\n// Cada mensaje va a una salida distinta\nreturn [\n    { payload: step_per_rev[0] },\n    { payload: step_per_rev[1] },\n    { payload: step_per_rev[2] },\n    { payload: step_per_rev[3] }\n];\n",
+        "outputs": 4,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 600,
+        "y": 580,
+        "wires": [
+            [],
+            [],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "31af643436f6e2c3",
+        "type": "function",
+        "z": "693713ade92e377d",
+        "name": "function 1",
+        "func": "let micro_step = msg.payload.micro_step;\n\nif (!Array.isArray(micro_step) || micro_step.length !== 4) {\n    node.warn(\"Esperado array de 4 posiciones en 'step_time'\");\n    return [null, null, null, null];\n}\n\n// Cada mensaje va a una salida distinta\nreturn [\n    { payload: micro_step[0] },\n    { payload: micro_step[1] },\n    { payload: micro_step[2] },\n    { payload: micro_step[3] }\n];\n",
+        "outputs": 4,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 600,
+        "y": 740,
+        "wires": [
+            [],
+            [],
+            [],
+            []
         ]
     },
     {

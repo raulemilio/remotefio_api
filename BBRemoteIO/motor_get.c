@@ -189,6 +189,16 @@ static int wait_for_motor_get_data_and_process_get(ThreadMotorGetDataArgs args,
     bool is_motor_get_running = false;
     MotorGetData motor_get_data_send;
 
+    // variables internas que no se almacenan en pru
+    // Cargamos con los valores globales los datos de salida, luego segun corresponda se modificaran
+    pthread_mutex_lock(&motor_data_mutex);
+    for (int motor = 0; motor <= MOTOR_CH_MAX; motor++) {
+        motor_get_data_send.rpm[motor] = rpm[motor];
+        motor_get_data_send.step_per_rev[motor] = step_per_rev[motor];
+        motor_get_data_send.micro_step[motor] = micro_step[motor];
+    }
+    pthread_mutex_unlock(&motor_data_mutex);
+
     while (timeout_ms < 0 || elapsed < timeout_ms) {
 
         pthread_mutex_lock(&motor_get_running_mutex);
@@ -238,7 +248,14 @@ static void process_motor_get_data_get(ThreadMotorGetDataArgs args, MotorGetData
         motor_get_data_send->ena[i] = (shm->shared[data_shd_index] >> ((2*motor) + MOTOR_OFFSET_ENABLE)) & 1; // <-shm
         motor_get_data_send->motor[i] = motor;
         motor_get_data_send->dir[i] = (shm->shared[data_shd_index] >> ((2*motor) + MOTOR_OFFSET_DIRECTION)) & 1;
-        motor_get_data_send->step_time[i] = shm->shared[(MOTOR_OFFSET_STEPTIME_SHD_INDEX + motor)];
+        motor_get_data_send->factor_step_time[i] = shm->shared[(MOTOR_OFFSET_STEPTIME_SHD_INDEX + motor)];
+
+        // variables internas que no se almacenan en pru
+        pthread_mutex_lock(&motor_data_mutex);
+        motor_get_data_send->rpm[i] = rpm[motor];
+        motor_get_data_send->step_per_rev[i] = step_per_rev[motor];
+        motor_get_data_send->micro_step[i] = micro_step[motor];
+        pthread_mutex_unlock(&motor_data_mutex);
     }
     motor_get_data_send->num_motor = args.motor_get_data->num_motor;
     // Cargar timestamp en milisegundos

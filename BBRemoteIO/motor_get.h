@@ -28,7 +28,10 @@ typedef struct {
     int motor[MOTOR_NUM_MAX];   // Numero de motor (0 a 3) maximo 4
     int dir[MOTOR_NUM_MAX];     // Direccion de los motores, hasta 4 valores (0 o 1)
     int ena[MOTOR_NUM_MAX];     // Habilitacion de los motores, hasta 4 valores (0 o 1)
-    int step_time[MOTOR_NUM_MAX];     // tiempo de medio ciclo de step
+    int rpm[MOTOR_NUM_MAX];
+    int step_per_rev[MOTOR_NUM_MAX];
+    int micro_step[MOTOR_NUM_MAX];  // full, half,...
+    int factor_step_time[MOTOR_NUM_MAX];
     int mode;       // Modo del motor
     uint64_t ts;
 } MotorGetData;

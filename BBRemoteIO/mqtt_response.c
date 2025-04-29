@@ -97,29 +97,6 @@ void publish_gpio_output_get_response(struct mosquitto *mosq, GpioOutputGetData 
     LOG_DEBUG(RESPONDING_GPIO_OUTPUT_GET, json_payload);
 }
 
-void publish_gpio_output_set_response(struct mosquitto *mosq, GpioOutputSetData gpio_output_set_data_send, const char *status) {
-    char json_payload[PAYLOAD_DATA_SIZE];
-    int offset = 0;
-
-    offset = safe_append(json_payload, sizeof(json_payload), offset, HEADER_MESSAGE_GPIO_OUTPUT_SET, status);
-
-    for (int i = 0; i < gpio_output_set_data_send.num_output; i++) {
-        if (i > 0) offset = safe_append(json_payload, sizeof(json_payload), offset, ",");
-        offset = safe_append(json_payload, sizeof(json_payload), offset, "%d", gpio_output_set_data_send.output[i]);
-    }
-
-    offset = safe_append(json_payload, sizeof(json_payload), offset, "],\"state\":[");
-    for (int i = 0; i < gpio_output_set_data_send.num_output; i++) {
-        if (i > 0) offset = safe_append(json_payload, sizeof(json_payload), offset, ",");
-        offset = safe_append(json_payload, sizeof(json_payload), offset, "%d", gpio_output_set_data_send.state[i]);
-    }
-
-    offset = safe_append(json_payload, sizeof(json_payload), offset, "],\"ts\":%" PRIu64 "}", gpio_output_set_data_send.ts);
-
-    mqtt_publish_async(mosq, TOPIC_RSP_GPIO_OUTPUT_SET, json_payload);
-    LOG_DEBUG(RESPONDING_GPIO_OUTPUT_SET, json_payload);
-}
-
 void publish_motor_get_response(struct mosquitto *mosq, MotorGetData motor_get_data_send, const char *status) {
     char json_payload[PAYLOAD_DATA_SIZE];
     int offset = 0;
@@ -143,10 +120,22 @@ void publish_motor_get_response(struct mosquitto *mosq, MotorGetData motor_get_d
         offset = safe_append(json_payload, sizeof(json_payload), offset, "%d", motor_get_data_send.dir[i]);
     }
 
-    offset = safe_append(json_payload, sizeof(json_payload), offset, "],\"step_time\":[");
+    offset = safe_append(json_payload, sizeof(json_payload), offset, "],\"rpm\":[");
     for (int i = 0; i < motor_get_data_send.num_motor; i++) {
         if (i > 0) offset = safe_append(json_payload, sizeof(json_payload), offset, ",");
-        offset = safe_append(json_payload, sizeof(json_payload), offset, "%d", motor_get_data_send.step_time[i]);
+        offset = safe_append(json_payload, sizeof(json_payload), offset, "%d", motor_get_data_send.rpm[i]);
+    }
+
+    offset = safe_append(json_payload, sizeof(json_payload), offset, "],\"step_per_rev\":[");
+    for (int i = 0; i < motor_get_data_send.num_motor; i++) {
+        if (i > 0) offset = safe_append(json_payload, sizeof(json_payload), offset, ",");
+        offset = safe_append(json_payload, sizeof(json_payload), offset, "%d", motor_get_data_send.step_per_rev[i]);
+    }
+
+    offset = safe_append(json_payload, sizeof(json_payload), offset, "],\"micro_step\":[");
+    for (int i = 0; i < motor_get_data_send.num_motor; i++) {
+        if (i > 0) offset = safe_append(json_payload, sizeof(json_payload), offset, ",");
+        offset = safe_append(json_payload, sizeof(json_payload), offset, "%d", motor_get_data_send.micro_step[i]);
     }
 
     offset = safe_append(json_payload, sizeof(json_payload), offset, "],\"ts\":%" PRIu64 "}", motor_get_data_send.ts);
@@ -154,41 +143,7 @@ void publish_motor_get_response(struct mosquitto *mosq, MotorGetData motor_get_d
     mqtt_publish_async(mosq, TOPIC_RSP_MOTOR_GET, json_payload);
     LOG_DEBUG(RESPONDING_MOTOR_GET, json_payload);
 }
-// En esta version no se utiliza
-void publish_motor_set_response(struct mosquitto *mosq, MotorSetData motor_set_data_send, const char *status) {
-    char json_payload[PAYLOAD_DATA_SIZE];
-    int offset = 0;
 
-    offset = safe_append(json_payload, sizeof(json_payload), offset, HEADER_MESSAGE_MOTOR_SET, status);
-
-    for (int i = 0; i < motor_set_data_send.num_motor; i++) {
-        if (i > 0) offset = safe_append(json_payload, sizeof(json_payload), offset, ",");
-        offset = safe_append(json_payload, sizeof(json_payload), offset, "%d", motor_set_data_send.motor[i]);
-    }
-
-    offset = safe_append(json_payload, sizeof(json_payload), offset, "],\"ena\":[");
-    for (int i = 0; i < motor_set_data_send.num_motor; i++) {
-        if (i > 0) offset = safe_append(json_payload, sizeof(json_payload), offset, ",");
-        offset = safe_append(json_payload, sizeof(json_payload), offset, "%d", motor_set_data_send.ena[i]);
-    }
-
-    offset = safe_append(json_payload, sizeof(json_payload), offset, "],\"dir\":[");
-    for (int i = 0; i < motor_set_data_send.num_motor; i++) {
-        if (i > 0) offset = safe_append(json_payload, sizeof(json_payload), offset, ",");
-        offset = safe_append(json_payload, sizeof(json_payload), offset, "%d", motor_set_data_send.dir[i]);
-    }
-
-    offset = safe_append(json_payload, sizeof(json_payload), offset, "],\"step_time\":[");
-    for (int i = 0; i < motor_set_data_send.num_motor; i++) {
-        if (i > 0) offset = safe_append(json_payload, sizeof(json_payload), offset, ",");
-        offset = safe_append(json_payload, sizeof(json_payload), offset, "%d", motor_set_data_send.step_time[i]);
-    }
-
-    offset = safe_append(json_payload, sizeof(json_payload), offset, "],\"ts\":%" PRIu64 "}", motor_set_data_send.ts);
-
-    mqtt_publish_async(mosq, TOPIC_RSP_MOTOR_SET, json_payload);
-    LOG_DEBUG(RESPONDING_MOTOR_SET, json_payload);
-}
 // ADC
 void publish_adc_response_status(struct mosquitto *mosq, const char *status) {
 
@@ -237,7 +192,7 @@ void publish_motor_set_response_status(struct mosquitto *mosq, const char *statu
     mqtt_publish_async(mosq, TOPIC_LOGS, json_payload);
     LOG_DEBUG(RESPONDING_MOTOR_SET, json_payload);
 }
-
+// SYSTEM
 void publish_system_response_status(struct mosquitto *mosq, const char *status) {
 
     char json_payload[PAYLOAD_STATUS_SIZE]; // Ajustar el tamanio segun sea necesario

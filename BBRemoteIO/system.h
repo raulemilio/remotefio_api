@@ -11,29 +11,29 @@
 #include "motor.h"
 
 //SYSTEM
-#define ERR_INVALID_FUNCTION            "Err: function fld"
-#define ERR_INVALID_FUNCTION_VALUE      "Err: function val"
-#define ERR_INVALID_ACTION              "Err: action field"
-#define ERR_INVALID_ACTION_VALUE        "Err: action value"
+#define ERR_SYSTEM_INVALID_FUNCTION        "Err: function fld"
+#define ERR_SYSTEM_INVALID_FUNCTION_VALUE  "Err: function val"
+#define ERR_SYSTEM_INVALID_ACTION          "Err: action field"
+#define ERR_SYSTEM_INVALID_ACTION_VALUE    "Err: action value"
 
 
-#define MSG_SYSTEM_LCD_CLEAN		"System lcd clr  "
-#define MSG_SYSTEM_ALL_FUNCTION_ON	"System all on   "
-#define MSG_SYSTEM_ALL_FUNCTION_OFF	"System all off  "
-#define MSG_SYSTEM_FUNCTION_ON		"System func on  "
-#define MSG_SYSTEM_FUNCTION_OFF		"System func off "
+#define MSG_SYSTEM_LCD_CLEAN		   "System lcd clr  "
+#define MSG_SYSTEM_ALL_FUNCTION_ON	   "System all on   "
+#define MSG_SYSTEM_ALL_FUNCTION_OFF	   "System all off  "
+#define MSG_SYSTEM_FUNCTION_ON		   "System func on  "
+#define MSG_SYSTEM_FUNCTION_OFF		   "System func off "
 
 // 16 caracteres maximo
-#define MSG_SYSTEM_INVALID_OPTION       "System inv opt  "
-#define MSG_SYSTEM_DONE                 "System done     "
-#define MSG_SYSTEM_STOPPED              "System stopped  "
-#define MSG_SYSTEM_TIMEOUT_EXPIRED      "System exp TO   "
-#define MSG_SYSTEM_FINISH               "System finish   "
+#define MSG_SYSTEM_INVALID_OPTION          "System inv opt  "
+#define MSG_SYSTEM_DONE                    "System done     "
+#define MSG_SYSTEM_STOPPED                 "System stopped  "
+#define MSG_SYSTEM_TIMEOUT_EXPIRED         "System exp TO   "
+#define MSG_SYSTEM_FINISH                  "System finish   "
 
 // TASK
 #define JSON_KEY_SYSTEM_TASK_MANE          "system"
-#define JSON_KEY_FUNCTION                  "function"
-#define JSON_KEY_ACTION                    "action"
+#define JSON_KEY_SYSTEM_FUNCTION           "function"
+#define JSON_KEY_SYSTEM_ACTION             "action"
 
 #define JSON_KEY_SYSTEM_LCD                "lcd"
 #define JSON_KEY_SYSTEM_PRU0               "pru0"

@@ -68,6 +68,7 @@ void *motor_set_thread_func(void *arg) {
 
             int flag_index, data_index, trigger_flag, datardy_flag;
 
+
             switch (args.motor_set_data->mode) {
                 case 0:
                     // logica de modo 0
@@ -168,7 +169,13 @@ static void process_motor_set_data_set(ThreadMotorSetDataArgs args, int data_shd
         if (i < 4){
             shm->shared[data_shd_index] |= ((args.motor_set_data->ena[i] & 1) << (MOTOR_OFFSET_ENABLE + (2 * motor)));
             shm->shared[data_shd_index] |= ((args.motor_set_data->dir[i] & 1) << (MOTOR_OFFSET_DIRECTION + (2 * motor)));
-            shm->shared[MOTOR_OFFSET_STEPTIME_SHD_INDEX + i] = args.motor_set_data->step_time[i];
+            shm->shared[MOTOR_OFFSET_STEPTIME_SHD_INDEX + motor] = args.motor_set_data->factor_step_time[motor];
+            // variables internas que no estan almacenadas en pru
+            pthread_mutex_lock(&motor_data_mutex);
+            rpm[motor] = args.motor_set_data->rpm[motor];
+            step_per_rev[motor] = args.motor_set_data->step_per_rev[motor];
+            micro_step[motor] = args.motor_set_data->micro_step[motor];
+            pthread_mutex_unlock(&motor_data_mutex);
         }
     }
 }

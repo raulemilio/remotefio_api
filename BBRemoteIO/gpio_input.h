@@ -10,20 +10,20 @@
 #define GPIO_INPUT_TIMEOUT_MS_MODE2   5000
 
 //INPUT
-#define ERR_INVALID_INPUT                 "Err: input field"
-#define ERR_INPUT_OUT_OF_RANGE            "Err: input size "
-#define ERR_INVALID_INPUT_VALUE           "Err: input value"
+#define ERR_GPIO_INPUT_INVALID_INPUT        "Err: input field"
+#define ERR_GPIO_INPUT_INPUT_OUT_OF_RANGE   "Err: input size "
+#define ERR_GPIO_INPUT_INVALID_INPUT_VALUE  "Err: input value"
 
 // 16 caracteres maximo
-#define MSG_GPIO_INPUT_INVALID_MODE       "Gpio in inv mod "
-#define MSG_GPIO_INPUT_DONE               "Gpio in done"
-#define MSG_GPIO_INPUT_STOPPED            "Gpio in stopped "
-#define MSG_GPIO_INPUT_TIMEOUT_EXPIRED    "Gpio in exp TO  "
-#define MSG_GPIO_INPUT_FINISH             "Gpio in finish  "
+#define MSG_GPIO_INPUT_INVALID_MODE         "Gpio in inv mod "
+#define MSG_GPIO_INPUT_DONE                 "Gpio in done"
+#define MSG_GPIO_INPUT_STOPPED              "Gpio in stopped "
+#define MSG_GPIO_INPUT_TIMEOUT_EXPIRED      "Gpio in exp TO  "
+#define MSG_GPIO_INPUT_FINISH               "Gpio in finish  "
 
 // TASK
-#define JSON_KEY_GPIO_INPUT_TASK_NAME      "gpio_input"
-#define JSON_KEY_INPUT                     "input"
+#define JSON_KEY_GPIO_INPUT_TASK_NAME       "gpio_input"
+#define JSON_KEY_GPIO_INPUT_INPUT           "input"
 
 #define GPIO_INPUT_NUM_MAX              4
 #define GPIO_INPUT_CH_MIN               0
