@@ -115,6 +115,14 @@
         "env": []
     },
     {
+        "id": "db7684ea6bdb8c9b",
+        "type": "tab",
+        "label": "SYSTEM",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "ee27f07affeb044c",
         "type": "mqtt-broker",
         "name": "",
@@ -631,6 +639,37 @@
         "height": 1
     },
     {
+        "id": "06d718353ba00cbf",
+        "type": "ui_tab",
+        "name": "SYSTEM",
+        "icon": "dashboard",
+        "order": 5,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "0b866b0aadf639f2",
+        "type": "ui_group",
+        "name": "Config",
+        "tab": "06d718353ba00cbf",
+        "order": 2,
+        "disp": true,
+        "width": "4",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "3bf33a1598097ee3",
+        "type": "ui_group",
+        "name": "Logs",
+        "tab": "06d718353ba00cbf",
+        "order": 1,
+        "disp": true,
+        "width": "8",
+        "collapse": false,
+        "className": ""
+    },
+    {
         "id": "0522d77f619fe957",
         "type": "mqtt in",
         "z": "b8967e6c4abde353",
@@ -650,7 +689,8 @@
                 "8f83b44b036258bd",
                 "1e756fcfd1fe3846",
                 "aa2d4c275c4a2df7",
-                "95e0f84889504daa"
+                "95e0f84889504daa",
+                "d5f700e03c24ef53"
             ]
         ]
     },
@@ -816,6 +856,47 @@
         "color": "#000000",
         "x": 600,
         "y": 220,
+        "wires": []
+    },
+    {
+        "id": "d5f700e03c24ef53",
+        "type": "function",
+        "z": "b8967e6c4abde353",
+        "name": "system logs",
+        "func": "const list_key = \"error_list_system\";\n\n// Inicializar la lista si no existe\nif (!flow.get(list_key)) {\n    flow.set(list_key, []);\n}\n\ntry {\n    const data = JSON.parse(msg.payload);\n    const now = new Date();\n\n    // Construir timestamp con coma en los milisegundos\n    let time = now.toLocaleTimeString('es-ES', { hour12: false }) + '.' +\n               now.getMilliseconds().toString().padStart(3, '0');\n    time = time.replace('.', ',');\n    const timestamp = now.toLocaleDateString() + ' ' + time;\n\n    let new_message = null;\n\n    if (data.Log) {\n        new_message = `${timestamp} - ${data.Log}`;\n    } else if (data.task && typeof data.task === \"string\" && data.task.toLowerCase().startsWith(\"system\")) {\n        if (data.status) {\n            new_message = `${timestamp} - ${data.task}: ${data.status}`;\n        } else {\n            new_message = `${timestamp} - ${data.task}: (sin estado)`;\n        }\n    }\n\n    if (new_message) {\n        let error_list = flow.get(list_key);\n        error_list.push(new_message); // Agregar el nuevo mensaje\n        if (error_list.length > 3) {\n            error_list.shift(); // Mantener solo los últimos 3\n        }\n        flow.set(list_key, error_list);\n\n        msg.payload = error_list.slice().reverse().join(\"</br>\");\n        return msg;\n    } else {\n        return null; // No cumple condiciones, no mostrar\n    }\n} catch (e) {\n    msg.payload = \"Error: Payload inválido\";\n    return msg;\n}\n\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 340,
+        "wires": [
+            [
+                "4a7f3f4fc5a4437e"
+            ]
+        ]
+    },
+    {
+        "id": "4a7f3f4fc5a4437e",
+        "type": "ui_text",
+        "z": "b8967e6c4abde353",
+        "group": "3bf33a1598097ee3",
+        "order": 1,
+        "width": 8,
+        "height": 3,
+        "name": "Logs adc",
+        "label": "",
+        "format": "{{msg.payload}}",
+        "layout": "row-left",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 580,
+        "y": 340,
         "wires": []
     },
     {
@@ -1120,6 +1201,7 @@
         "id": "7d07d12531fb2c70",
         "type": "inject",
         "z": "6b7e0e36eaf59013",
+        "d": true,
         "name": "",
         "props": [
             {
@@ -1346,7 +1428,7 @@
         "once": true,
         "onceDelay": 0.1,
         "topic": "",
-        "payload": "100",
+        "payload": "32",
         "payloadType": "num",
         "x": 160,
         "y": 480,
@@ -5068,5 +5150,236 @@
                 "numeric_muestras"
             ]
         ]
+    },
+    {
+        "id": "5adf018aa1c13b34",
+        "type": "ui_dropdown",
+        "z": "db7684ea6bdb8c9b",
+        "name": "function",
+        "label": "function",
+        "tooltip": "",
+        "place": "Elegir",
+        "group": "0b866b0aadf639f2",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "multiple": false,
+        "options": [
+            {
+                "label": "adc",
+                "value": "adc",
+                "type": "str"
+            },
+            {
+                "label": "gpio_input",
+                "value": "gpio_input",
+                "type": "str"
+            },
+            {
+                "label": "gpio_output",
+                "value": "gpio_output",
+                "type": "str"
+            },
+            {
+                "label": "motor",
+                "value": "motor",
+                "type": "str"
+            },
+            {
+                "label": "pru0",
+                "value": "pru0",
+                "type": "str"
+            },
+            {
+                "label": "pru1",
+                "value": "pru1",
+                "type": "str"
+            },
+            {
+                "label": "lcd",
+                "value": "lcd",
+                "type": "str"
+            },
+            {
+                "label": "all_functions",
+                "value": "all_functions",
+                "type": "str"
+            }
+        ],
+        "payload": "",
+        "topic": "",
+        "topicType": "str",
+        "className": "",
+        "x": 260,
+        "y": 340,
+        "wires": [
+            [
+                "c6c94b3597270729"
+            ]
+        ]
+    },
+    {
+        "id": "c6c94b3597270729",
+        "type": "function",
+        "z": "db7684ea6bdb8c9b",
+        "name": "function",
+        "func": "global.set(\"system_function\", msg.payload);\nreturn null;",
+        "outputs": 0,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "6e0fe3d033a2285d",
+        "type": "function",
+        "z": "db7684ea6bdb8c9b",
+        "name": "action",
+        "func": "global.set(\"system_action\", msg.payload);\nreturn null;",
+        "outputs": 0,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "bfe165a928424bc6",
+        "type": "ui_dropdown",
+        "z": "db7684ea6bdb8c9b",
+        "name": "action",
+        "label": "action  ",
+        "tooltip": "",
+        "place": "Elegir",
+        "group": "0b866b0aadf639f2",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "multiple": false,
+        "options": [
+            {
+                "label": "stop",
+                "value": "stop",
+                "type": "str"
+            },
+            {
+                "label": "start",
+                "value": "atart",
+                "type": "str"
+            },
+            {
+                "label": "clean",
+                "value": "clean",
+                "type": "str"
+            }
+        ],
+        "payload": "",
+        "topic": "",
+        "topicType": "str",
+        "className": "",
+        "x": 250,
+        "y": 380,
+        "wires": [
+            [
+                "6e0fe3d033a2285d"
+            ]
+        ]
+    },
+    {
+        "id": "21b7bdf68e19fa4a",
+        "type": "ui_button",
+        "z": "db7684ea6bdb8c9b",
+        "name": "Send action",
+        "group": "0b866b0aadf639f2",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Send action",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 270,
+        "y": 300,
+        "wires": [
+            [
+                "5f6f7b780bb068e3"
+            ]
+        ]
+    },
+    {
+        "id": "5f6f7b780bb068e3",
+        "type": "function",
+        "z": "db7684ea6bdb8c9b",
+        "name": "function",
+        "func": "var fn = global.get(\"system_function\");\nvar act = global.get(\"system_action\");\n\nlet valid = {\n    \"adc\": [\"stop\"],\n    \"gpio_input\": [\"stop\"],\n    \"gpio_output\": [\"stop\"],\n    \"motor\": [\"stop\"],\n    \"lcd\": [\"clean\"],\n    \"pru0\": [\"start\", \"stop\"],\n    \"pru1\": [\"start\", \"stop\"],\n    \"all_functions\": [\"stop\", \"clean\", \"start\"]\n};\n\nif (valid[fn] && valid[fn].includes(act)) {\n    msg.payload = {\n        task: \"system\",\n        function: fn,\n        action: act\n    };\n    return [msg, null];  // salida 1: comando válido\n} else {\n    let errorMsg = `❌ Comando inválido: ${fn} / ${act}`;\n    return [null, { payload: errorMsg }];  // salida 2: mensaje de error\n}\n\n",
+        "outputs": 2,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 300,
+        "wires": [
+            [
+                "8f1336b8b97b1188"
+            ],
+            [
+                "d5249108e614f683"
+            ]
+        ]
+    },
+    {
+        "id": "8f1336b8b97b1188",
+        "type": "mqtt out",
+        "z": "db7684ea6bdb8c9b",
+        "name": "",
+        "topic": "BBRemote/cmds/system",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "ee27f07affeb044c",
+        "x": 770,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "d5249108e614f683",
+        "type": "ui_toast",
+        "z": "db7684ea6bdb8c9b",
+        "position": "top right",
+        "displayTime": "3",
+        "highlight": "",
+        "sendall": true,
+        "outputs": 0,
+        "ok": "OK",
+        "cancel": "",
+        "raw": false,
+        "className": "",
+        "topic": "",
+        "name": "",
+        "x": 750,
+        "y": 360,
+        "wires": []
     }
 ]

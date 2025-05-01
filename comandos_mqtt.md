@@ -8,6 +8,7 @@ El driver está configurado para 2 lineas por 16 caracteres pero
 se puede usar perfectamente con 4 lineas y 20 caracteres.
 
 Analog channels
+vref_1.8V  P9_32
 channel 0 P9_39 (AIN0)
 channel 3 P9_37 (AIN2)
 channel 4 P9_38 (AIN3)
@@ -42,6 +43,7 @@ P8_36 output_MC_S
 P8_34 output_MD_S
 
 TRIGGER RESING DETECT
+P9_14 input adc trigger
 P8_07 input gpio_input send rising detect
 P8_08 input motor send rising detect
 TRIGGER MOTOR_A hardware pins
