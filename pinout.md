@@ -18,8 +18,8 @@ Este documento detalla la asignación de pines para los distintos componentes de
 |-------|--------|
 | SDA   | P9_20 |
 | SCL   | P9_19 |
-| VCC   | P9_5  |
-| GND   | P9_1  |
+| VCC   | P9_6  |
+| GND   | P9_2  |
 | Bus   | `/dev/i2c-1` |
 
 **Nota:** Driver configurado para 2x16, compatible con 4x20.
@@ -71,7 +71,7 @@ Este documento detalla la asignación de pines para los distintos componentes de
 
 ---
 
-## ⏱️ Step Period (medio ciclo)
+## ⏱️ Step Period
 | Señal   | Pin    |
 |---------|--------|
 | MA_S    | P8_37  |
