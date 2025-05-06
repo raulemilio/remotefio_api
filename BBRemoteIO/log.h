@@ -12,7 +12,7 @@
 
 // Configura el nivel de log aqui si no esta definido
 #ifndef LOG_LEVEL
-#define LOG_LEVEL LOG_LEVEL_INFO
+#define LOG_LEVEL LOG_LEVEL_NONE
 #endif
 
 // Macros de log - Definidas solo si el nivel es lo suficientemente alto

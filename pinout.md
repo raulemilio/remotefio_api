@@ -40,58 +40,57 @@ Este documento detalla la asignación de pines para los distintos componentes de
 ## 📥 GPIO Input
 | Señal       | Pin    |
 |-------------|--------|
-| gpio_input0 | P8_35  |
-| gpio_input1 | P8_33  |
-| gpio_input2 | P8_31  |
-| gpio_input3 | P8_32  |
+| gpio_input0 | P8_27  |
+| gpio_input1 | P8_29  |
+| gpio_input2 | P8_28  |
+| gpio_input3 | P8_30  |
 
 ---
 
 ## 📤 GPIO Output
 | Señal      | Pin    |
 |------------|--------|
-| output_0   | P8_27  |
-| output_1   | P8_29  |
-| output_2   | P8_28  |
-| output_3   | P8_30  |
+| output_0   | P8_35  |
+| output_1   | P8_33  |
+| output_2   | P8_31  |
+| output_3   | P8_32  |
 
 ---
 
 ## 🚗 Control de Motores
 | Señal         | Pin    |
 |---------------|--------|
-| MA_E (ENA)    | P8_45  |
-| MA_D (DIR)    | P8_46  |
-| MB_E          | P8_43  |
-| MB_D          | P8_44  |
-| MC_E          | P8_41  |
-| MC_D          | P8_42  |
-| MD_E          | P8_39  |
-| MD_D          | P8_40  |
-
+| MA_E (ENA)    | P8_07  |
+| MB_E          | P8_08  |
+| MC_E          | P8_10  |
+| MD_E          | P8_09  |
+| MA_D (DIR)    | P8_37  |
+| MB_D          | P8_38  |
+| MC_D          | P8_36  |
+| MD_D          | P8_34  |
 ---
 
 ## ⏱️ Step Period
 | Señal   | Pin    |
 |---------|--------|
-| MA_S    | P8_37  |
-| MB_S    | P8_38  |
-| MC_S    | P8_36  |
-| MD_S    | P8_34  |
+| MA_S    | P8_41  |
+| MB_S    | P8_42  |
+| MC_S    | P8_39  |
+| MD_S    | P8_40  |
 
 ---
 
 ## 🚨 Trigger y Detectores
-| Función                       | Pin    |
+| Función                       | Pin   |
 |------------------------------|--------|
-| ADC Trigger                  | P9_14  |
-| GPIO Rising Detect           | P8_07  |
-| Motor Rising Detect          | P8_08  |
-| MA_E Disable Trigger         | P8_19  |
-| MA_D Direction Toggle        | P8_13  |
-| MB_E Disable Trigger         | P8_14  |
-| MB_D Direction Toggle        | P8_17  |
+| ADC trigger                  | P9_XXX |
+| Gpio input trigger           | P8_45  |
+| Motor trigger                | P8_46  |
+| MA_D trigger direction Toggle| P8_43  |
+| MB_D trigger direction Toggle| P8_44  |
 
+| MA_E Disable input           | P8_13  |
+| MB_E Disable input           | P8_14  |
 ---
 
 ## 📊 Configuración de Conexiones

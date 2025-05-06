@@ -9,7 +9,7 @@ LINKER		:= gcc
 # compiler and linker flags
 WFLAGS		:= -Wall -Wextra -Werror=float-equal -Wuninitialized -Wunused-variable -Wdouble-promotion
 CFLAGS		:= -g -c -Wall
-LDFLAGS		:= -pthread -lpthread -lm -lrt -l:librobotcontrol.so.1 -lpaho-mqtt3c  -lmosquitto -lcjson
+LDFLAGS		:= -pthread -lpthread -lm -lrt -l:librobotcontrol.so.1 -lmosquitto -lcjson
 
 SOURCES		:= $(wildcard *.c)
 INCLUDES	:= $(wildcard *.h)

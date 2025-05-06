@@ -1,4 +1,4 @@
-PRU Assembler Unix v2.3.3 Sun Apr 27 21:36:03 2025
+PRU Assembler Unix v2.3.3 Mon May  5 23:24:22 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE    1
@@ -58,7 +58,7 @@ src/pru1-digital.asm                                                 PAGE    1
       53  .asg 0x481ac000, GPIO2                                ; GPIO Bank 2
       54
       55  .asg 0x190, GPIO_CLRDATAOUT                           ; for clearing the GPIO registers
-PRU Assembler Unix v2.3.3 Sun Apr 27 21:36:03 2025
+PRU Assembler Unix v2.3.3 Mon May  5 23:24:22 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE    2
@@ -118,7 +118,7 @@ src/pru1-digital.asm                                                 PAGE    2
      108  .asg 7, OUTPUT_MA_D                                   ; P8_46 gpio2[7] -> bit7 output_MA_D config-pi
      109
      110  .asg 8, OUTPUT_MB_E                                   ; P8_43 gpio2[8] -> bit8 output_MB_E config-pi
-PRU Assembler Unix v2.3.3 Sun Apr 27 21:36:03 2025
+PRU Assembler Unix v2.3.3 Mon May  5 23:24:22 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE    3
@@ -178,7 +178,7 @@ src/pru1-digital.asm                                                 PAGE    3
      163  ; r12-> STEP_PERIOD_C
      164  ; r13-> STEP_PERIOD_D
      165  ; r21-r25-> DEBUG
-PRU Assembler Unix v2.3.3 Sun Apr 27 21:36:03 2025
+PRU Assembler Unix v2.3.3 Mon May  5 23:24:22 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE    4
@@ -238,7 +238,7 @@ src/pru1-digital.asm                                                 PAGE    4
      218;  LBBO  &r1, r0, 0, 4                                  ; Load the values at r0 into r1.
      219;  LDI32 r1, GPIO_DEBOUNCINGTIME                        ; debouncingtime 0-255
      220;  SBBO  &r1, r0, 0, 4                                  ; Load the values at r0 into r1.
-PRU Assembler Unix v2.3.3 Sun Apr 27 21:36:03 2025
+PRU Assembler Unix v2.3.3 Mon May  5 23:24:22 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE    5
@@ -298,7 +298,7 @@ src/pru1-digital.asm                                                 PAGE    5
      273 0000013c                 level_gpio_output_mode1:
      274 0000013c 000000F1203480    LBBO  &r0, r20, SHD_GPIO_OUTPUT_MODE1_FLAG, 4         ;
      275 00000140 000000D100E076    QBBS  GPIO_OUTPUT_MODE1, r0, GPIO_OUTPUT_MODE1_FLAG   ; jump is set bit14
-PRU Assembler Unix v2.3.3 Sun Apr 27 21:36:03 2025
+PRU Assembler Unix v2.3.3 Mon May  5 23:24:22 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE    6
@@ -358,7 +358,7 @@ src/pru1-digital.asm                                                 PAGE    6
      328 000001f4 0000007F0000CA    QBA   MAIN_LOOP                                       ; program loop
      329
      330 000001f8                 GPIO_INPUT_MODE0:
-PRU Assembler Unix v2.3.3 Sun Apr 27 21:36:03 2025
+PRU Assembler Unix v2.3.3 Mon May  5 23:24:22 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE    7
@@ -418,7 +418,7 @@ src/pru1-digital.asm                                                 PAGE    7
      383 00000294 000000D10BE102    QBBS  GPIO_INPUT_MODE2_A, r1, GPIO0_11_GPIO_INPUT_3   ;
      384 00000298 0000007F0000A7    QBA   level_gpio_output_mode0                         ;
      385 0000029c                 GPIO_INPUT_MODE2_A:
-PRU Assembler Unix v2.3.3 Sun Apr 27 21:36:03 2025
+PRU Assembler Unix v2.3.3 Mon May  5 23:24:22 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE    8
@@ -478,7 +478,7 @@ src/pru1-digital.asm                                                 PAGE    8
      438 00000344 0000001101E2E5    AND   r5, r2, 1                                       ; extrae el bit menos significativo de r2 (sta
      439 00000348 000000D0E3E109    QBBS  gpio_write_out_funct, r1, r3                    ; qbbs myLabel r1, r3. Branch if( r1&(1<<r3) )
      440 0000034c                 GPIO_OUTPUT_MODE1_A:
-PRU Assembler Unix v2.3.3 Sun Apr 27 21:36:03 2025
+PRU Assembler Unix v2.3.3 Mon May  5 23:24:22 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE    9
@@ -538,7 +538,7 @@ src/pru1-digital.asm                                                 PAGE    9
      493 000003e8 0000001F03E1E1    SET   r1, r1, GPIO2_3_INPUT_MOTOR_TRIGGER             ;
      494 000003ec 000000E1002081    SBBO  &r1, r0, 0, 4                                   ;
      495; read MOTOR
-PRU Assembler Unix v2.3.3 Sun Apr 27 21:36:03 2025
+PRU Assembler Unix v2.3.3 Mon May  5 23:24:22 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE   10
@@ -598,7 +598,7 @@ src/pru1-digital.asm                                                 PAGE   10
      548; load data
      549 0000049c 000000F1443480    LBBO  &r0, r20, SHD_MOTOR_MODE3_DATA, 4               ;
      550 000004a0 000000110FE0E1    AND   r1, r0, 0x0F                                    ; extrae los priomeros 4 bits (0-3) en r1. Fla
-PRU Assembler Unix v2.3.3 Sun Apr 27 21:36:03 2025
+PRU Assembler Unix v2.3.3 Mon May  5 23:24:22 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE   11
@@ -658,7 +658,7 @@ src/pru1-digital.asm                                                 PAGE   11
      603 00000568 00000014E2E1E1    XOR   r1, r1, r2                                      ; toggle GPIO2_14_MA_S
      604 0000056c 000000E1002081    SBBO  &r1, r0, 0 , 4                                  ; actualizamos la salida GPIO2_14_MA_S
      605 00000570 000000F148348A    LBBO  &r10, r20, SHD_MOTOR_STEP_PERIOD_A, 4           ; cargamos nuevamente el valor de shared[4] pa
-PRU Assembler Unix v2.3.3 Sun Apr 27 21:36:03 2025
+PRU Assembler Unix v2.3.3 Mon May  5 23:24:22 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE   12
@@ -718,7 +718,7 @@ src/pru1-digital.asm                                                 PAGE   12
      658 00000638                 STEP_PERIOD_D:
      659 00000638 0000000501EDED    SUB   r13, r13, 1                                     ; se resta 1 a r13. r13 fue cargado cuando se 
      660 0000063c 0000005100ED02    QBEQ  TOGGLE_PIN_D, r13, 0                            ; toggle pin step cuando la cuenta llega a 0
-PRU Assembler Unix v2.3.3 Sun Apr 27 21:36:03 2025
+PRU Assembler Unix v2.3.3 Mon May  5 23:24:22 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE   13
@@ -778,7 +778,7 @@ src/pru1-digital.asm                                                 PAGE   13
      713 0000070c 000000E1002081    SBBO  &r1, r0, 0 , 4                                  ; actualizamos la salida
      714; clear IRQ_GPIO_IRQSTATUS_1
      715 00000710 7030802444E0C0    LDI32 r0, (GPIO0|GPIO_IRQSTATUS_1)                    ; load addr for GPIO2
-PRU Assembler Unix v2.3.3 Sun Apr 27 21:36:03 2025
+PRU Assembler Unix v2.3.3 Mon May  5 23:24:22 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE   14

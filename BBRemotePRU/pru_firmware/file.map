@@ -1,7 +1,7 @@
 ******************************************************************************
                      PRU Linker Unix v2.3.3                    
 ******************************************************************************
->> Linked Sun Apr 27 21:36:03 2025
+>> Linked Mon May  5 23:24:22 2025
 
 OUTPUT FILE NAME:   <fw/am335x-pru1-digital-fw>
 ENTRY POINT SYMBOL: "_c_int00_noinit_noargs"  address: 00000000
