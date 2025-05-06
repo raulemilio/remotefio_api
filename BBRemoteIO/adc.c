@@ -330,12 +330,14 @@ void *consumer(void *arg) {
     int samples_per_node = args->adc_data->buffer_size / PRU_CIRCULAR_BUFFER_SIZE;
     pthread_mutex_unlock(&args_mutex);
 
+    /*DEBUG
     // Abrir archivo binario
     FILE *adc_file = fopen(FILE_DATA_NAME, "wb");
     if (!adc_file) {
         LOG_ERROR("Error al abrir archivo de datos");
         return NULL;
     }
+    DEBUG*/
 
     while (1) {
         pthread_mutex_lock(&fifo_mutex);
@@ -348,7 +350,9 @@ void *consumer(void *arg) {
             if (!still_running) {
                 // Si no hay datos y ya no corre, terminamos
                 pthread_mutex_unlock(&fifo_mutex);
+		/*DEBUG
                 fclose(adc_file);
+		DEBUG*/
                 LOG_DEBUG("adc consumer finish");
                 return NULL;
             }
@@ -370,6 +374,7 @@ void *consumer(void *arg) {
         // Procesar nodo FUERA del mutex
         if (node) {
 
+	    /*DEBUG
             // Escribir en archivo
             for (int j = 0; j < samples_per_node; j++) {
                 uint16_t sample[4];
@@ -379,6 +384,7 @@ void *consumer(void *arg) {
                 fwrite(sample, sizeof(uint16_t), 4, adc_file);
                 //LOG_DEBUG("Muestra %d: ch0=%u ch1=%u ch2=%u ch3=%u", j, sample[0], sample[1], sample[2], sample[3]);
             }
+	    DEBUG*/
 
             // Crear JSON
             cJSON *json_msg = cJSON_CreateObject();
@@ -413,7 +419,9 @@ void *consumer(void *arg) {
         }
     }
     LOG_DEBUG("adc consumer finish");
+    /*DEBUG
     fclose(adc_file);
+    DEBUG*/
 
     return NULL;
 }

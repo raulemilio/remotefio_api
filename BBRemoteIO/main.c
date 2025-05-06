@@ -39,6 +39,11 @@
 
 struct mosquitto* mosq = NULL;  // Define mosq only once
 
+void handle_sigbus(int sig) {
+    printf("Se ha producido un Bus Error (SIGBUS)!\n");
+    exit(1);
+}
+
 // Manejo de seniales para salir limpiamente
 void handle_signal(int signo) {
 
@@ -64,6 +69,9 @@ void handle_signal(int signo) {
 }
 
 int main() {
+    // Registrar la señal SIGBUS para que llame a handle_sigbus
+    signal(SIGBUS, handle_sigbus);
+
     signal(SIGINT, handle_signal);
     signal(SIGTERM, handle_signal);
 
