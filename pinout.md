@@ -187,8 +187,8 @@ Este documento detalla la asignación de pines para los distintos componentes de
 | Pin | Descripción                              |
 | --- | ---------------------------------------- |
 | 1   | Motor input trigger A                   |
-| 2   | MOTOR input trigger B                   |
-| 3   | MOTOR input trigger C                   |
+| 2   | Motor input trigger B                   |
+| 3   | Motor input trigger C                   |
 | 4   | NC                                      |
 | 5   | GND                                     |
 | 6   | Gpio input trigger                      |
