@@ -51,20 +51,20 @@
 #define MOTOR_ENA_DISABLE                 0
 #define MOTOR_ENA_ENABLE                  1
 #define MOTOR_RPM_MIN                     1
-#define MOTOR_RPM_MAX                     1000 // para un NEMA 17 es el maximo
+#define MOTOR_RPM_MAX                     1000 // 1000 para un NEMA 17 es el maximo
 #define MOTOR_STEP_PER_REV_MIN            1
 #define MOTOR_STEP_PER_REV_MAX            400 // 200 para NEMA 17
 // Esta constante sale de multiplicar rpm = 420 x step_per_rev = 200 x micro_step_sixteenth = 16
 // este valor de 1344000 da un factor_step_time de 10.6292 que representa un periodo de 42, 6 us.
 // El periodo minimo que el pru puede procesar son 4.7 us que corresponde a un factor_step_time de aprox 1
 // por lo tanto se usa un factor de seguridad de 10 para evitar trabajar al maximo
-#define MOTOR_MAX_FIELD_SIZE              1344000
-#define MOTOR_FACTOR_STEP_TIME            0.0042f // 10000 -> 42 ms | 1000 -> 4.2ms lineal valor minimo 1 -> 4,7 us
-
+#define MOTOR_MAX_FIELD_SIZE              1344000 //1344000
+#define MOTOR_FACTOR_STEP_TIME            0.0008266f // 10000 -> 8.266 ms | 1000 -> 0.826 ms lineal valor minimo 1 -> 855 ns
 
 #define MOTOR_OFFSET_ENABLE               4
-#define MOTOR_OFFSET_DIRECTION            5
-#define MOTOR_OFFSET_STEPTIME_SHD_INDEX   18 //Shared[18]
+//#define MOTOR_OFFSET_DIRECTION            5
+#define MOTOR_OFFSET_DIRECTION            8
+#define MOTOR_OFFSET_STEPTIME_SHD_INDEX   10 //Shared[10]
 
 #define MOTOR_STEPS_PER_SECOND_DEBUG      "steps_per_second: %.2f"
 

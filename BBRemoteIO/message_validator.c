@@ -532,7 +532,7 @@ int validate_motor_set_message(struct mosquitto *mosq, const char *payload, Moto
             mqtt_report(mosq, TOPIC_LOGS, ERR_MOTOR_STEPS_DIV_ZERO);
         }
 
-        LOG_DEBUG(MOTOR_STEPS_PER_SECOND_DEBUG, steps_per_second);
+        //LOG_DEBUG(MOTOR_STEPS_PER_SECOND_DEBUG, steps_per_second);
 
         float steps_per_second_ms = 1000.0f / steps_per_second;
         float factor_step_time_f = steps_per_second_ms / MOTOR_FACTOR_STEP_TIME;

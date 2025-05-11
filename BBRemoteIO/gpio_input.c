@@ -63,63 +63,61 @@ static void notify_gpio_input_status_message(struct mosquitto *mosq, const char 
 TaskQueue gpio_input_queue;
 pthread_t gpio_input_thread;
 
-
 void *gpio_input_thread_func(void *arg) {
     ThreadGpioInputDataArgs args;
     char message[128];
     int timeout_ms;
 
     while (1) {
-        if (task_queue_dequeue(&gpio_input_queue, &args, sizeof(ThreadGpioInputDataArgs)) == 0) {
-            if (!args.gpio_input_data) continue;
-
-            snprintf(message, sizeof(message), "Gpio in mode %d", args.gpio_input_data->mode);
-            notify_gpio_input_status_message(args.mosq, message);
-
-            int flag_index, data_index, trigger_flag, datardy_flag;
-
-            switch (args.gpio_input_data->mode) {
-                case 0:
-                    // logica de modo 0
-                    flag_index = PRU_SHD_GPIO_INPUT_MODE0_FLAG_INDEX;
-                    data_index = PRU_SHD_GPIO_INPUT_MODE0_DATA_INDEX;
-                    trigger_flag = PRU_GPIO_INPUT_MODE0_FLAG;
-                    datardy_flag = PRU_GPIO_INPUT_MODE0_DATARDY_FLAG;
-		    timeout_ms = GPIO_INPUT_TIMEOUT_MS_MODE0;
-		    gpio_input_on_demand_get(args, flag_index, trigger_flag, data_index, datardy_flag, timeout_ms);
-                    break;
-                case 1:
-                    // logica de modo 1
-                    flag_index = PRU_SHD_GPIO_INPUT_MODE1_FLAG_INDEX;
-                    data_index = PRU_SHD_GPIO_INPUT_MODE1_DATA_INDEX;
-                    trigger_flag = PRU_GPIO_INPUT_MODE1_FLAG;
-                    datardy_flag = PRU_GPIO_INPUT_MODE1_DATARDY_FLAG;
-                    timeout_ms = GPIO_INPUT_TIMEOUT_MS_MODE1;
-                    gpio_input_trigger_get(args, flag_index,trigger_flag,data_index,datardy_flag,timeout_ms);
-                    break;
-                case 2:
-                    // logica de modo 2
-                    flag_index = PRU_SHD_GPIO_INPUT_MODE2_FLAG_INDEX;
-                    data_index = PRU_SHD_GPIO_INPUT_MODE2_DATA_INDEX;
-                    trigger_flag = PRU_GPIO_INPUT_MODE2_FLAG;
-                    datardy_flag = PRU_GPIO_INPUT_MODE2_DATARDY_FLAG;
-                    timeout_ms = GPIO_INPUT_TIMEOUT_MS_MODE2;
-		    gpio_input_trigger_get(args,flag_index,trigger_flag,data_index,datardy_flag,timeout_ms);
-                    break;
-                default:
-		    notify_gpio_input_status_message(args.mosq, MSG_GPIO_INPUT_INVALID_MODE);
-                    break;
-            }
-
-            pthread_mutex_lock(&gpio_input_running_mutex);
-            gpio_input_running = TASK_STOPPED;
-            pthread_mutex_unlock(&gpio_input_running_mutex);
-
-            notify_gpio_input_status_message(args.mosq, MSG_GPIO_INPUT_FINISH);
-            free(args.gpio_input_data);
-            //Limpieza del struct para evitar basura en la proxima iteracion
-            memset(&args, 0, sizeof(args));
+        int res = task_queue_dequeue(&gpio_input_queue, &args, sizeof(ThreadGpioInputDataArgs));
+        if (res == -1) {
+            LOG_DEBUG("gpio_input_thread finish");
+            break;
         }
+
+        if (!args.gpio_input_data) continue;
+
+        snprintf(message, sizeof(message), "Gpio in mode %d", args.gpio_input_data->mode);
+        notify_gpio_input_status_message(args.mosq, message);
+
+        int flag_index, data_index, trigger_flag, datardy_flag;
+
+        flag_index = PRU_SHD_GPIO_INPUT_FLAG_INDEX;
+        data_index = PRU_SHD_GPIO_INPUT_DATA_INDEX;
+        datardy_flag = PRU_GPIO_INPUT_DATARDY_FLAG;
+
+        switch (args.gpio_input_data->mode) {
+            case 0:
+                 // logica de modo 0
+                 trigger_flag = PRU_GPIO_INPUT_MODE0_FLAG;
+		 timeout_ms = GPIO_INPUT_TIMEOUT_MS_MODE0;
+		 gpio_input_on_demand_get(args, flag_index, trigger_flag, data_index, datardy_flag, timeout_ms);
+                 break;
+             case 1:
+                  // logica de modo 1
+                  trigger_flag = PRU_GPIO_INPUT_MODE1_FLAG;
+                  timeout_ms = GPIO_INPUT_TIMEOUT_MS_MODE1;
+                  gpio_input_trigger_get(args, flag_index,trigger_flag,data_index,datardy_flag,timeout_ms);
+                  break;
+             case 2:
+                  // logica de modo 2
+                  trigger_flag = PRU_GPIO_INPUT_MODE2_FLAG;
+                  timeout_ms = GPIO_INPUT_TIMEOUT_MS_MODE2;
+		  gpio_input_trigger_get(args,flag_index,trigger_flag,data_index,datardy_flag,timeout_ms);
+                  break;
+              default:
+		  notify_gpio_input_status_message(args.mosq, MSG_GPIO_INPUT_INVALID_MODE);
+                   break;
+         }
+
+         pthread_mutex_lock(&gpio_input_running_mutex);
+         gpio_input_running = TASK_STOPPED;
+         pthread_mutex_unlock(&gpio_input_running_mutex);
+
+         notify_gpio_input_status_message(args.mosq, MSG_GPIO_INPUT_FINISH);
+         free(args.gpio_input_data);
+         //Limpieza del struct para evitar basura en la proxima iteracion
+         memset(&args, 0, sizeof(args));
     }
     return NULL;
 }

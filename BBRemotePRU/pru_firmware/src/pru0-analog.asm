@@ -21,7 +21,7 @@
 
   .asg 0x02, OFFSET_2_BYTES                             ; el tamanio del dato es 2 bytes
 
-  .asg 0xA0, SHD_FLAGS_INDEX                            ; SHD[40] flags linux bit0-> mode0 bit1-> mode1 (asc flanc adq)
+  .asg 0xA0, SHD_FLAGS_INDEX                            ; SHD[40] flags linux bit0-> no trigger bit1-> trigger (asc flanc adq)
   .asg 0xA4, SHD_DATARDY_FLAGS_INDEX                    ; SHD[41] data ready flag bit0 [ram0-ram4095] bit1 [ram4096-ram8191]
   .asg 0xA8, SHD_SAMPLE_PERIOD_INDEX		        ; SHD[42] periodo de muestreo
   .asg 0xAC, SHD_BUFFER_SIZE_INDEX	                ; SHD[43] Cantidad de muestras por iteracion
@@ -110,8 +110,8 @@
   .asg 0xFFF, MASK_12_BIT                              ; FIFO0_DATA
 
 ; functions flags
-  .asg 0, ADC_MODE0_FLAG                               ; SHD[20] bit0
-  .asg 1, ADC_MODE1_FLAG                               ; SHD[20] bit1
+  .asg 0, ADC_NOTRIGGER_FLAG                           ; SHD[20] bit0
+  .asg 1, ADC_TRIGGER_FLAG                             ; SHD[20] bit1
 
 ;  .asg r30.t5, pruout_fs_sample_test		       ; debug-> usamos esta salida para validad fs. config-pin P9_27 pruout
 
@@ -134,6 +134,7 @@ start:
   ; r10-> addr base SHD
   ; r11-> sample_period
   ; r12-> buffer_count
+  ; r16-> irq addr
 
 ; inicializacion
   LDI32 r0, 0					       ;
@@ -290,53 +291,41 @@ SETUP:
 ;  SBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ;
 ;-------------------------------------------------------
 
+  LDI32 r16, (GPIO1|GPIO_IRQSTATUS_1)                  ;
+
 MAIN_LOOP:
-level_adc_mode0:
-  LBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ;
-  QBBS  ADC_MODE0, r0, ADC_MODE0_FLAG        	       ; jump is set bit0
-level_adc_mode1:
-  LBBO  &r0, r10, SHD_FLAGS_INDEX, 4                  ;
-  QBBS  ADC_MODE1, r0, ADC_MODE1_FLAG     	       ; jump is set bit1
-; clear IRQ_GPIO_IRQSTATUS_1
-  LDI32 r0, (GPIO1|GPIO_IRQSTATUS_1)                   ;
-  LBBO  &r1, r0, 0, 4                                  ;
-  SET   r1, r1, ADC_INPUT_TRIGGER                      ;
-  SBBO  &r1, r0, 0, 4                                  ;
-level_adc_end:					       ;
-  QBA  MAIN_LOOP                                       ;
+  LBBO  &r15, r10, SHD_FLAGS_INDEX, 4                  ;
+  QBBS  ADC_INIT, r15, ADC_NOTRIGGER_FLAG     	       ; jump is set bit0
+  QBBS  ADC_GET_TRIGGER_GPIO, r15, ADC_TRIGGER_FLAG    ; jump is set bit1
+  ; get irq status
+  LBBO  &r0, r16, 0, 4
+  QBBS  CLR_IRQ, r0, ADC_INPUT_TRIGGER
+  QBA   MAIN_LOOP                                      ;
 
-ADC_MODE0:
-;  LBBO  &r0, r10, SHD_FLAGS_INDEX, 4                  ; Desactivamos mode1
-;  CLR   r0, r0, ADC_MODE1_FLAG			       ;
-;  SBBO  &r0, r10, SHD_FLAGS_INDEX, 4                  ;
-  LDI32  r4, 0					       ; RAM0 index init 0
-  LBBO  &r5, r10, SHD_BUFFER_SIZE_INDEX, 4             ; SHD[3] buffer por canal maximo 512
-  LDI32 r7, 0xFFFC				       ; mascara para asegurar multiplo de 4
-  AND   r5, r5, r7				       ; aseguramos multiplo de 4
-  ADD   r6, r5, r5				       ; r6 es doble de r5
-  LBBO   &r11, r10, SHD_SAMPLE_PERIOD_INDEX, 4         ; read SHD[2] SAMPLES PERIOD
-  LDI32  r12, 0x0				       ; RAM0 buffer count
-  QBA   ADC_READ_CH				       ;
+CLR_IRQ:
+  LBBO  &r0, r16, 0, 4
+  SET   r0, r0, ADC_INPUT_TRIGGER                      ;
+  SBBO  &r0, r16, 0, 4                                 ;
+  QBA   MAIN_LOOP
 
-ADC_MODE1:
-;  LBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ; Desactivamos mode0
-;  CLR   r0, r0, ADC_MODE0_FLAG                         ;
-;  SBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ;
+ADC_GET_TRIGGER_GPIO:
+  ; get irq status
+  LBBO  &r0, r16, 0, 4
+  QBBC  MAIN_LOOP, r0, ADC_INPUT_TRIGGER               ; si se detecta flanco asc comenzamos la conversion
+  QBA   ADC_INIT
+
+ADC_INIT:
   LDI32  r4, 0                                         ; RAM0 index init 0
   LBBO  &r5, r10, SHD_BUFFER_SIZE_INDEX, 4             ; SHD[3] buffer por canal maximo 512
   LDI32 r7, 0xFFFC                                     ; mascara para asegurar multiplo de 4
   AND   r5, r5, r7                                     ; aseguramos multiplo de 4
   ADD   r6, r5, r5                                     ; r6 es doble de r5
-  LBBO   &r11, r10, SHD_SAMPLE_PERIOD_INDEX, 4         ; read SHD[2] SAMPLES PERIOD
-  LDI32  r12, 0x0                                      ; RAM0 buffer count
-  ; no clr flag para que quede continuamente leyendo
-  ; get irq status
-  LDI32 r0, (GPIO1|GPIO_IRQSTATUS_1)                   ;
-  LBBO  &r1, r0, 0, 4
-  QBBS  ADC_READ_CH, r1, ADC_INPUT_TRIGGER             ; si se detecta flanco asc comenzamos la conversion
-  QBA   level_adc_end                                  ;
+  LBBO  &r11, r10, SHD_SAMPLE_PERIOD_INDEX, 4          ; read SHD[2] SAMPLES PERIOD
+  LDI32 r12, 0x0                                       ; RAM0 buffer count
+  QBA   ADC_READ_CH
 
 ADC_READ_CH:
+
 ;  SET r30, pruout_fs_sample_test		       ; debug-> period de muestreo de 4 canales, ojo no es el tiempo de buffer
 
 ; habilitar steps ENABLE VER MANUAL TRM pag. 1839 (solo puede escribirse en STEPCONFIG si ADC_TSC esta disable )
@@ -395,6 +384,9 @@ LEVEL_SAMPLE_PERIOD:
   SUB  r0, r0, 1                                       ; index--
   QBNE LEVEL_SAMPLE_PERIOD, r0, 0        	       ; Esperamos el tiempo de muestreo
 
+  LBBO  &r15, r10, SHD_FLAGS_INDEX, 4                  ; Verificamos si se detuvo la adquisicion desde linux
+  QBEQ MAIN_LOOP, r15, 0
+
   ADD  r12, r12, 1				       ; memory RAM0 count
   QBEQ SET_BUFFER0_FLAG, r5, r12                       ; llenamos buffer0
 level_A1:
@@ -414,7 +406,7 @@ SET_BUFFER1_FLAG:
   SBBO &r0, r10, SHD_DATARDY_FLAGS_INDEX, 4            ; cargamos set flag bit1 en RAM1[1]
   LDI32 r4, RAM0_BUFFER0_INDEX0	                       ; 0x0 inicio de ram0
   LDI32 r12, 0x0                                       ; buffer count va desde 0 a tamanio de buffer x 2
-  QBA   level_adc_end                                  ; se llenan los dos buffer y se vuelve al loop principal
+  QBA   ADC_READ_CH				       ; se llenaron los dos buffers
 
   LDI32   R31, (PRU0_R31_VEC_VALID|PRU_EVTOUT_0)       ;
   HALT      					       ; we should never actually get here

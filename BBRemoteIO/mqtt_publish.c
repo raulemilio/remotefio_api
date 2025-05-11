@@ -7,28 +7,24 @@
 #include "mqtt_send_queue.h"
 #include "log.h"
 
-SendQueue mqtt_publish_queue;    //
+SendQueue mqtt_publish_queue;
 pthread_t mqtt_publish_thread;
 
 // Hilo que se encarga de publicar los mensajes
 void *mqtt_publish_thread_func(void *arg) {
-    (void)arg;
     MqttPublishArgs args;
 
     while (1) {
-        if (send_queue_dequeue(&mqtt_publish_queue, &args, sizeof(MqttPublishArgs)) == 0) {   //
-            mosquitto_publish(args.mosq, NULL, args.topic, strlen(args.message), args.message, 0, false);
-            free(args.topic);
-            free(args.message);
+        if (send_queue_dequeue(&mqtt_publish_queue, &args, sizeof(MqttPublishArgs)) != 0) {
+            break;  // Cola cerrada o error: terminar hilo
         }
-    }
-    return NULL;
-}
 
-// Inicializacion del hilo y la cola
-void mqtt_publish_init(void) {
-    send_queue_init(&mqtt_publish_queue);
-    pthread_create(&mqtt_publish_thread, NULL, mqtt_publish_thread_func, NULL);
+        mosquitto_publish(args.mosq, NULL, args.topic, strlen(args.message), args.message, 0, false);
+        free(args.topic);
+        free(args.message);
+    }
+
+    return NULL;
 }
 
 // Funcion publica para encolar una publicacion

@@ -19,38 +19,31 @@
 // SHARED Memory Indexes
 // ==========================
 // GPIO Input
-#define PRU_SHD_GPIO_INPUT_MODE0_FLAG_INDEX        0
-#define PRU_SHD_GPIO_INPUT_MODE0_DATA_INDEX        1
-#define PRU_SHD_GPIO_INPUT_MODE1_FLAG_INDEX        2
-#define PRU_SHD_GPIO_INPUT_MODE1_DATA_INDEX        3
-#define PRU_SHD_GPIO_INPUT_MODE2_FLAG_INDEX        4
-#define PRU_SHD_GPIO_INPUT_MODE2_DATA_INDEX        5
+#define PRU_SHD_GPIO_INPUT_FLAG_INDEX              0
+#define PRU_SHD_GPIO_INPUT_DATA_INDEX              1
 
 // GPIO Output get
-#define PRU_SHD_GPIO_OUTPUT_GET_MODE0_FLAG_INDEX   6
-#define PRU_SHD_GPIO_OUTPUT_GET_MODE0_DATA_INDEX   7
+#define PRU_SHD_GPIO_OUTPUT_GET_FLAG_INDEX         2
+#define PRU_SHD_GPIO_OUTPUT_GET_DATA_INDEX         3
 // GPIO Output set
-#define PRU_SHD_GPIO_OUTPUT_SET_MODE0_FLAG_INDEX   8
-#define PRU_SHD_GPIO_OUTPUT_SET_MODE0_DATA_INDEX   9
+#define PRU_SHD_GPIO_OUTPUT_SET_FLAG_INDEX         4
+#define PRU_SHD_GPIO_OUTPUT_SET_DATA_INDEX         5
 
 // Motor get
-#define PRU_SHD_MOTOR_GET_MODE0_FLAG_INDEX         10
-#define PRU_SHD_MOTOR_GET_MODE0_DATA_INDEX         11
-#define PRU_SHD_MOTOR_GET_MODE1_FLAG_INDEX         12
-#define PRU_SHD_MOTOR_GET_MODE1_DATA_INDEX         13
-#define PRU_SHD_MOTOR_GET_MODE2_FLAG_INDEX         14
-#define PRU_SHD_MOTOR_GET_MODE2_DATA_INDEX         15
+#define PRU_SHD_MOTOR_GET_FLAG_INDEX               6
+#define PRU_SHD_MOTOR_GET_DATA_INDEX               7
+
 // Motor set
-#define PRU_SHD_MOTOR_SET_MODE0_FLAG_INDEX         16
-#define PRU_SHD_MOTOR_SET_MODE0_DATA_INDEX         17
+#define PRU_SHD_MOTOR_SET_FLAG_INDEX               8
+#define PRU_SHD_MOTOR_SET_DATA_INDEX               9
 
 // ==========================
 // SHARED[flag_index] Bits
 // ==========================
 // GPIO Input Flags
 #define PRU_GPIO_INPUT_MODE0_FLAG                  0
-#define PRU_GPIO_INPUT_MODE1_FLAG                  0
-#define PRU_GPIO_INPUT_MODE2_FLAG                  0
+#define PRU_GPIO_INPUT_MODE1_FLAG                  1
+#define PRU_GPIO_INPUT_MODE2_FLAG                  2
 
 // GPIO Output Flags
 #define PRU_GPIO_OUTPUT_GET_MODE0_FLAG             0
@@ -58,8 +51,8 @@
 
 // Motor Flags
 #define PRU_MOTOR_GET_MODE0_FLAG                   0
-#define PRU_MOTOR_GET_MODE1_FLAG                   0
-#define PRU_MOTOR_GET_MODE2_FLAG                   0
+#define PRU_MOTOR_GET_MODE1_FLAG                   1
+#define PRU_MOTOR_GET_MODE2_FLAG                   2
 
 #define PRU_MOTOR_SET_MODE0_FLAG                   0
 
@@ -67,21 +60,17 @@
 // DATARDY Flags (Bit 12)
 // ==========================
 // GPIO Input
-#define PRU_GPIO_INPUT_MODE0_DATARDY_FLAG          12
-#define PRU_GPIO_INPUT_MODE1_DATARDY_FLAG          12
-#define PRU_GPIO_INPUT_MODE2_DATARDY_FLAG          12
+#define PRU_GPIO_INPUT_DATARDY_FLAG                12
 
 // GPIO Output get
-#define PRU_GPIO_OUTPUT_GET_MODE0_DATARDY_FLAG     12
+#define PRU_GPIO_OUTPUT_GET_DATARDY_FLAG           12
 // GPIO Output set
-#define PRU_GPIO_OUTPUT_SET_MODE0_DATARDY_FLAG     12
+#define PRU_GPIO_OUTPUT_SET_DATARDY_FLAG           12
 
-// Motor
-#define PRU_MOTOR_GET_MODE0_DATARDY_FLAG           12
-#define PRU_MOTOR_GET_MODE1_DATARDY_FLAG           12
-#define PRU_MOTOR_GET_MODE2_DATARDY_FLAG           12
-
-#define PRU_MOTOR_SET_MODE0_DATARDY_FLAG           12
+// Motor get
+#define PRU_MOTOR_GET_DATARDY_FLAG                 12
+// Motor set
+#define PRU_MOTOR_SET_DATARDY_FLAG                 12
 
 // ==========================
 // Mensajes Genericos (sin cambiar nombres)

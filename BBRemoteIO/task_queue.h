@@ -14,11 +14,14 @@ typedef struct {
     pthread_cond_t cond;
     bool full;
     TaskItem item;
+    bool shutdown;
 } TaskQueue;
 
 int task_queue_init(TaskQueue *queue);
 int task_queue_enqueue(TaskQueue *queue, void *data, size_t size);
 int task_queue_dequeue(TaskQueue *queue, void *buffer, size_t size);
 bool task_queue_is_full(TaskQueue *queue);
+void task_queue_shutdown(TaskQueue *queue);
+void task_queue_destroy(TaskQueue *queue);
 
 #endif // TASK_QUEUE_H

@@ -60,39 +60,43 @@ void *motor_set_thread_func(void *arg) {
     int timeout_ms;
 
     while (1) {
-        if (task_queue_dequeue(&motor_set_queue, &args, sizeof(ThreadMotorSetDataArgs)) == 0) {
-            if (!args.motor_set_data) continue;
-
-            snprintf(message, sizeof(message), "Motor set mode %d", args.motor_set_data->mode);
-            notify_motor_set_status_message(args.mosq, message);
-
-            int flag_index, data_index, trigger_flag, datardy_flag;
-
-
-            switch (args.motor_set_data->mode) {
-                case 0:
-                    // logica de modo 0
-                    flag_index = PRU_SHD_MOTOR_SET_MODE0_FLAG_INDEX;
-                    data_index = PRU_SHD_MOTOR_SET_MODE0_DATA_INDEX;
-                    trigger_flag = PRU_MOTOR_SET_MODE0_FLAG;
-                    datardy_flag = PRU_MOTOR_SET_MODE0_DATARDY_FLAG;
-                    timeout_ms = MOTOR_SET_TIMEOUT_MS_MODE0;
-                    motor_set_on_demand_set(args, flag_index,trigger_flag,data_index,datardy_flag,timeout_ms);
-                    break;
-                default:
-                    notify_motor_set_status_message(args.mosq, MSG_MOTOR_INVALID_MODE);
-                    break;
-            }
-
-            pthread_mutex_lock(&motor_set_running_mutex);
-            motor_set_running = TASK_STOPPED;
-            pthread_mutex_unlock(&motor_set_running_mutex);
-
-	    notify_motor_set_status_message(args.mosq, MSG_MOTOR_FINISH);
-            free(args.motor_set_data);
-            //Limpieza del struct para evitar basura en la proxima iteracion
-            memset(&args, 0, sizeof(args));
+        int res = task_queue_dequeue(&motor_set_queue, &args, sizeof(ThreadMotorSetDataArgs));
+        if (res == -1) {
+            LOG_DEBUG("motor_set_thread: finish");
+            break;
         }
+
+        if (!args.motor_set_data) continue;
+
+        snprintf(message, sizeof(message), "Motor set mode %d", args.motor_set_data->mode);
+        notify_motor_set_status_message(args.mosq, message);
+
+        int flag_index, data_index, trigger_flag, datardy_flag;
+
+        flag_index = PRU_SHD_MOTOR_SET_FLAG_INDEX;
+        data_index = PRU_SHD_MOTOR_SET_DATA_INDEX;
+        datardy_flag = PRU_MOTOR_SET_DATARDY_FLAG;
+
+        switch (args.motor_set_data->mode) {
+            case 0:
+                 // logica de modo 0
+                 trigger_flag = PRU_MOTOR_SET_MODE0_FLAG;
+                 timeout_ms = MOTOR_SET_TIMEOUT_MS_MODE0;
+                 motor_set_on_demand_set(args, flag_index,trigger_flag,data_index,datardy_flag,timeout_ms);
+                 break;
+            default:
+                 notify_motor_set_status_message(args.mosq, MSG_MOTOR_INVALID_MODE);
+                 break;
+        }
+
+        pthread_mutex_lock(&motor_set_running_mutex);
+        motor_set_running = TASK_STOPPED;
+        pthread_mutex_unlock(&motor_set_running_mutex);
+
+	notify_motor_set_status_message(args.mosq, MSG_MOTOR_FINISH);
+        free(args.motor_set_data);
+        //Limpieza del struct para evitar basura en la proxima iteracion
+        memset(&args, 0, sizeof(args));
     }
     return NULL;
 }
@@ -167,8 +171,10 @@ static void process_motor_set_data_set(ThreadMotorSetDataArgs args, int data_shd
             shm->shared[data_shd_index] |= (1 << motor);
         }
         if (i < 4){
-            shm->shared[data_shd_index] |= ((args.motor_set_data->ena[i] & 1) << (MOTOR_OFFSET_ENABLE + (2*motor)));
-            shm->shared[data_shd_index] |= ((args.motor_set_data->dir[i] & 1) << (MOTOR_OFFSET_DIRECTION + (2*motor)));
+//            shm->shared[data_shd_index] |= ((args.motor_set_data->ena[i] & 1) << (MOTOR_OFFSET_ENABLE + (2*motor)));
+            shm->shared[data_shd_index] |= ((args.motor_set_data->ena[i] & 1) << (MOTOR_OFFSET_ENABLE + motor));
+//            shm->shared[data_shd_index] |= ((args.motor_set_data->dir[i] & 1) << (MOTOR_OFFSET_DIRECTION + (2*motor)));
+            shm->shared[data_shd_index] |= ((args.motor_set_data->dir[i] & 1) << (MOTOR_OFFSET_DIRECTION + motor));
             shm->shared[MOTOR_OFFSET_STEPTIME_SHD_INDEX + motor] = args.motor_set_data->factor_step_time[motor];
             // variables internas que no estan almacenadas en pru
             pthread_mutex_lock(&motor_data_mutex);

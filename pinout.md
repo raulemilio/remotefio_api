@@ -83,14 +83,12 @@ Este documento detalla la asignación de pines para los distintos componentes de
 ## 🚨 Trigger y Detectores
 | Función                       | Pin   |
 |------------------------------|--------|
-| ADC trigger                  | P9_XXX |
+| ADC input trigger            | P9_14  |
 | Gpio input trigger           | P8_45  |
-| Motor trigger                | P8_46  |
-| MA_D trigger direction Toggle| P8_43  |
-| MB_D trigger direction Toggle| P8_44  |
+| Motor input trigger A        | P8_46  |
+| Motor input trigger B        | P8_42  |
+| Motor input trigger C        | P8_44  |
 
-| MA_E Disable input           | P8_13  |
-| MB_E Disable input           | P8_14  |
 ---
 
 ## 📊 Configuración de Conexiones
@@ -188,13 +186,13 @@ Este documento detalla la asignación de pines para los distintos componentes de
 **FICHA TRIGGER DB-9**
 | Pin | Descripción                              |
 | --- | ---------------------------------------- |
-| 1   | MOTOR A enable input trigger            |
-| 2   | MOTOR B direction input trigger         |
-| 3   | MOTOR A enable input trigger            |
-| 4   | MOTOR B direction input trigger         |
+| 1   | Motor input trigger A                   |
+| 2   | MOTOR input trigger B                   |
+| 3   | MOTOR input trigger C                   |
+| 4   | NC                                      |
 | 5   | GND                                     |
-| 6   | Motors input trigger                    |
-| 7   | GPIO input input trigger                |
-| 8   | Analog channels input trigger           |
+| 6   | Gpio input trigger                      |
+| 7   | Analog channels input trigger           |
+| 8   | NC                                      |
 | 9   | NC                                      |
 

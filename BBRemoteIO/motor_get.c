@@ -70,56 +70,55 @@ void *motor_get_thread_func(void *arg) {
     int timeout_ms;
 
     while (1) {
-        if (task_queue_dequeue(&motor_get_queue, &args, sizeof(ThreadMotorGetDataArgs)) == 0) {
-            if (!args.motor_get_data) continue;
-
-            snprintf(message, sizeof(message), "Motor get mode %d", args.motor_get_data->mode);
-            notify_motor_get_status_message(args.mosq, message);
-
-            int flag_index, data_index, trigger_flag, datardy_flag;
-
-            switch (args.motor_get_data->mode) {
-                case 0:
-                    // logica de modo 0
-                    flag_index = PRU_SHD_MOTOR_GET_MODE0_FLAG_INDEX;
-                    data_index = PRU_SHD_MOTOR_GET_MODE0_DATA_INDEX;
-                    trigger_flag = PRU_MOTOR_GET_MODE0_FLAG;
-                    datardy_flag = PRU_MOTOR_GET_MODE0_DATARDY_FLAG;
-                    timeout_ms = MOTOR_GET_TIMEOUT_MS_MODE0;
-                    motor_get_on_demand_get(args, flag_index, trigger_flag, data_index, datardy_flag, timeout_ms);
-                    break;
-                case 1:
-                    // logica de modo 1
-                    flag_index = PRU_SHD_MOTOR_GET_MODE1_FLAG_INDEX;
-                    data_index = PRU_SHD_MOTOR_GET_MODE1_DATA_INDEX;
-                    trigger_flag = PRU_MOTOR_GET_MODE1_FLAG;
-                    datardy_flag = PRU_MOTOR_GET_MODE1_DATARDY_FLAG;
-                    timeout_ms = MOTOR_GET_TIMEOUT_MS_MODE1;
-                    motor_get_trigger_get(args, flag_index,trigger_flag,data_index,datardy_flag,timeout_ms);
-                    break;
-                case 2:
-                    // logica de modo 2
-                    flag_index = PRU_SHD_MOTOR_GET_MODE2_FLAG_INDEX;
-                    data_index = PRU_SHD_MOTOR_GET_MODE2_DATA_INDEX;
-                    trigger_flag = PRU_MOTOR_GET_MODE2_FLAG;
-                    datardy_flag = PRU_MOTOR_GET_MODE2_DATARDY_FLAG;
-                    timeout_ms = MOTOR_GET_TIMEOUT_MS_MODE2;
-                    motor_get_trigger_get(args,flag_index,trigger_flag,data_index,datardy_flag,timeout_ms);
-                    break;
-                default:
-                    notify_motor_get_status_message(args.mosq, MSG_MOTOR_INVALID_MODE);
-                    break;
-            }
-
-            pthread_mutex_lock(&motor_get_running_mutex);
-            motor_get_running = TASK_STOPPED;
-            pthread_mutex_unlock(&motor_get_running_mutex);
-
-	    notify_motor_get_status_message(args.mosq, MSG_MOTOR_FINISH);
-            free(args.motor_get_data);
-            //Limpieza del struct para evitar basura en la proxima iteracion
-            memset(&args, 0, sizeof(args));
+        int res = task_queue_dequeue(&motor_get_queue, &args, sizeof(ThreadMotorGetDataArgs));
+        if (res == -1) {
+            LOG_DEBUG("motor_get_thread finish");
+            break;
         }
+
+        if (!args.motor_get_data) continue;
+
+        snprintf(message, sizeof(message), "Motor get mode %d", args.motor_get_data->mode);
+        notify_motor_get_status_message(args.mosq, message);
+
+        int flag_index, data_index, trigger_flag, datardy_flag;
+
+        flag_index = PRU_SHD_MOTOR_GET_FLAG_INDEX;
+        data_index = PRU_SHD_MOTOR_GET_DATA_INDEX;
+        datardy_flag = PRU_MOTOR_GET_DATARDY_FLAG;
+
+        switch (args.motor_get_data->mode) {
+            case 0:
+                 // logica de modo 0
+                 trigger_flag = PRU_MOTOR_GET_MODE0_FLAG;
+                 timeout_ms = MOTOR_GET_TIMEOUT_MS_MODE0;
+                 motor_get_on_demand_get(args, flag_index, trigger_flag, data_index, datardy_flag, timeout_ms);
+                 break;
+            case 1:
+                 // logica de modo 1
+                 trigger_flag = PRU_MOTOR_GET_MODE1_FLAG;
+                 timeout_ms = MOTOR_GET_TIMEOUT_MS_MODE1;
+                 motor_get_trigger_get(args, flag_index,trigger_flag,data_index,datardy_flag,timeout_ms);
+                 break;
+            case 2:
+                 // logica de modo 2
+                 trigger_flag = PRU_MOTOR_GET_MODE2_FLAG;
+                 timeout_ms = MOTOR_GET_TIMEOUT_MS_MODE2;
+                 motor_get_trigger_get(args,flag_index,trigger_flag,data_index,datardy_flag,timeout_ms);
+                 break;
+            default:
+                 notify_motor_get_status_message(args.mosq, MSG_MOTOR_INVALID_MODE);
+                 break;
+         }
+
+         pthread_mutex_lock(&motor_get_running_mutex);
+         motor_get_running = TASK_STOPPED;
+         pthread_mutex_unlock(&motor_get_running_mutex);
+
+         notify_motor_get_status_message(args.mosq, MSG_MOTOR_FINISH);
+         free(args.motor_get_data);
+         //Limpieza del struct para evitar basura en la proxima iteracion
+         memset(&args, 0, sizeof(args));
     }
     return NULL;
 }
@@ -245,9 +244,11 @@ static void process_motor_get_data_get(ThreadMotorGetDataArgs args, MotorGetData
 
     for (int i = 0; i < args.motor_get_data->num_motor; i++) {
         int motor = args.motor_get_data->motor[i];
-        motor_get_data_send->ena[i] = (shm->shared[data_shd_index] >> ((2*motor) + MOTOR_OFFSET_ENABLE)) & 1; // <-shm
+//        motor_get_data_send->ena[i] = (shm->shared[data_shd_index] >> ((2*motor) + MOTOR_OFFSET_ENABLE)) & 1; // <-shm
+        motor_get_data_send->ena[i] = !((shm->shared[data_shd_index] >> (motor + MOTOR_OFFSET_ENABLE)) & 1); // <-shm
         motor_get_data_send->motor[i] = motor;
-        motor_get_data_send->dir[i] = (shm->shared[data_shd_index] >> ((2*motor) + MOTOR_OFFSET_DIRECTION)) & 1;
+//        motor_get_data_send->dir[i] = (shm->shared[data_shd_index] >> ((2*motor) + MOTOR_OFFSET_DIRECTION)) & 1;
+        motor_get_data_send->dir[i] = (shm->shared[data_shd_index] >> (motor + MOTOR_OFFSET_DIRECTION)) & 1;
         motor_get_data_send->factor_step_time[i] = shm->shared[(MOTOR_OFFSET_STEPTIME_SHD_INDEX + motor)];
 
         // variables internas que no se almacenan en pru

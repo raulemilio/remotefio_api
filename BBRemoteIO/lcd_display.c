@@ -12,15 +12,13 @@ pthread_t lcd_display_thread;
 
 void lcd_show_message(const char *msg) {
     if (lcd_queue_enqueue(&lcd_display_queue, msg) == 0) {
-        LOG_DEBUG(MSG_LCD_ENQUEUE_OK, msg);
+        LOG_DEBUG(MSG_LCD_ENQUEUE_OK);
     } else {
         LOG_ERROR(MSG_LCD_ENQUEUE_ERROR);
     }
 }
 
 void *lcd_display_thread_func(void *arg) {
-    (void)arg;
-
     LcdMessage msg;
 
     if (lcd_set_i2c() == 0) {
@@ -35,6 +33,12 @@ void *lcd_display_thread_func(void *arg) {
     }
 
     while (1) {
+        // Salir si se recibe shutdown y la cola está vacía
+        if (lcd_queue_dequeue(&lcd_display_queue, &msg) == -1) {
+            if (lcd_display_queue.shutdown) break;
+            continue;
+        }
+
         if (lcd_set_i2c() != 0) {
             if (lcd_available) {
                 lcd_available = 0;
@@ -56,7 +60,7 @@ void *lcd_display_thread_func(void *arg) {
             pthread_mutex_unlock(&lcd_display_queue.mutex);
         }
 
-        if (lcd_available && lcd_queue_dequeue(&lcd_display_queue, &msg) == 0) {
+        if (lcd_available) {
             LOG_DEBUG(MSG_LCD_MESSAGE_RECEIVED, msg.text);
             lcd_cursor_pos(2, 1);
             lcd_put_str(MSG_LCD_ERASE_SCREEN); // limpiar linea

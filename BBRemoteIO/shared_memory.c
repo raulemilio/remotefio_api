@@ -10,13 +10,13 @@ SharedMemoryContext *shm = NULL;
 int map_memory(int *fd, void **map_base, void **virtual_addr, off_t target, size_t size) {
     *fd = open("/dev/mem", O_RDWR | O_SYNC);
     if (*fd == -1) {
-        LOG_ERROR("Error al abrir /dev/mem");
+        LOG_ERROR("Error /dev/mem");
         return -1;
     }
 
     *map_base = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, *fd, target);
     if (*map_base == MAP_FAILED) {
-        LOG_ERROR("Error al hacer mmap");
+        LOG_ERROR("Error mmap");
         close(*fd);
         return -1;
     }

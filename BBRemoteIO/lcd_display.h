@@ -8,7 +8,7 @@
 // LCD display
 #define MSG_LCD_SYSTEM_STATUS      "System status"
 #define MSG_LCD_ERASE_SCREEN       "                "
-#define MSG_LCD_ENQUEUE_OK         "LCD -> '%s'"
+#define MSG_LCD_ENQUEUE_OK         "LCD -> Enqueue ok"
 #define MSG_LCD_ENQUEUE_ERROR      "LCD -> Error: queue full"
 #define MSG_LCD_NOT_AVAILABLE      "LCD not available"
 #define MSG_LCD_DISCONNECTED       "LCD disconnected"

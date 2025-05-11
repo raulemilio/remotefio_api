@@ -2,13 +2,10 @@
 
 ## 📀 Imagen Debian
 
-
-
 - Imagen eMMC: `am335x-eMMC-flasher-debian-11.7-iot-armhf-2023-09-02-4gb`  
 - Video tutorial: [YouTube](https://www.youtube.com/watch?v=i1zY1ylp_3c)
 
 - Imagen SD: am335x-debian-11.7-iot-armhf-2023-09-02-4gb.img.xz
-
 - Grabador: en SD https://etcher.balena.io/#download-etcher
 
 **Pasos de arranque:**
@@ -105,6 +102,15 @@ sudo ./execut_proyect
 ---
 
 ## 🔐 Conexión por SSH
+
+### Encendido
+- Conectar alimentación y luego USB
+
+### Apagado
+- Control C
+- sudo shutdown now
+- Desconectar el cable de alimentación
+- Desconectar USB
 
 ### Accesos:
 - USB:  

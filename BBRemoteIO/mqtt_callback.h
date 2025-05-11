@@ -14,8 +14,8 @@
 #include "motor_set.h"
 #include "system.h"
 
-//#define BROKER_ADDRESS 			"192.168.7.1"
-#define BROKER_ADDRESS			"192.168.0.171"
+#define BROKER_ADDRESS 			"192.168.7.1"
+//#define BROKER_ADDRESS			"192.168.0.171"
 #define BROKER_PORT    			1883
 #define CLIENT_ID      			"BeagleBoneClient"
 

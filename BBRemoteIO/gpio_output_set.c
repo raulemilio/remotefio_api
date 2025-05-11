@@ -56,42 +56,47 @@ void *gpio_output_set_thread_func(void *arg) {
     int timeout_ms;
 
     while (1) {
-        if (task_queue_dequeue(&gpio_output_set_queue, &args, sizeof(ThreadGpioOutputSetDataArgs)) == 0) {
-            if (!args.gpio_output_set_data) continue;
-
-            snprintf(message, sizeof(message), "G Out set mode %d", args.gpio_output_set_data->mode);
-            notify_gpio_output_set_status_message(args.mosq, message);
-
-            pthread_mutex_lock(&gpio_output_set_running_mutex);
-	    gpio_output_set_running = true;
-            pthread_mutex_unlock(&gpio_output_set_running_mutex);
-
-            int flag_index, data_index, trigger_flag, datardy_flag;
-
-            switch (args.gpio_output_set_data->mode) {
-                case 0:
-                    // logica de modo 0
-                    flag_index = PRU_SHD_GPIO_OUTPUT_SET_MODE0_FLAG_INDEX;
-                    data_index = PRU_SHD_GPIO_OUTPUT_SET_MODE0_DATA_INDEX;
-                    trigger_flag = PRU_GPIO_OUTPUT_SET_MODE0_FLAG;
-                    datardy_flag = PRU_GPIO_OUTPUT_SET_MODE0_DATARDY_FLAG;
-                    timeout_ms = GPIO_OUTPUT_SET_TIMEOUT_MS_MODE0;
-                    gpio_output_set_on_demand_set(args, flag_index,trigger_flag,data_index,datardy_flag,timeout_ms);
-                    break;
-                default:
-		    notify_gpio_output_set_status_message(args.mosq, MSG_GPIO_OUTPUT_INVALID_MODE);
-                    break;
-            }
-
-            pthread_mutex_lock(&gpio_output_set_running_mutex);
-            gpio_output_set_running = TASK_STOPPED;
-            pthread_mutex_unlock(&gpio_output_set_running_mutex);
-
-            notify_gpio_output_set_status_message(args.mosq, MSG_GPIO_OUTPUT_FINISH);
-            free(args.gpio_output_set_data);
-            //Limpieza del struct para evitar basura en la proxima iteracion
-            memset(&args, 0, sizeof(args));
+        int res = task_queue_dequeue(&gpio_output_set_queue, &args, sizeof(ThreadGpioOutputSetDataArgs));
+        if (res == -1) {
+            LOG_DEBUG("gpio_output_set_thread finish");
+            break;
         }
+
+        if (!args.gpio_output_set_data) continue;
+
+        snprintf(message, sizeof(message), "G Out set mode %d", args.gpio_output_set_data->mode);
+        notify_gpio_output_set_status_message(args.mosq, message);
+
+        pthread_mutex_lock(&gpio_output_set_running_mutex);
+	gpio_output_set_running = true;
+        pthread_mutex_unlock(&gpio_output_set_running_mutex);
+
+        int flag_index, data_index, trigger_flag, datardy_flag;
+
+        flag_index = PRU_SHD_GPIO_OUTPUT_SET_FLAG_INDEX;
+        data_index = PRU_SHD_GPIO_OUTPUT_SET_DATA_INDEX;
+        datardy_flag = PRU_GPIO_OUTPUT_SET_DATARDY_FLAG;
+
+        switch (args.gpio_output_set_data->mode) {
+            case 0:
+                 // logica de modo 0
+                 trigger_flag = PRU_GPIO_OUTPUT_SET_MODE0_FLAG;
+                 timeout_ms = GPIO_OUTPUT_SET_TIMEOUT_MS_MODE0;
+                 gpio_output_set_on_demand_set(args, flag_index,trigger_flag,data_index,datardy_flag,timeout_ms);
+                 break;
+            default:
+		 notify_gpio_output_set_status_message(args.mosq, MSG_GPIO_OUTPUT_INVALID_MODE);
+                 break;
+        }
+
+        pthread_mutex_lock(&gpio_output_set_running_mutex);
+        gpio_output_set_running = TASK_STOPPED;
+        pthread_mutex_unlock(&gpio_output_set_running_mutex);
+
+        notify_gpio_output_set_status_message(args.mosq, MSG_GPIO_OUTPUT_FINISH);
+        free(args.gpio_output_set_data);
+        //Limpieza del struct para evitar basura en la proxima iteracion
+        memset(&args, 0, sizeof(args));
     }
     return NULL;
 }

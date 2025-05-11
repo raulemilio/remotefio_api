@@ -47,59 +47,63 @@ void *system_thread_func(void *arg) {
     //char mensaje[128];
 
     while (1) {
-        if (task_queue_dequeue(&system_queue, &args, sizeof(ThreadSystemDataArgs)) == 0) {
-            if (!args.system_data) continue;
-
-            publish_system_response_status(args.mosq, "System start");
-
-	    FunctionType function_type = args.system_data->function;
-
-            switch (function_type) {
-        	case FUNC_LCD:
-            		handle_lcd_function(args);
-            		break;
-        	case FUNC_PRU0:
-            		handle_pru0_function(args);
-            		break;
-        	case FUNC_PRU1:
-            		handle_pru1_function(args);
-            		break;
-        	case FUNC_ADC:
-           		handle_adc_function(args);
-            		break;
-        	case FUNC_GPIO_INPUT:
-            		handle_gpio_input_function(args);
-            		break;
-        	case FUNC_GPIO_OUTPUT_GET:
-            		handle_gpio_output_get_function(args);
-            		break;
-                case FUNC_GPIO_OUTPUT_SET:
-                        handle_gpio_output_set_function(args);
-                        break;
-        	case FUNC_MOTOR_GET:
-            		handle_motor_get_function(args);
-            		break;
-                case FUNC_MOTOR_SET:
-                        handle_motor_set_function(args);
-                        break;
-        	case FUNC_ALL_FUNCTIONS:
-            		handle_all_functions_function(args);
-	    		break;
-        	default:
-            		LOG_ERROR(MSG_SYSTEM_INVALID_OPTION);
-            		break;
-    		}
-
-            pthread_mutex_lock(&system_running_mutex);
-            system_running = TASK_STOPPED;
-            pthread_mutex_unlock(&system_running_mutex);
-
-            publish_system_response_status(args.mosq, MSG_SYSTEM_FINISH);
-            //lcd_show_message(MSG_SYSTEM_FINNISH);
-            free(args.system_data);
-            //Limpieza del struct para evitar basura en la proxima iteracion
-            memset(&args, 0, sizeof(args));
+        int res = task_queue_dequeue(&system_queue, &args, sizeof(ThreadSystemDataArgs));
+        if (res == -1) {
+            LOG_DEBUG("system_thread finish");
+            break;
         }
+
+        if (!args.system_data) continue;
+
+        publish_system_response_status(args.mosq, "System start");
+
+	FunctionType function_type = args.system_data->function;
+
+        switch (function_type) {
+       	    case FUNC_LCD:
+            	    handle_lcd_function(args);
+            	    break;
+            case FUNC_PRU0:
+            	    handle_pru0_function(args);
+                    break;
+       	    case FUNC_PRU1:
+            	    handle_pru1_function(args);
+            	    break;
+            case FUNC_ADC:
+           	    handle_adc_function(args);
+            	    break;
+            case FUNC_GPIO_INPUT:
+            	    handle_gpio_input_function(args);
+            	    break;
+            case FUNC_GPIO_OUTPUT_GET:
+            	    handle_gpio_output_get_function(args);
+            	    break;
+            case FUNC_GPIO_OUTPUT_SET:
+                    handle_gpio_output_set_function(args);
+                    break;
+       	    case FUNC_MOTOR_GET:
+            	    handle_motor_get_function(args);
+            	    break;
+            case FUNC_MOTOR_SET:
+                    handle_motor_set_function(args);
+                    break;
+            case FUNC_ALL_FUNCTIONS:
+            	    handle_all_functions_function(args);
+	    	    break;
+            default:
+            	    LOG_ERROR(MSG_SYSTEM_INVALID_OPTION);
+            	    break;
+       }
+
+       pthread_mutex_lock(&system_running_mutex);
+       system_running = TASK_STOPPED;
+       pthread_mutex_unlock(&system_running_mutex);
+
+       publish_system_response_status(args.mosq, MSG_SYSTEM_FINISH);
+       //lcd_show_message(MSG_SYSTEM_FINNISH);
+       free(args.system_data);
+       //Limpieza del struct para evitar basura en la proxima iteracion
+       memset(&args, 0, sizeof(args));
     }
     return NULL;
 }

@@ -37,7 +37,7 @@
 #define JSON_KEY_ADC_SAMPLE_RATE            "sample_rate"
 
 #define ADC_MODE_MIN                    0
-#define ADC_MODE_MAX                    1
+#define ADC_MODE_MAX                    2
 #define ADC_SAMPLE_RATE_MIN             1
 #define ADC_SAMPLE_RATE_MAX             40000
 #define ADC_BUFFER_SIZE_MIN             8

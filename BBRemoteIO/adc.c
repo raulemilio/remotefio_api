@@ -31,8 +31,8 @@
 #define PRU_SHD_SAMPLE_PERIOD_INDEX     42
 #define PRU_SHD_BUFFER_SIZE_INDEX       43
 
-#define PRU_ADC_MODE0_FLAG    		 0
-#define PRU_ADC_MODE1_FLAG    		 1
+#define PRU_ADC_NOTRIGGER_FLAG    	 0
+#define PRU_ADC_TRIGGER_FLAG   		 1
 
 #define PRU_RAM0_INDEX_START             0
 #define PRU_RAM0_INDEX_MID	         2048
@@ -89,46 +89,52 @@ void *adc_thread_func(void *arg) {
     char message[128];
 
     while (1) {
-        if (task_queue_dequeue(&adc_queue, &args, sizeof(ThreadAdcDataArgs)) == 0) {
-            if (!args.adc_data) continue;
-
-            snprintf(message, sizeof(message), "Adc mode %d run", args.adc_data->mode);
-            notify_adc_status_message(args.mosq, message);
-
-            pthread_mutex_lock(&producer_running_mutex);
-            producer_running = TASK_RUNNING;
-            pthread_mutex_unlock(&producer_running_mutex);
-
-            fifo_reset();
-    	    produced_count = 0;  // Contador de datos generados
-
-            pthread_t producer_thread, consumer_thread;
-
-            // Crear hilos para productor y consumidor
-            if (pthread_create(&producer_thread, NULL, producer, &args) != 0) {
-                LOG_ERROR("Error al crear hilo productor");
-                return NULL;
-            }
-
-            if (pthread_create(&consumer_thread, NULL, consumer, &args) != 0) {
-                LOG_ERROR("Error al crear hilo consumidor");
-                return NULL;
-            }
-
-    	    pthread_join(producer_thread, NULL);
-    	    pthread_join(consumer_thread, NULL);
-
-            pthread_mutex_lock(&adc_running_mutex);
-            adc_running = TASK_STOPPED;
-            pthread_mutex_unlock(&adc_running_mutex);
-
-            notify_adc_status_message(args.mosq, MSG_ADC_FINISH);
-            free(args.adc_data);
-            //Limpieza del struct para evitar basura en la proxima iteracion
-            memset(&args, 0, sizeof(args));
-            // memset(args, 0 , sizeof(ThreadAdcDataArgs)); //mas claridad
+        int res = task_queue_dequeue(&adc_queue, &args, sizeof(ThreadAdcDataArgs));
+        if (res == -1) {
+            LOG_DEBUG("adc_thread finish");
+            break;
         }
+
+        if (!args.adc_data) continue;
+
+        snprintf(message, sizeof(message), "Adc mode %d run", args.adc_data->mode);
+        notify_adc_status_message(args.mosq, message);
+
+        pthread_mutex_lock(&producer_running_mutex);
+        producer_running = TASK_RUNNING;
+        pthread_mutex_unlock(&producer_running_mutex);
+
+        fifo_reset();
+    	produced_count = 0;  // Contador de datos generados
+
+        pthread_t producer_thread, consumer_thread;
+
+        // Crear hilos para productor y consumidor
+        if (pthread_create(&producer_thread, NULL, producer, &args) != 0) {
+            LOG_ERROR("Error creating producer thread");
+            return NULL;
+        }
+
+        if (pthread_create(&consumer_thread, NULL, consumer, &args) != 0) {
+            LOG_ERROR("Error creating consumer thread");
+            return NULL;
+        }
+
+    	pthread_join(producer_thread, NULL);
+    	pthread_join(consumer_thread, NULL);
+
+        pthread_mutex_lock(&adc_running_mutex);
+        adc_running = TASK_STOPPED;
+        pthread_mutex_unlock(&adc_running_mutex);
+
+        notify_adc_status_message(args.mosq, MSG_ADC_FINISH);
+        free(args.adc_data);
+        //Limpieza del struct para evitar basura en la proxima iteracion
+        memset(&args, 0, sizeof(args));
+        // memset(args, 0 , sizeof(ThreadAdcDataArgs)); //mas claridad
     }
+    fifo_reset();
+
     return NULL;
 }
 
@@ -183,7 +189,7 @@ void *producer(void *arg) {
 
     // recordar que en pru las funciones son distintas si es por extarnal flag o no
     trigger_flag = (enable_external_trigger == 0) ?
-                    PRU_ADC_MODE0_FLAG : PRU_ADC_MODE1_FLAG;
+                    PRU_ADC_NOTRIGGER_FLAG : PRU_ADC_TRIGGER_FLAG;
 
     // Configurar parametros compartidos con PRU
     pthread_mutex_lock(&shm->shared_mutex[MUTEX_ADC]);
@@ -209,10 +215,6 @@ void *producer(void *arg) {
         elapsed_ms = (now.tv_sec - start_time.tv_sec) * 1000 +
                      (now.tv_nsec - start_time.tv_nsec) / 1000000;
 
-        pthread_mutex_lock(&shm->shared_mutex[MUTEX_ADC]);
-        int trigger_active = shm->shared[PRU_SHD_FLAGS_INDEX] & (1 << trigger_flag);
-        pthread_mutex_unlock(&shm->shared_mutex[MUTEX_ADC]);
-
         pthread_mutex_lock(&adc_running_mutex);
         is_adc_running = adc_running;
         pthread_mutex_unlock(&adc_running_mutex);
@@ -221,7 +223,7 @@ void *producer(void *arg) {
             finished_due_to_timeout = true;
             break;
         }
-        if (!trigger_active || iteration >= num_iteration) {
+        if (iteration >= num_iteration) {
             finished_normally = true;
             break;
         }
@@ -442,4 +444,3 @@ static void notify_adc_status_message(struct mosquitto *mosq, const char *msg) {
     LOG_INFO("%s", msg);
     lcd_show_message(msg);
 }
-

@@ -1,4 +1,4 @@
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:49 2025
+PRU Assembler Unix v2.3.3 Sun May 11 12:19:28 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru0-analog.asm                                                  PAGE    1
@@ -26,7 +26,7 @@ src/pru0-analog.asm                                                  PAGE    1
       21
       22  .asg 0x02, OFFSET_2_BYTES                             ; el tamanio del dato es 2 bytes
       23
-      24  .asg 0xA0, SHD_FLAGS_INDEX                            ; SHD[40] flags linux bit0-> mode0 bit1-> mode
+      24  .asg 0xA0, SHD_FLAGS_INDEX                            ; SHD[40] flags linux bit0-> no trigger bit1->
       25  .asg 0xA4, SHD_DATARDY_FLAGS_INDEX                    ; SHD[41] data ready flag bit0 [ram0-ram4095] 
       26  .asg 0xA8, SHD_SAMPLE_PERIOD_INDEX                    ; SHD[42] periodo de muestreo
       27  .asg 0xAC, SHD_BUFFER_SIZE_INDEX                      ; SHD[43] Cantidad de muestras por iteracion
@@ -58,7 +58,7 @@ src/pru0-analog.asm                                                  PAGE    1
       53
       54; end-of-sequence interrupt
       55  .asg 0x28, ADC_TSC_IRQSTATUS                         ;
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:49 2025
+PRU Assembler Unix v2.3.3 Sun May 11 12:19:28 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru0-analog.asm                                                  PAGE    2
@@ -118,15 +118,15 @@ src/pru0-analog.asm                                                  PAGE    2
      108  .asg 0xE4, ADC_TSC_FIFO_0_COUNT                      ; registro de conteo de datos en FIFO0
      109  .asg 0x100, ADC_TSC_FIFO_0_DATA                      ; registro FIFO0
      110  .asg 0xFFF, MASK_12_BIT                              ; FIFO0_DATA
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:49 2025
+PRU Assembler Unix v2.3.3 Sun May 11 12:19:28 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru0-analog.asm                                                  PAGE    3
 
      111
      112; functions flags
-     113  .asg 0, ADC_MODE0_FLAG                               ; SHD[20] bit0
-     114  .asg 1, ADC_MODE1_FLAG                               ; SHD[20] bit1
+     113  .asg 0, ADC_NOTRIGGER_FLAG                           ; SHD[20] bit0
+     114  .asg 1, ADC_TRIGGER_FLAG                             ; SHD[20] bit1
      115
      116;  .asg r30.t5, pruout_fs_sample_test                  ; debug-> usamos esta salida para validad fs. c
      117
@@ -149,314 +149,306 @@ src/pru0-analog.asm                                                  PAGE    3
      134  ; r10-> addr base SHD
      135  ; r11-> sample_period
      136  ; r12-> buffer_count
-     137
-     138; inicializacion
-     139 00000000 000080240000C0    LDI32 r0, 0                                          ;
-     140 00000008 000000E1A02A80    SBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ; borramos todos los flags
-     141 0000000c 000083240000C3    LDI32 r3, RAM0_ADDR_BASE                             ; registro que almancena la direccion base, con
-     142 00000014 0000002EFF8184    ZERO  &r4, 4                                         ; offset inicial en RAM0[0]
-     143 00000018 000085240000C5    LDI32 r5, 0                                          ; tamanio maximo buffer0 recordar que va de a 4
-     144 00000020 000086240000C6    LDI32 r6, 0                                          ; tamanio maximo de ram1 buffer1               
-     145 00000028 00008A240001CA    LDI32 r10, SHD_ADDR_BASE
-     146 00000030 00008B240000CB    LDI32 r11, 0                                         ; sample_period
-     147 00000038 00008C240000CC    LDI32 r12, 0                                         ; buffer count
-     148;  CLR   r30, pruout_fs_sample_test                     ; debug-> pru0_pru_r30_5 as an output P9_27
-     149
-     150 00000040                 SETUP:
-     151;GPIO1
-     152 00000040 C13080244804C0    LDI32 r0, (GPIO1|GPIO_CTRL)                          ; load GPIO1 control register address
-     153 00000048 000081240000C1    LDI32 r1, GPIO_CTRL_ENABLE                           ; load control enable value
-     154 00000050 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; write enable value to GPIO2 control register
-     155
-     156 00000054 C13480244804C0    LDI32 r0, (GPIO1|GPIO_OE)                            ; load GPIO1 output enable register address
-     157 0000005c 0000001F12E1E1    SET   r1, r1, ADC_INPUT_TRIGGER                      ; cargamos la entrada P_14 GPIO1[18] como entra
-     158 00000060 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; write output configuration to GPIO1
-     159
-     160; rising detect
-     161 00000064 C14880244804C0    LDI32 r0, (GPIO1|GPIO_RISINGDETECT)                  ; load addr for GPIO1
-     162 0000006c 000000F1002081    LBBO  &r1, r0, 0, 4                                  ; Load the values at r0 into r1.
-     163 00000070 0000001F12E1E1    SET   r1, r1, ADC_INPUT_TRIGGER                      ;
-     164 00000074 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; Load the values at r0 into r1.
-     165
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:49 2025
+     137  ; r16-> irq addr
+     138
+     139; inicializacion
+     140 00000000 000080240000C0    LDI32 r0, 0                                          ;
+     141 00000008 000000E1A02A80    SBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ; borramos todos los flags
+     142 0000000c 000083240000C3    LDI32 r3, RAM0_ADDR_BASE                             ; registro que almancena la direccion base, con
+     143 00000014 0000002EFF8184    ZERO  &r4, 4                                         ; offset inicial en RAM0[0]
+     144 00000018 000085240000C5    LDI32 r5, 0                                          ; tamanio maximo buffer0 recordar que va de a 4
+     145 00000020 000086240000C6    LDI32 r6, 0                                          ; tamanio maximo de ram1 buffer1               
+     146 00000028 00008A240001CA    LDI32 r10, SHD_ADDR_BASE
+     147 00000030 00008B240000CB    LDI32 r11, 0                                         ; sample_period
+     148 00000038 00008C240000CC    LDI32 r12, 0                                         ; buffer count
+     149;  CLR   r30, pruout_fs_sample_test                     ; debug-> pru0_pru_r30_5 as an output P9_27
+     150
+     151 00000040                 SETUP:
+     152;GPIO1
+     153 00000040 C13080244804C0    LDI32 r0, (GPIO1|GPIO_CTRL)                          ; load GPIO1 control register address
+     154 00000048 000081240000C1    LDI32 r1, GPIO_CTRL_ENABLE                           ; load control enable value
+     155 00000050 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; write enable value to GPIO2 control register
+     156
+     157 00000054 C13480244804C0    LDI32 r0, (GPIO1|GPIO_OE)                            ; load GPIO1 output enable register address
+     158 0000005c 0000001F12E1E1    SET   r1, r1, ADC_INPUT_TRIGGER                      ; cargamos la entrada P_14 GPIO1[18] como entra
+     159 00000060 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; write output configuration to GPIO1
+     160
+     161; rising detect
+     162 00000064 C14880244804C0    LDI32 r0, (GPIO1|GPIO_RISINGDETECT)                  ; load addr for GPIO1
+     163 0000006c 000000F1002081    LBBO  &r1, r0, 0, 4                                  ; Load the values at r0 into r1.
+     164 00000070 0000001F12E1E1    SET   r1, r1, ADC_INPUT_TRIGGER                      ;
+     165 00000074 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; Load the values at r0 into r1.
+PRU Assembler Unix v2.3.3 Sun May 11 12:19:28 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru0-analog.asm                                                  PAGE    4
 
-     166; enable irq set_1
-     167 00000078 C03880244804C0    LDI32 r0, (GPIO1|GPIO_IRQSTATUS_SET_1)               ; load addr for GPIO1
-     168 00000080 000000F1002081    LBBO  &r1, r0, 0, 4                                  ; Load the values at r0 into r1.
-     169 00000084 0000001F12E1E1    SET   r1, r1, ADC_INPUT_TRIGGER                      ;
-     170 00000088 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; Load the values at r0 into r1.
-     171
-     172; ADC MODULE
-     173; CM_WKUP
-     174; Habilitar el relor del modulo ADC en CM_WKUP
-     175 0000008c 04BC802444E0C0    LDI32 r0, (CM_WKUP|CM_WKUP_ADC_TSC_CLKCTRL)          ; cargamos en r0 la addr del registro CLKCTRL d
-     176 00000094 000281240000C1    LDI32 r1, CM_WKUP_ADC_TSC_CLKCTRL_ENABLE             ; cargamos el valor 0x02 en r1 que habilita en 
-     177 0000009c 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; cargamos a donde apunta r0 el valor contenido
-     178
-     179; ADC_TSC module-> disabe BIT0
-     180 000000a0 D040802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_CTRL)                     ; load addr
-     181 000000a8 000000F1002081    LBBO  &r1, r0, 0, 4                                  ; read value mem
-     182 000000ac 0000001D00E1E1    CLR   r1, r1, ADC_TSC_CTRL_ENABLE                    ; ojo para realiazar
-     183 000000b0 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; TRM pag. 1849 0b0110
-     184
-     185; ADC_TSC module -> Enable StepConfig step ID tag BIT1
-     186 000000b4 D040802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_CTRL)                     ; load addr
-     187 000000bc 000000F1002081    LBBO  &r1, r0, 0, 4                                  ; read value mem
-     188 000000c0 0000001D01E1E1    CLR   r1, r1, ADC_TSC_CTRL_STEP_ID_TAG               ; enable-> set | disable-> clr
-     189 000000c4 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; TRM pag. 1849
-     190
-     191; ADC_TSC module -> Enable StepConfig Protect Are not protected (writable) BIT2. Tenemos que habilitar
-     192 000000c8 D040802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_CTRL)                     ; load addr
-     193 000000d0 000000F1002081    LBBO  &r1, r0, 0, 4                                  ; read value mem
-     194 000000d4 0000001F02E1E1    SET   r1, r1, ADC_TSC_CTRL_STEPCONFIG_PROTECT        ;
-     195 000000d8 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; TRM pag. 1849
-     196
-     197; step 1 config
-     198 000000dc D064802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_STEPCONFIG_1)             ; load addr
-     199 000000e4 000081240000C1    LDI32 r1, ADC_TSC_STEPCONFIG_1_MASK                  ;
-     200 000000ec 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en registro
-     201
-     202; step 1 SampleDelay-OpenDelay
-     203 000000f0 D068802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_STEPDELAY_1)              ; load addr
-     204 000000f8 000081240000C1    LDI32 r1, ADC_TSC_STEPDELAY_1_MASK                   ;
-     205 00000100 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en registro
-     206
-     207; step 3 config
-     208 00000104 D074802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_STEPCONFIG_3)             ; load addr
-     209 0000010c 000081240010C1    LDI32 r1, ADC_TSC_STEPCONFIG_3_MASK                  ;
-     210 00000114 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en registro
-     211
-     212; step 3 SampleDelay-OpenDelay
-     213 00000118 D078802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_STEPDELAY_3)              ; load addr
-     214 00000120 000081240000C1    LDI32 r1, ADC_TSC_STEPDELAY_3_MASK                   ;
-     215 00000128 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en registro
-     216
-     217; step 4 config
-     218 0000012c D07C802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_STEPCONFIG_4)             ; load addr
-     219 00000134 000081240018C1    LDI32 r1, ADC_TSC_STEPCONFIG_4_MASK                  ;
-     220 0000013c 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en registro
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:49 2025
+     166
+     167; enable irq set_1
+     168 00000078 C03880244804C0    LDI32 r0, (GPIO1|GPIO_IRQSTATUS_SET_1)               ; load addr for GPIO1
+     169 00000080 000000F1002081    LBBO  &r1, r0, 0, 4                                  ; Load the values at r0 into r1.
+     170 00000084 0000001F12E1E1    SET   r1, r1, ADC_INPUT_TRIGGER                      ;
+     171 00000088 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; Load the values at r0 into r1.
+     172
+     173; ADC MODULE
+     174; CM_WKUP
+     175; Habilitar el relor del modulo ADC en CM_WKUP
+     176 0000008c 04BC802444E0C0    LDI32 r0, (CM_WKUP|CM_WKUP_ADC_TSC_CLKCTRL)          ; cargamos en r0 la addr del registro CLKCTRL d
+     177 00000094 000281240000C1    LDI32 r1, CM_WKUP_ADC_TSC_CLKCTRL_ENABLE             ; cargamos el valor 0x02 en r1 que habilita en 
+     178 0000009c 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; cargamos a donde apunta r0 el valor contenido
+     179
+     180; ADC_TSC module-> disabe BIT0
+     181 000000a0 D040802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_CTRL)                     ; load addr
+     182 000000a8 000000F1002081    LBBO  &r1, r0, 0, 4                                  ; read value mem
+     183 000000ac 0000001D00E1E1    CLR   r1, r1, ADC_TSC_CTRL_ENABLE                    ; ojo para realiazar
+     184 000000b0 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; TRM pag. 1849 0b0110
+     185
+     186; ADC_TSC module -> Enable StepConfig step ID tag BIT1
+     187 000000b4 D040802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_CTRL)                     ; load addr
+     188 000000bc 000000F1002081    LBBO  &r1, r0, 0, 4                                  ; read value mem
+     189 000000c0 0000001D01E1E1    CLR   r1, r1, ADC_TSC_CTRL_STEP_ID_TAG               ; enable-> set | disable-> clr
+     190 000000c4 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; TRM pag. 1849
+     191
+     192; ADC_TSC module -> Enable StepConfig Protect Are not protected (writable) BIT2. Tenemos que habilitar
+     193 000000c8 D040802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_CTRL)                     ; load addr
+     194 000000d0 000000F1002081    LBBO  &r1, r0, 0, 4                                  ; read value mem
+     195 000000d4 0000001F02E1E1    SET   r1, r1, ADC_TSC_CTRL_STEPCONFIG_PROTECT        ;
+     196 000000d8 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; TRM pag. 1849
+     197
+     198; step 1 config
+     199 000000dc D064802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_STEPCONFIG_1)             ; load addr
+     200 000000e4 000081240000C1    LDI32 r1, ADC_TSC_STEPCONFIG_1_MASK                  ;
+     201 000000ec 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en registro
+     202
+     203; step 1 SampleDelay-OpenDelay
+     204 000000f0 D068802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_STEPDELAY_1)              ; load addr
+     205 000000f8 000081240000C1    LDI32 r1, ADC_TSC_STEPDELAY_1_MASK                   ;
+     206 00000100 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en registro
+     207
+     208; step 3 config
+     209 00000104 D074802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_STEPCONFIG_3)             ; load addr
+     210 0000010c 000081240010C1    LDI32 r1, ADC_TSC_STEPCONFIG_3_MASK                  ;
+     211 00000114 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en registro
+     212
+     213; step 3 SampleDelay-OpenDelay
+     214 00000118 D078802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_STEPDELAY_3)              ; load addr
+     215 00000120 000081240000C1    LDI32 r1, ADC_TSC_STEPDELAY_3_MASK                   ;
+     216 00000128 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en registro
+     217
+     218; step 4 config
+     219 0000012c D07C802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_STEPCONFIG_4)             ; load addr
+     220 00000134 000081240018C1    LDI32 r1, ADC_TSC_STEPCONFIG_4_MASK                  ;
+PRU Assembler Unix v2.3.3 Sun May 11 12:19:28 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru0-analog.asm                                                  PAGE    5
 
-     221
-     222; step 4 SampleDelay-OpenDelay
-     223 00000140 D080802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_STEPDELAY_4)              ; load addr
-     224 00000148 000081240000C1    LDI32 r1, ADC_TSC_STEPDELAY_4_MASK                   ;
-     225 00000150 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en registro
-     226
-     227; step 5 config
-     228 00000154 D084802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_STEPCONFIG_5)             ; load addr
-     229 0000015c 000081240020C1    LDI32 r1, ADC_TSC_STEPCONFIG_5_MASK                  ;
-     230 00000164 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en registro
-     231
-     232; step 5 SampleDelay-OpenDelay
-     233 00000168 D088802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_STEPDELAY_5)              ; load addr
-     234 00000170 000081240000C1    LDI32 r1, ADC_TSC_STEPDELAY_5_MASK                   ;
-     235 00000178 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en registro
-     236
-     237; configurar el divisor del reloj
-     238 0000017c D04C802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_CLKDIV)                   ; load addr for ADS_TSC_CLKDIV
-     239 00000184 000081240000C1    LDI32 r1, ADC_TSC_CLKDIV_ADC_CLKDIV                  ; valor minimo
-     240 0000018c 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en TSC_ADC_CLKDIV
-     241
-     242; definir el rango de medicion 0-4095
-     243 00000190 D048802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_ADCRANGE)                 ; load addr for ADS_TSC_ADCRANGE
-     244 00000198 000081240FFFC1    LDI32 r1, ADC_TSC_ADCRANGE_HIGH_RANGE_DATA           ; 0 - 4095
-     245 000001a0 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en registro
-     246
-     247; IRQ DESAHBILITAR TODAS LAS INTERRUPCIONES
-     248 000001a4 D030802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_IRQENABLE_CLR)            ; load addr
-     249 000001ac FFFF8124FFFFC1    LDI32 r1, ADC_TSC_IRQENABLE_CLR_ALL_MASK             ;
-     250 000001b4 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; TRM pag. 1851
-     251
-     252; IRQ ENABLE END_OF_SECUENCE
-     253 000001b8 D02C802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_IRQENABLE_SET)            ; load addr
-     254 000001c0 000281240000C1    LDI32 r1, ADC_TSC_IRQENABLE_SET_END_OF_SECUENCE      ; ojo para realiazar un clear hay que hacer un 
-     255 000001c8 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; TRM pag. 1849
-     256
-     257; IRQ Clear interrupt
-     258; CLEAR_IRQ_END_OF_SECUENCE:
-     259 000001cc D028802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_IRQSTATUS)                ; load addr
-     260 000001d4 FFFF8124FFFFC1    LDI32 r1, ADC_TSC_IRQENABLE_CLR_ALL_MASK             ; ojo para realiazar un clear hay que hacer un 
-     261 000001dc 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; TRM pag. 1849
-     262
-     263; GPIO1
-     264; clear IRQ_GPIO_IRQSTATUS_1
-     265 000001e0 C03080244804C0    LDI32 r0, (GPIO1|GPIO_IRQSTATUS_1)                   ;
-     266 000001e8 000000F1002081    LBBO  &r1, r0, 0, 4                                  ;
-     267 000001ec 0000001F12E1E1    SET   r1, r1, ADC_INPUT_TRIGGER                      ;
-     268 000001f0 000000E1002081    SBBO  &r1, r0, 0, 4                                  ;
-     269
-     270;-------------------------------------------------------
-     271; Debug
-     272
-     273; CONFIG
-     274;  LDI32 r0, 0xff                                      ; test ram0
-     275;  SBBO  &r0, r11, 0, 4                                ; ram0[0]
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:49 2025
+     221 0000013c 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en registro
+     222
+     223; step 4 SampleDelay-OpenDelay
+     224 00000140 D080802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_STEPDELAY_4)              ; load addr
+     225 00000148 000081240000C1    LDI32 r1, ADC_TSC_STEPDELAY_4_MASK                   ;
+     226 00000150 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en registro
+     227
+     228; step 5 config
+     229 00000154 D084802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_STEPCONFIG_5)             ; load addr
+     230 0000015c 000081240020C1    LDI32 r1, ADC_TSC_STEPCONFIG_5_MASK                  ;
+     231 00000164 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en registro
+     232
+     233; step 5 SampleDelay-OpenDelay
+     234 00000168 D088802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_STEPDELAY_5)              ; load addr
+     235 00000170 000081240000C1    LDI32 r1, ADC_TSC_STEPDELAY_5_MASK                   ;
+     236 00000178 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en registro
+     237
+     238; configurar el divisor del reloj
+     239 0000017c D04C802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_CLKDIV)                   ; load addr for ADS_TSC_CLKDIV
+     240 00000184 000081240000C1    LDI32 r1, ADC_TSC_CLKDIV_ADC_CLKDIV                  ; valor minimo
+     241 0000018c 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en TSC_ADC_CLKDIV
+     242
+     243; definir el rango de medicion 0-4095
+     244 00000190 D048802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_ADCRANGE)                 ; load addr for ADS_TSC_ADCRANGE
+     245 00000198 000081240FFFC1    LDI32 r1, ADC_TSC_ADCRANGE_HIGH_RANGE_DATA           ; 0 - 4095
+     246 000001a0 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en registro
+     247
+     248; IRQ DESAHBILITAR TODAS LAS INTERRUPCIONES
+     249 000001a4 D030802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_IRQENABLE_CLR)            ; load addr
+     250 000001ac FFFF8124FFFFC1    LDI32 r1, ADC_TSC_IRQENABLE_CLR_ALL_MASK             ;
+     251 000001b4 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; TRM pag. 1851
+     252
+     253; IRQ ENABLE END_OF_SECUENCE
+     254 000001b8 D02C802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_IRQENABLE_SET)            ; load addr
+     255 000001c0 000281240000C1    LDI32 r1, ADC_TSC_IRQENABLE_SET_END_OF_SECUENCE      ; ojo para realiazar un clear hay que hacer un 
+     256 000001c8 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; TRM pag. 1849
+     257
+     258; IRQ Clear interrupt
+     259; CLEAR_IRQ_END_OF_SECUENCE:
+     260 000001cc D028802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_IRQSTATUS)                ; load addr
+     261 000001d4 FFFF8124FFFFC1    LDI32 r1, ADC_TSC_IRQENABLE_CLR_ALL_MASK             ; ojo para realiazar un clear hay que hacer un 
+     262 000001dc 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; TRM pag. 1849
+     263
+     264; GPIO1
+     265; clear IRQ_GPIO_IRQSTATUS_1
+     266 000001e0 C03080244804C0    LDI32 r0, (GPIO1|GPIO_IRQSTATUS_1)                   ;
+     267 000001e8 000000F1002081    LBBO  &r1, r0, 0, 4                                  ;
+     268 000001ec 0000001F12E1E1    SET   r1, r1, ADC_INPUT_TRIGGER                      ;
+     269 000001f0 000000E1002081    SBBO  &r1, r0, 0, 4                                  ;
+     270
+     271;-------------------------------------------------------
+     272; Debug
+     273
+     274; CONFIG
+     275;  LDI32 r0, 0xff                                      ; test ram0
+PRU Assembler Unix v2.3.3 Sun May 11 12:19:28 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru0-analog.asm                                                  PAGE    6
 
-     276
-     277;  LDI32 r0, SAMPLES_PERIOD_DEBUG                      ; expresar en hexa
-     278;  SBBO  &r0, r10, SHD_SAMPLE_PERIOD_INDEX, 4           ;
-     279;  LDI32 r0, BUFFER_SIZE_DEBUG                          ; 0x200 buffer maximo 512 por canal
-     280;  SBBO  &r0, r10, SHD_BUFFER_SIZE_INDEX, 4             ;
-     281
-     282; MODE 0
-     283;  LBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ;
-     284;  SET   r0, r0, ADC_MODE0_FLAG                         ;
-     285;  SBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ;
-     286
-     287; MODE 1
-     288;  LBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ;
-     289;  SET   r0, r0, ADC_MODE1_FLAG                         ;
-     290;  SBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ;
-     291;-------------------------------------------------------
-     292
-     293 000001f4                 MAIN_LOOP:
-     294 000001f4                 level_adc_mode0:
-     295 000001f4 000000F1A02A80    LBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ;
-     296 000001f8 000000D100E009    QBBS  ADC_MODE0, r0, ADC_MODE0_FLAG                  ; jump is set bit0
-     297 000001fc                 level_adc_mode1:
-     298 000001fc 000000F1A02A80    LBBO  &r0, r10, SHD_FLAGS_INDEX, 4                  ;
-     299 00000200 000000D101E012    QBBS  ADC_MODE1, r0, ADC_MODE1_FLAG                  ; jump is set bit1
-     300; clear IRQ_GPIO_IRQSTATUS_1
-     301 00000204 C03080244804C0    LDI32 r0, (GPIO1|GPIO_IRQSTATUS_1)                   ;
-     302 0000020c 000000F1002081    LBBO  &r1, r0, 0, 4                                  ;
-     303 00000210 0000001F12E1E1    SET   r1, r1, ADC_INPUT_TRIGGER                      ;
-     304 00000214 000000E1002081    SBBO  &r1, r0, 0, 4                                  ;
-     305 00000218                 level_adc_end:                                         ;
-     306 00000218 0000007F0000F7    QBA  MAIN_LOOP                                       ;
-     307
-     308 0000021c                 ADC_MODE0:
-     309;  LBBO  &r0, r10, SHD_FLAGS_INDEX, 4                  ; Desactivamos mode1
-     310;  CLR   r0, r0, ADC_MODE1_FLAG                        ;
-     311;  SBBO  &r0, r10, SHD_FLAGS_INDEX, 4                  ;
-     312 0000021c 000084240000C4    LDI32  r4, 0                                         ; RAM0 index init 0
-     313 00000224 000000F1AC2A85    LBBO  &r5, r10, SHD_BUFFER_SIZE_INDEX, 4             ; SHD[3] buffer por canal maximo 512
-     314 00000228 FFFC87240000C7    LDI32 r7, 0xFFFC                                     ; mascara para asegurar multiplo de 4
-     315 00000230 00000010E7E5E5    AND   r5, r5, r7                                     ; aseguramos multiplo de 4
-     316 00000234 00000000E5E5E6    ADD   r6, r5, r5                                     ; r6 es doble de r5
-     317 00000238 000000F1A82A8B    LBBO   &r11, r10, SHD_SAMPLE_PERIOD_INDEX, 4         ; read SHD[2] SAMPLES PERIOD
-     318 0000023c 00008C240000CC    LDI32  r12, 0x0                                      ; RAM0 buffer count
-     319 00000244 00000079000010    QBA   ADC_READ_CH                                    ;
-     320
-     321 00000248                 ADC_MODE1:
-     322;  LBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ; Desactivamos mode0
-     323;  CLR   r0, r0, ADC_MODE0_FLAG                         ;
-     324;  SBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ;
-     325 00000248 000084240000C4    LDI32  r4, 0                                         ; RAM0 index init 0
-     326 00000250 000000F1AC2A85    LBBO  &r5, r10, SHD_BUFFER_SIZE_INDEX, 4             ; SHD[3] buffer por canal maximo 512
-     327 00000254 FFFC87240000C7    LDI32 r7, 0xFFFC                                     ; mascara para asegurar multiplo de 4
-     328 0000025c 00000010E7E5E5    AND   r5, r5, r7                                     ; aseguramos multiplo de 4
-     329 00000260 00000000E5E5E6    ADD   r6, r5, r5                                     ; r6 es doble de r5
-     330 00000264 000000F1A82A8B    LBBO   &r11, r10, SHD_SAMPLE_PERIOD_INDEX, 4         ; read SHD[2] SAMPLES PERIOD
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:49 2025
+     276;  SBBO  &r0, r11, 0, 4                                ; ram0[0]
+     277
+     278;  LDI32 r0, SAMPLES_PERIOD_DEBUG                      ; expresar en hexa
+     279;  SBBO  &r0, r10, SHD_SAMPLE_PERIOD_INDEX, 4           ;
+     280;  LDI32 r0, BUFFER_SIZE_DEBUG                          ; 0x200 buffer maximo 512 por canal
+     281;  SBBO  &r0, r10, SHD_BUFFER_SIZE_INDEX, 4             ;
+     282
+     283; MODE 0
+     284;  LBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ;
+     285;  SET   r0, r0, ADC_MODE0_FLAG                         ;
+     286;  SBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ;
+     287
+     288; MODE 1
+     289;  LBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ;
+     290;  SET   r0, r0, ADC_MODE1_FLAG                         ;
+     291;  SBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ;
+     292;-------------------------------------------------------
+     293
+     294 000001f4 C03090244804D0    LDI32 r16, (GPIO1|GPIO_IRQSTATUS_1)                  ;
+     295
+     296 000001fc                 MAIN_LOOP:
+     297 000001fc 000000F1A02A8F    LBBO  &r15, r10, SHD_FLAGS_INDEX, 4                  ;
+     298 00000200 000000D100EF0C    QBBS  ADC_INIT, r15, ADC_NOTRIGGER_FLAG              ; jump is set bit0
+     299 00000204 000000D101EF08    QBBS  ADC_GET_TRIGGER_GPIO, r15, ADC_TRIGGER_FLAG    ; jump is set bit1
+     300  ; get irq status
+     301 00000208 000000F1003080    LBBO  &r0, r16, 0, 4
+     302 0000020c 000000D112E002    QBBS  CLR_IRQ, r0, ADC_INPUT_TRIGGER
+     303 00000210 0000007F0000FB    QBA   MAIN_LOOP                                      ;
+     304
+     305 00000214                 CLR_IRQ:
+     306 00000214 000000F1003080    LBBO  &r0, r16, 0, 4
+     307 00000218 0000001F12E0E0    SET   r0, r0, ADC_INPUT_TRIGGER                      ;
+     308 0000021c 000000E1003080    SBBO  &r0, r16, 0, 4                                 ;
+     309 00000220 0000007F0000F7    QBA   MAIN_LOOP
+     310
+     311 00000224                 ADC_GET_TRIGGER_GPIO:
+     312  ; get irq status
+     313 00000224 000000F1003080    LBBO  &r0, r16, 0, 4
+     314 00000228 000000CF12E0F5    QBBC  MAIN_LOOP, r0, ADC_INPUT_TRIGGER               ; si se detecta flanco asc comenzamos la conver
+     315 0000022c 00000079000001    QBA   ADC_INIT
+     316
+     317 00000230                 ADC_INIT:
+     318 00000230 000084240000C4    LDI32  r4, 0                                         ; RAM0 index init 0
+     319 00000238 000000F1AC2A85    LBBO  &r5, r10, SHD_BUFFER_SIZE_INDEX, 4             ; SHD[3] buffer por canal maximo 512
+     320 0000023c FFFC87240000C7    LDI32 r7, 0xFFFC                                     ; mascara para asegurar multiplo de 4
+     321 00000244 00000010E7E5E5    AND   r5, r5, r7                                     ; aseguramos multiplo de 4
+     322 00000248 00000000E5E5E6    ADD   r6, r5, r5                                     ; r6 es doble de r5
+     323 0000024c 000000F1A82A8B    LBBO  &r11, r10, SHD_SAMPLE_PERIOD_INDEX, 4          ; read SHD[2] SAMPLES PERIOD
+     324 00000250 00008C240000CC    LDI32 r12, 0x0                                       ; RAM0 buffer count
+     325 00000258 00000079000001    QBA   ADC_READ_CH
+     326
+     327 0000025c                 ADC_READ_CH:
+     328
+     329;  SET r30, pruout_fs_sample_test                      ; debug-> period de muestreo de 4 canales, ojo 
+     330
+PRU Assembler Unix v2.3.3 Sun May 11 12:19:28 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru0-analog.asm                                                  PAGE    7
 
-     331 00000268 00008C240000CC    LDI32  r12, 0x0                                      ; RAM0 buffer count
-     332  ; no clr flag para que quede continuamente leyendo
-     333  ; get irq status
-     334 00000270 C03080244804C0    LDI32 r0, (GPIO1|GPIO_IRQSTATUS_1)                   ;
-     335 00000278 000000F1002081    LBBO  &r1, r0, 0, 4
-     336 0000027c 000000D112E102    QBBS  ADC_READ_CH, r1, ADC_INPUT_TRIGGER             ; si se detecta flanco asc comenzamos la conver
-     337 00000280 0000007F0000E6    QBA   level_adc_end                                  ;
-     338
-     339 00000284                 ADC_READ_CH:
-     340;  SET r30, pruout_fs_sample_test                      ; debug-> period de muestreo de 4 canales, ojo 
+     331; habilitar steps ENABLE VER MANUAL TRM pag. 1839 (solo puede escribirse en STEPCONFIG si ADC_TSC esta
+     332 0000025c D054802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_STEPENABLE)               ; load addr
+     333 00000264 003A81240000C1    LDI32 r1, ADC_TSC_STEPENABLE_ENABLE_MASK             ;
+     334 0000026c 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en registro. En esta instruccion la 
+     335
+     336; ADC_TSC module-> enable
+     337 00000270 D040802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_CTRL)                     ; load addr
+     338 00000278 000000F1002081    LBBO  &r1, r0, 0, 4                                  ; read value mem
+     339 0000027c 0000001F00E1E1    SET   r1, r1, ADC_TSC_CTRL_ENABLE                    ; ojo para realiazar
+     340 00000280 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; TRM pag. 1849 0x00
      341
-     342; habilitar steps ENABLE VER MANUAL TRM pag. 1839 (solo puede escribirse en STEPCONFIG si ADC_TSC esta
-     343 00000284 D054802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_STEPENABLE)               ; load addr
-     344 0000028c 003A81240000C1    LDI32 r1, ADC_TSC_STEPENABLE_ENABLE_MASK             ;
-     345 00000294 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en registro. En esta instruccion la 
-     346
-     347; ADC_TSC module-> enable
-     348 00000298 D040802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_CTRL)                     ; load addr
-     349 000002a0 000000F1002081    LBBO  &r1, r0, 0, 4                                  ; read value mem
-     350 000002a4 0000001F00E1E1    SET   r1, r1, ADC_TSC_CTRL_ENABLE                    ; ojo para realiazar
-     351 000002a8 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; TRM pag. 1849 0x00
-     352
-     353; wait for interrupt
-     354 000002ac                 WAIT_IRQ_END_OF_SECUENCE:
-     355 000002ac D028802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_IRQSTATUS)                ; load addr
-     356 000002b4 000000F1002081    LBBO  &r1, r0, 0, 4                                  ; read value mem
-     357 000002b8 0000001102E1E2    AND   r2, r1, ADC_TSC_IRQSTATUS_END_OF_SECUENCE      ; Comprobar el estado del bit 1
-     358 000002bc 0000005700E2FC    QBEQ  WAIT_IRQ_END_OF_SECUENCE, r2, 0                ; hasta que la interruccion no pase a 1 no se a
-     359 000002c0 00000079000001    QBA   CLEAR_IRQ_END_OF_SECUENCE                      ; detectada la interrupcion porque termino la s
+     342; wait for interrupt
+     343 00000284                 WAIT_IRQ_END_OF_SECUENCE:
+     344 00000284 D028802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_IRQSTATUS)                ; load addr
+     345 0000028c 000000F1002081    LBBO  &r1, r0, 0, 4                                  ; read value mem
+     346 00000290 0000001102E1E2    AND   r2, r1, ADC_TSC_IRQSTATUS_END_OF_SECUENCE      ; Comprobar el estado del bit 1
+     347 00000294 0000005700E2FC    QBEQ  WAIT_IRQ_END_OF_SECUENCE, r2, 0                ; hasta que la interruccion no pase a 1 no se a
+     348 00000298 00000079000001    QBA   CLEAR_IRQ_END_OF_SECUENCE                      ; detectada la interrupcion porque termino la s
+     349
+     350; clear interrupt
+     351 0000029c                 CLEAR_IRQ_END_OF_SECUENCE:
+     352 0000029c D028802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_IRQSTATUS)                ; load addr
+     353 000002a4 000000F1002081    LBBO  &r1, r0, 0, 4                                  ; read value mem
+     354 000002a8 0000001F02E1E1    SET   r1, r1, ADC_TSC_IRQSTATUS_END_OF_SECUENCE      ; ojo para realiazar un clear hay que hacer un 
+     355 000002ac 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; TRM pag. 1849
+     356
+     357; read count FIFO0
+     358 000002b0 D0E4802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_FIFO_0_COUNT)             ; load addr for mem
+     359 000002b8 000000F1002081    LBBO  &r1, r0, 0, 4                                  ; read r1 <-FIFO_0_COUNT r1 contiene la cantida
      360
-     361; clear interrupt
-     362 000002c4                 CLEAR_IRQ_END_OF_SECUENCE:
-     363 000002c4 D028802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_IRQSTATUS)                ; load addr
-     364 000002cc 000000F1002081    LBBO  &r1, r0, 0, 4                                  ; read value mem
-     365 000002d0 0000001F02E1E1    SET   r1, r1, ADC_TSC_IRQSTATUS_END_OF_SECUENCE      ; ojo para realiazar un clear hay que hacer un 
-     366 000002d4 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; TRM pag. 1849
-     367
-     368; read count FIFO0
-     369 000002d8 D0E4802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_FIFO_0_COUNT)             ; load addr for mem
-     370 000002e0 000000F1002081    LBBO  &r1, r0, 0, 4                                  ; read r1 <-FIFO_0_COUNT r1 contiene la cantida
-     371
-     372 000002e4                 ADC_READ_4SAMPLES:
-     373 000002e4 0000000501E1E1    SUB   r1, r1, 1                                      ; index-- en cada iteracion:  3-2-1-0
-     374 000002e8 D100802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_FIFO_0_DATA)              ; load addr for mem
-     375 000002f0 000000F1002082    LBBO  &r2, r0, 0, 4                                  ; load r2 <- FIFO_O_DATA .Se lee extrae un dato
-     376 000002f4 000000E0E42382    SBBO  &r2, r3, r4, 4                                 ; load r2 -> ram[] memory. La primer pasada gua
-     377 000002f8 0000000102E4E4    ADD   r4, r4, OFFSET_2_BYTES                         ; desplazamos de a 2 bytes.
-     378 000002fc 0000006F00E1FA    QBNE  ADC_READ_4SAMPLES, r1, 0                       ; en este loop se leen solo 4 datos
+     361 000002bc                 ADC_READ_4SAMPLES:
+     362 000002bc 0000000501E1E1    SUB   r1, r1, 1                                      ; index-- en cada iteracion:  3-2-1-0
+     363 000002c0 D100802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_FIFO_0_DATA)              ; load addr for mem
+     364 000002c8 000000F1002082    LBBO  &r2, r0, 0, 4                                  ; load r2 <- FIFO_O_DATA .Se lee extrae un dato
+     365 000002cc 000000E0E42382    SBBO  &r2, r3, r4, 4                                 ; load r2 -> ram[] memory. La primer pasada gua
+     366 000002d0 0000000102E4E4    ADD   r4, r4, OFFSET_2_BYTES                         ; desplazamos de a 2 bytes.
+     367 000002d4 0000006F00E1FA    QBNE  ADC_READ_4SAMPLES, r1, 0                       ; en este loop se leen solo 4 datos
+     368
+     369; disable ADC_TSC module
+     370 000002d8 D040802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_CTRL)                     ; load addr
+     371 000002e0 000000F1002081    LBBO  &r1, r0, 0, 4                                  ; read value mem
+     372 000002e4 0000001D00E1E1    CLR   r1, r1, ADC_TSC_CTRL_ENABLE                    ; disable module
+     373 000002e8 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; TRM pag. 1849
+     374
+     375; deshabilitar steps
+     376 000002ec D054802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_STEPENABLE)               ; load addr
+     377 000002f4 000081240000C1    LDI32 r1, ADC_TSC_STEPENABLE_DISABLE_MASK            ; usamos mascaras cuando queremos configurar mu
+     378 000002fc 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en registro. En esta instruccion la 
      379
-     380; disable ADC_TSC module
-     381 00000300 D040802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_CTRL)                     ; load addr
-     382 00000308 000000F1002081    LBBO  &r1, r0, 0, 4                                  ; read value mem
-     383 0000030c 0000001D00E1E1    CLR   r1, r1, ADC_TSC_CTRL_ENABLE                    ; disable module
-     384 00000310 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; TRM pag. 1849
-     385
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:49 2025
+     380;  CLR r30, pruout_fs_sample_test                       ; debug-> tiempo de cada conversion 4 muestras
+     381
+     382 00000300 00000010EBEBE0    MOV r0, r11                                          ; no lo hacemos leyendo desde shared porque es 
+     383 00000304                 LEVEL_SAMPLE_PERIOD:
+     384 00000304 0000000501E0E0    SUB  r0, r0, 1                                       ; index--
+     385 00000308 0000006F00E0FF    QBNE LEVEL_SAMPLE_PERIOD, r0, 0                      ; Esperamos el tiempo de muestreo
+PRU Assembler Unix v2.3.3 Sun May 11 12:19:28 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru0-analog.asm                                                  PAGE    8
 
-     386; deshabilitar steps
-     387 00000314 D054802444E0C0    LDI32 r0, (ADC_TSC|ADC_TSC_STEPENABLE)               ; load addr
-     388 0000031c 000081240000C1    LDI32 r1, ADC_TSC_STEPENABLE_DISABLE_MASK            ; usamos mascaras cuando queremos configurar mu
-     389 00000324 000000E1002081    SBBO  &r1, r0, 0, 4                                  ; escribir en registro. En esta instruccion la 
-     390
-     391;  CLR r30, pruout_fs_sample_test                       ; debug-> tiempo de cada conversion 4 muestras
-     392
-     393 00000328 00000010EBEBE0    MOV r0, r11                                          ; no lo hacemos leyendo desde shared porque es 
-     394 0000032c                 LEVEL_SAMPLE_PERIOD:
-     395 0000032c 0000000501E0E0    SUB  r0, r0, 1                                       ; index--
-     396 00000330 0000006F00E0FF    QBNE LEVEL_SAMPLE_PERIOD, r0, 0                      ; Esperamos el tiempo de muestreo
-     397
-     398 00000334 0000000101ECEC    ADD  r12, r12, 1                                     ; memory RAM0 count
-     399 00000338 00000050ECE503    QBEQ SET_BUFFER0_FLAG, r5, r12                       ; llenamos buffer0
-     400 0000033c                 level_A1:
-     401 0000033c 00000050ECE608    QBEQ SET_BUFFER1_FLAG, r6, r12                       ; llenamos buffer1
-     402 00000340 0000007F0000D1    QBA ADC_READ_CH                                      ;
-     403
-     404 00000344                 SET_BUFFER0_FLAG:
-     405 00000344 000000F1A42A80    LBBO &r0, r10, SHD_DATARDY_FLAGS_INDEX, 4            ; read RAM1[1] flags de iteracion
-     406 00000348 0000001F00E0E0    SET  r0, r0, 0                                       ; activamos el flag bit0 indicando que hay dato
-     407 0000034c 000000E1A42A80    SBBO &r0, r10, SHD_DATARDY_FLAGS_INDEX, 4            ; cargamos set flag bit0 en RAM1[1]
-     408 00000350 100084240000C4    LDI32 r4, RAM0_BUFFER1_INDEX0                        ; 0x1000 4096 mitad de ram0
-     409 00000358 0000007F0000F9    QBA   level_A1                                       ;
+     386
+     387 0000030c 000000F1A02A8F    LBBO  &r15, r10, SHD_FLAGS_INDEX, 4                  ; Verificamos si se detuvo la adquisicion desde
+     388 00000310 0000005700EFBB    QBEQ MAIN_LOOP, r15, 0
+     389
+     390 00000314 0000000101ECEC    ADD  r12, r12, 1                                     ; memory RAM0 count
+     391 00000318 00000050ECE503    QBEQ SET_BUFFER0_FLAG, r5, r12                       ; llenamos buffer0
+     392 0000031c                 level_A1:
+     393 0000031c 00000050ECE608    QBEQ SET_BUFFER1_FLAG, r6, r12                       ; llenamos buffer1
+     394 00000320 0000007F0000CF    QBA ADC_READ_CH                                      ;
+     395
+     396 00000324                 SET_BUFFER0_FLAG:
+     397 00000324 000000F1A42A80    LBBO &r0, r10, SHD_DATARDY_FLAGS_INDEX, 4            ; read RAM1[1] flags de iteracion
+     398 00000328 0000001F00E0E0    SET  r0, r0, 0                                       ; activamos el flag bit0 indicando que hay dato
+     399 0000032c 000000E1A42A80    SBBO &r0, r10, SHD_DATARDY_FLAGS_INDEX, 4            ; cargamos set flag bit0 en RAM1[1]
+     400 00000330 100084240000C4    LDI32 r4, RAM0_BUFFER1_INDEX0                        ; 0x1000 4096 mitad de ram0
+     401 00000338 0000007F0000F9    QBA   level_A1                                       ;
+     402
+     403 0000033c                 SET_BUFFER1_FLAG:
+     404 0000033c 000000F1A42A80    LBBO &r0, r10, SHD_DATARDY_FLAGS_INDEX, 4            ; read RAM1[1] flags de iteracion
+     405 00000340 0000001F01E0E0    SET  r0, r0, 1                                       ; activamos el flag bit1 indicando que hay dato
+     406 00000344 000000E1A42A80    SBBO &r0, r10, SHD_DATARDY_FLAGS_INDEX, 4            ; cargamos set flag bit1 en RAM1[1]
+     407 00000348 000084240000C4    LDI32 r4, RAM0_BUFFER0_INDEX0                        ; 0x0 inicio de ram0
+     408 00000350 00008C240000CC    LDI32 r12, 0x0                                       ; buffer count va desde 0 a tamanio de buffer x
+     409 00000358 0000007F0000C1    QBA   ADC_READ_CH                                    ; se llenaron los dos buffers
      410
-     411 0000035c                 SET_BUFFER1_FLAG:
-     412 0000035c 000000F1A42A80    LBBO &r0, r10, SHD_DATARDY_FLAGS_INDEX, 4            ; read RAM1[1] flags de iteracion
-     413 00000360 0000001F01E0E0    SET  r0, r0, 1                                       ; activamos el flag bit1 indicando que hay dato
-     414 00000364 000000E1A42A80    SBBO &r0, r10, SHD_DATARDY_FLAGS_INDEX, 4            ; cargamos set flag bit1 en RAM1[1]
-     415 00000368 000084240000C4    LDI32 r4, RAM0_BUFFER0_INDEX0                        ; 0x0 inicio de ram0
-     416 00000370 00008C240000CC    LDI32 r12, 0x0                                       ; buffer count va desde 0 a tamanio de buffer x
-     417 00000378 0000007F0000A8    QBA   level_adc_end                                  ; se llenan los dos buffer y se vuelve al loop 
-     418
-     419 0000037c 00239F240000DF    LDI32   R31, (PRU0_R31_VEC_VALID|PRU_EVTOUT_0)       ;
-     420 00000384 0000002A000000    HALT                                                 ; we should never actually get here
+     411 0000035c 00239F240000DF    LDI32   R31, (PRU0_R31_VEC_VALID|PRU_EVTOUT_0)       ;
+     412 00000364 0000002A000000    HALT                                                 ; we should never actually get here
 
 No Assembly Errors, No Assembly Warnings

@@ -20,6 +20,7 @@ typedef struct {
     int head;
     int tail;
     int count;
+    bool shutdown;
 } SendQueue;
 
 int send_queue_init(SendQueue *queue);
@@ -27,5 +28,7 @@ int send_queue_enqueue(SendQueue *queue, void *data, size_t size);
 int send_queue_dequeue(SendQueue *queue, void *buffer, size_t size);
 bool send_queue_is_full(SendQueue *queue);
 bool send_queue_is_empty(SendQueue *queue);
+void send_queue_shutdown(SendQueue *queue);
+void send_queue_destroy(SendQueue *queue);
 
 #endif // SEND_QUEUE_H

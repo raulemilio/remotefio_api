@@ -1,11 +1,11 @@
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE    1
 
        1;******************************************************************************
        2;* PRU C/C++ Codegen                                              Unix v2.3.3 *
-       3;* Date/Time created: Tue May  6 20:14:50 2025                                *
+       3;* Date/Time created: Sat May 10 20:07:17 2025                                *
        4;******************************************************************************
        5        .compiler_opts --abi=eabi --endian=little --hll_source=on --object_format=elf --silicon_versio
        6
@@ -58,7 +58,7 @@ main_pru1.asm                                                        PAGE    1
       53$C$DW$3 .dwtag  DW_TAG_subprogram
       54        .dwattr $C$DW$3, DW_AT_name("start")
       55        .dwattr $C$DW$3, DW_AT_TI_symbol_name("start")
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE    2
@@ -70,8 +70,8 @@ main_pru1.asm                                                        PAGE    2
       60        .dwattr $C$DW$3, DW_AT_decl_column(0x0d)
       61        .dwendtag $C$DW$3
       62
-      63;       /usr/bin/optpru /tmp/TI0VuwhX0Ej /tmp/TI0Vuiaw1at 
-      64;       /usr/bin/acpiapru -@/tmp/TI0VuAkxCZ0 
+      63;       /usr/bin/optpru /tmp/TI0k7UNxN7J /tmp/TI0k7IHIO6j 
+      64;       /usr/bin/acpiapru -@/tmp/TI0k7UAbkoQ 
       65 00000000                         .sect   ".text:main"
       66        .clink
       67        .global ||main||
@@ -118,7 +118,7 @@ main_pru1.asm                                                        PAGE    2
      108 00000008 000000E10002C3          SBBO      &r3.b2, r2, 0, 2      ; [ALU_PRU] 
      109        .dwcfi  save_reg_to_mem, 14, -2
      110        .dwcfi  save_reg_to_mem, 15, -1
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE    3
@@ -178,7 +178,7 @@ main_pru1.asm                                                        PAGE    3
      163        .dwattr $C$DW$T$19, DW_AT_decl_line(0x2c)
      164        .dwattr $C$DW$T$19, DW_AT_decl_column(0x13)
      165        .dwendtag $C$DW$T$19
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE    4
@@ -238,7 +238,7 @@ main_pru1.asm                                                        PAGE    4
      218        .dwattr $C$DW$11, DW_AT_decl_line(0x3a)
      219        .dwattr $C$DW$11, DW_AT_decl_column(0x0d)
      220
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE    5
@@ -298,7 +298,7 @@ main_pru1.asm                                                        PAGE    5
      273        .dwattr $C$DW$15, DW_AT_bit_size(0x05)
      274        .dwattr $C$DW$15, DW_AT_data_member_location[DW_OP_plus_uconst 0x0]
      275        .dwattr $C$DW$15, DW_AT_accessibility(DW_ACCESS_public)
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE    6
@@ -358,7 +358,7 @@ main_pru1.asm                                                        PAGE    6
      328$C$DW$20        .dwtag  DW_TAG_member
      329        .dwattr $C$DW$20, DW_AT_type(*$C$DW$T$11)
      330        .dwattr $C$DW$20, DW_AT_name("PRU0_GPO_DIV1")
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE    7
@@ -418,7 +418,7 @@ main_pru1.asm                                                        PAGE    7
      383        .dwattr $C$DW$23, DW_AT_decl_file("/usr/lib/ti/pru-software-support-package-v6.0/include/am335
      384        .dwattr $C$DW$23, DW_AT_decl_line(0x58)
      385        .dwattr $C$DW$23, DW_AT_decl_column(0x0d)
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE    8
@@ -478,7 +478,7 @@ main_pru1.asm                                                        PAGE    8
      438        .dwattr $C$DW$28, DW_AT_TI_symbol_name("PRU1_GPO_MODE")
      439        .dwattr $C$DW$28, DW_AT_bit_offset(0x11)
      440        .dwattr $C$DW$28, DW_AT_bit_size(0x01)
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE    9
@@ -538,7 +538,7 @@ main_pru1.asm                                                        PAGE    9
      493        .dwattr $C$DW$32, DW_AT_decl_column(0x0d)
      494
      495        .dwattr $C$DW$T$22, DW_AT_decl_file("/usr/lib/ti/pru-software-support-package-v6.0/include/am3
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   10
@@ -598,7 +598,7 @@ main_pru1.asm                                                        PAGE   10
      548        .dwattr $C$DW$36, DW_AT_data_member_location[DW_OP_plus_uconst 0x0]
      549        .dwattr $C$DW$36, DW_AT_accessibility(DW_ACCESS_public)
      550        .dwattr $C$DW$36, DW_AT_decl_file("/usr/lib/ti/pru-software-support-package-v6.0/include/am335
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   11
@@ -658,7 +658,7 @@ main_pru1.asm                                                        PAGE   11
      603        .dwattr $C$DW$41, DW_AT_type(*$C$DW$T$11)
      604        .dwattr $C$DW$41, DW_AT_name("INTC_CLK_EN")
      605        .dwattr $C$DW$41, DW_AT_TI_symbol_name("INTC_CLK_EN")
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   12
@@ -718,7 +718,7 @@ main_pru1.asm                                                        PAGE   12
      658        .dwattr $C$DW$45, DW_AT_decl_file("/usr/lib/ti/pru-software-support-package-v6.0/include/am335
      659        .dwattr $C$DW$45, DW_AT_decl_line(0x77)
      660        .dwattr $C$DW$45, DW_AT_decl_column(0x0d)
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   13
@@ -778,7 +778,7 @@ main_pru1.asm                                                        PAGE   13
      713        .dwattr $C$DW$50, DW_AT_TI_symbol_name("IEP_CLK_EN")
      714        .dwattr $C$DW$50, DW_AT_bit_offset(0x0e)
      715        .dwattr $C$DW$50, DW_AT_bit_size(0x01)
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   14
@@ -838,7 +838,7 @@ main_pru1.asm                                                        PAGE   14
      768
      769$C$DW$54        .dwtag  DW_TAG_member
      770        .dwattr $C$DW$54, DW_AT_type(*$C$DW$T$11)
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   15
@@ -898,7 +898,7 @@ main_pru1.asm                                                        PAGE   15
      823        .dwattr $C$DW$T$47, DW_AT_type(*$C$DW$T$24)
      824
      825
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   16
@@ -958,7 +958,7 @@ main_pru1.asm                                                        PAGE   16
      878        .dwattr $C$DW$62, DW_AT_name("RAM_PE")
      879        .dwattr $C$DW$62, DW_AT_TI_symbol_name("RAM_PE")
      880        .dwattr $C$DW$62, DW_AT_bit_offset(0x0c)
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   17
@@ -1018,7 +1018,7 @@ main_pru1.asm                                                        PAGE   17
      933        .dwattr $C$DW$65, DW_AT_decl_column(0x0d)
      934
      935$C$DW$66        .dwtag  DW_TAG_member
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   18
@@ -1078,7 +1078,7 @@ main_pru1.asm                                                        PAGE   18
      988$C$DW$T$51      .dwtag  DW_TAG_volatile_type
      989        .dwattr $C$DW$T$51, DW_AT_type(*$C$DW$T$26)
      990
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   19
@@ -1138,7 +1138,7 @@ main_pru1.asm                                                        PAGE   19
     1043        .dwattr $C$DW$74, DW_AT_type(*$C$DW$T$11)
     1044        .dwattr $C$DW$74, DW_AT_name("rsvd16")
     1045        .dwattr $C$DW$74, DW_AT_TI_symbol_name("rsvd16")
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   20
@@ -1198,7 +1198,7 @@ main_pru1.asm                                                        PAGE   20
     1098        .dwattr $C$DW$77, DW_AT_decl_line(0xc6)
     1099        .dwattr $C$DW$77, DW_AT_decl_column(0x0d)
     1100
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   21
@@ -1258,7 +1258,7 @@ main_pru1.asm                                                        PAGE   21
     1153        .dwattr $C$DW$80, DW_AT_data_member_location[DW_OP_plus_uconst 0x0]
     1154        .dwattr $C$DW$80, DW_AT_accessibility(DW_ACCESS_public)
     1155        .dwattr $C$DW$80, DW_AT_decl_file("/usr/lib/ti/pru-software-support-package-v6.0/include/am335
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   22
@@ -1318,7 +1318,7 @@ main_pru1.asm                                                        PAGE   22
     1208        .dwattr $C$DW$84, DW_AT_name("rsvd2")
     1209        .dwattr $C$DW$84, DW_AT_TI_symbol_name("rsvd2")
     1210        .dwattr $C$DW$84, DW_AT_bit_offset(0x00)
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   23
@@ -1378,7 +1378,7 @@ main_pru1.asm                                                        PAGE   23
     1263        .dwattr $C$DW$88, DW_AT_data_member_location[DW_OP_plus_uconst 0xc]
     1264        .dwattr $C$DW$88, DW_AT_accessibility(DW_ACCESS_public)
     1265        .dwattr $C$DW$88, DW_AT_decl_file("/usr/lib/ti/pru-software-support-package-v6.0/include/am335
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   24
@@ -1438,7 +1438,7 @@ main_pru1.asm                                                        PAGE   24
     1318
     1319$C$DW$94        .dwtag  DW_TAG_member
     1320        .dwattr $C$DW$94, DW_AT_type(*$C$DW$T$32)
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   25
@@ -1498,7 +1498,7 @@ main_pru1.asm                                                        PAGE   25
     1373        .dwattr $C$DW$99, DW_AT_data_member_location[DW_OP_plus_uconst 0x38]
     1374        .dwattr $C$DW$99, DW_AT_accessibility(DW_ACCESS_public)
     1375        .dwattr $C$DW$99, DW_AT_decl_file("/usr/lib/ti/pru-software-support-package-v6.0/include/am335
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   26
@@ -1558,7 +1558,7 @@ main_pru1.asm                                                        PAGE   26
     1428        .dwattr $C$DW$T$38, DW_AT_decl_file("/usr/lib/ti/pru-software-support-package-v6.0/include/am3
     1429        .dwattr $C$DW$T$38, DW_AT_decl_line(0x29)
     1430        .dwattr $C$DW$T$38, DW_AT_decl_column(0x08)
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   27
@@ -1618,7 +1618,7 @@ main_pru1.asm                                                        PAGE   27
     1483
     1484        .dwattr $C$DW$T$42, DW_AT_decl_file("/usr/lib/ti/pru-software-support-package-v6.0/include/am3
     1485        .dwattr $C$DW$T$42, DW_AT_decl_line(0x41)
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   28
@@ -1678,7 +1678,7 @@ main_pru1.asm                                                        PAGE   28
     1538        .dwattr $C$DW$110, DW_AT_decl_column(0x05)
     1539
     1540        .dwattr $C$DW$T$46, DW_AT_decl_file("/usr/lib/ti/pru-software-support-package-v6.0/include/am3
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   29
@@ -1738,7 +1738,7 @@ main_pru1.asm                                                        PAGE   29
     1593        .dwattr $C$DW$114, DW_AT_decl_line(0x9c)
     1594        .dwattr $C$DW$114, DW_AT_decl_column(0x05)
     1595
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   30
@@ -1798,7 +1798,7 @@ main_pru1.asm                                                        PAGE   30
     1648        .dwattr $C$DW$118, DW_AT_decl_file("/usr/lib/ti/pru-software-support-package-v6.0/include/am33
     1649        .dwattr $C$DW$118, DW_AT_decl_line(0xb8)
     1650        .dwattr $C$DW$118, DW_AT_decl_column(0x05)
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   31
@@ -1858,7 +1858,7 @@ main_pru1.asm                                                        PAGE   31
     1703        .dwattr $C$DW$122, DW_AT_accessibility(DW_ACCESS_public)
     1704        .dwattr $C$DW$122, DW_AT_decl_file("/usr/lib/ti/pru-software-support-package-v6.0/include/am33
     1705        .dwattr $C$DW$122, DW_AT_decl_line(0xd5)
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   32
@@ -1918,7 +1918,7 @@ main_pru1.asm                                                        PAGE   32
     1758        .dwattr $C$DW$126, DW_AT_data_member_location[DW_OP_plus_uconst 0x0]
     1759        .dwattr $C$DW$126, DW_AT_accessibility(DW_ACCESS_public)
     1760        .dwattr $C$DW$126, DW_AT_decl_file("/usr/lib/ti/pru-software-support-package-v6.0/include/am33
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   33
@@ -1978,7 +1978,7 @@ main_pru1.asm                                                        PAGE   33
     1813        .dwattr $C$DW$T$32, DW_AT_name("uint32_t")
     1814        .dwattr $C$DW$T$32, DW_AT_type(*$C$DW$T$11)
     1815        .dwattr $C$DW$T$32, DW_AT_language(DW_LANG_C)
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   34
@@ -2038,7 +2038,7 @@ main_pru1.asm                                                        PAGE   34
     1868$C$DW$T$17      .dwtag  DW_TAG_base_type
     1869        .dwattr $C$DW$T$17, DW_AT_encoding(DW_ATE_float)
     1870        .dwattr $C$DW$T$17, DW_AT_name("double")
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   35
@@ -2098,7 +2098,7 @@ main_pru1.asm                                                        PAGE   35
     1923        .dwattr $C$DW$132, DW_AT_name("num")
     1924        .dwattr $C$DW$132, DW_AT_TI_symbol_name("num")
     1925        .dwattr $C$DW$132, DW_AT_data_member_location[DW_OP_plus_uconst 0x4]
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   36
@@ -2158,7 +2158,7 @@ main_pru1.asm                                                        PAGE   36
     1978        .dwcfi  same_value, 35
     1979        .dwcfi  same_value, 36
     1980        .dwcfi  same_value, 37
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   37
@@ -2218,7 +2218,7 @@ main_pru1.asm                                                        PAGE   37
     2033$C$DW$141       .dwtag  DW_TAG_TI_assign_register
     2034        .dwattr $C$DW$141, DW_AT_name("R1_b3")
     2035        .dwattr $C$DW$141, DW_AT_location[DW_OP_reg7]
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   38
@@ -2278,7 +2278,7 @@ main_pru1.asm                                                        PAGE   38
     2088
     2089$C$DW$155       .dwtag  DW_TAG_TI_assign_register
     2090        .dwattr $C$DW$155, DW_AT_name("R5_b1")
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   39
@@ -2338,7 +2338,7 @@ main_pru1.asm                                                        PAGE   39
     2143        .dwattr $C$DW$168, DW_AT_location[DW_OP_regx 0x22]
     2144
     2145$C$DW$169       .dwtag  DW_TAG_TI_assign_register
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   40
@@ -2398,7 +2398,7 @@ main_pru1.asm                                                        PAGE   40
     2198        .dwattr $C$DW$182, DW_AT_name("R12_b0")
     2199        .dwattr $C$DW$182, DW_AT_location[DW_OP_regx 0x30]
     2200
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   41
@@ -2458,7 +2458,7 @@ main_pru1.asm                                                        PAGE   41
     2253$C$DW$196       .dwtag  DW_TAG_TI_assign_register
     2254        .dwattr $C$DW$196, DW_AT_name("R15_b2")
     2255        .dwattr $C$DW$196, DW_AT_location[DW_OP_regx 0x3e]
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   42
@@ -2518,7 +2518,7 @@ main_pru1.asm                                                        PAGE   42
     2308
     2309$C$DW$210       .dwtag  DW_TAG_TI_assign_register
     2310        .dwattr $C$DW$210, DW_AT_name("R19_b0")
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   43
@@ -2578,7 +2578,7 @@ main_pru1.asm                                                        PAGE   43
     2363        .dwattr $C$DW$223, DW_AT_location[DW_OP_regx 0x59]
     2364
     2365$C$DW$224       .dwtag  DW_TAG_TI_assign_register
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   44
@@ -2638,7 +2638,7 @@ main_pru1.asm                                                        PAGE   44
     2418        .dwattr $C$DW$237, DW_AT_name("R25_b3")
     2419        .dwattr $C$DW$237, DW_AT_location[DW_OP_regx 0x67]
     2420
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   45
@@ -2698,7 +2698,7 @@ main_pru1.asm                                                        PAGE   45
     2473$C$DW$251       .dwtag  DW_TAG_TI_assign_register
     2474        .dwattr $C$DW$251, DW_AT_name("R29_b1")
     2475        .dwattr $C$DW$251, DW_AT_location[DW_OP_regx 0x75]
-PRU Assembler Unix v2.3.3 Tue May  6 20:14:50 2025
+PRU Assembler Unix v2.3.3 Sat May 10 20:07:17 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 main_pru1.asm                                                        PAGE   46

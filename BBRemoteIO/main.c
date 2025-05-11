@@ -27,6 +27,7 @@
 #include "task_queue.h"
 #include "lcd_display.h"
 #include "mqtt_publish.h"
+#include "mqtt_send_queue.h"
 #include "shared_memory.h"
 #include "pru_control.h"
 
@@ -38,42 +39,15 @@
 #define LCD_TIME      2 // segundos
 
 struct mosquitto* mosq = NULL;  // Define mosq only once
+volatile sig_atomic_t keep_running = 1;
 
-void handle_sigbus(int sig) {
-    printf("Se ha producido un Bus Error (SIGBUS)!\n");
-    exit(1);
-}
-
-// Manejo de seniales para salir limpiamente
 void handle_signal(int signo) {
-
-    LOG_INFO("Cliente MQTT...closed");
-    if (mosq) {
-        mosquitto_disconnect(mosq);
-        mosquitto_destroy(mosq);
-    }
-    mosquitto_lib_cleanup();
-    // Apagar PRU0
-    if (control_pru(0, PRU0_PATH, PRU0_FIRMWARE) == 0) {
-        lcd_show_message(MSG_LCD_PRU0_OFF_SUCCESS);
-    } else {
-        lcd_show_message(MSG_LCD_PRU0_OFF_ERROR);
-    }
-    // Apagar PRU1
-    if (control_pru(0, PRU1_PATH, PRU1_FIRMWARE) == 0) {
-        lcd_show_message(MSG_LCD_PRU1_OFF_SUCCESS);
-    } else {
-        lcd_show_message(MSG_LCD_PRU1_OFF_ERROR);
-    }
-    exit(0);
+    keep_running = 0;
 }
 
 int main() {
-    // Registrar la señal SIGBUS para que llame a handle_sigbus
-    signal(SIGBUS, handle_sigbus);
 
     signal(SIGINT, handle_signal);
-    signal(SIGTERM, handle_signal);
 
     SharedMemoryContext shm_ctx;
     shm = &shm_ctx;  // Apunta el puntero global a la instancia local
@@ -95,7 +69,7 @@ int main() {
     for (int i = 0; i < SHARED_MUTEX_COUNT; i++) {
          pthread_mutex_init(&shm_ctx.shared_mutex[i], NULL);
     }
-
+    //LCD
     lcd_queue_init(&lcd_display_queue);
     pthread_create(&lcd_display_thread, NULL, lcd_display_thread_func, NULL);
 
@@ -128,9 +102,11 @@ int main() {
 
     mosquitto_message_callback_set(mosq, message_callback);
 
-    mqtt_publish_init();
+    //MQTT PRUBLISH
+    send_queue_init(&mqtt_publish_queue);
+    pthread_create(&mqtt_publish_thread, NULL, mqtt_publish_thread_func, NULL);
 
-    // Iniciamos la cola
+    // Iniciamos las colas de funciones
     task_queue_init(&adc_queue);
     task_queue_init(&gpio_input_queue);
     task_queue_init(&gpio_output_get_queue);
@@ -171,8 +147,6 @@ int main() {
         lcd_show_message("Failed Topic");
         return EXIT_FAILURE;
     }
-    lcd_show_message("Ready           ");
-
     LOG_INFO("Connected to the MQTT broker and subscribed to the topics:");
     LOG_INFO("%s", TOPIC_CMDS_ADC);
     LOG_INFO("%s", TOPIC_CMDS_GPIO_INPUT);
@@ -182,10 +156,60 @@ int main() {
     LOG_INFO("%s", TOPIC_CMDS_MOTOR_SET);
     LOG_INFO("%s", TOPIC_CMDS_SYSTEM);
 
-    mosquitto_loop_forever(mosq, -1, 1);
+    //mosquitto_loop(mosq, -1, 1);
+    if (mosquitto_loop_start(mosq) != MOSQ_ERR_SUCCESS) {
+       LOG_ERROR("Error Mosquitto loop");
+       exit(EXIT_FAILURE);
+    }
 
+    mqtt_publish_async(mosq, TOPIC_LOGS, "Ready...");
+    lcd_show_message("Ready...         ");
+
+    // Espera mientras keep_running sea 1
+    while (keep_running) {
+        pause();  // Más eficiente que sleep(1), espera señales
+    }
+
+    mqtt_publish_async(mosq, TOPIC_LOGS, "Shutting down...");
+    lcd_show_message("Shutting down...");
+
+    sleep(LCD_TIME);
+
+    pthread_mutex_lock(&adc_running_mutex);
+    adc_running = TASK_STOPPED;
+    pthread_mutex_unlock(&adc_running_mutex);
+
+    pthread_mutex_lock(&gpio_input_running_mutex);
+    gpio_input_running = TASK_STOPPED;
+    pthread_mutex_unlock(&gpio_input_running_mutex);
+
+    pthread_mutex_lock(&gpio_output_get_running_mutex);
+    gpio_output_get_running = TASK_STOPPED;
+    pthread_mutex_unlock(&gpio_output_get_running_mutex);
+
+    pthread_mutex_lock(&gpio_output_set_running_mutex);
+    gpio_output_set_running = TASK_STOPPED;
+    pthread_mutex_unlock(&gpio_output_set_running_mutex);
+
+    pthread_mutex_lock(&motor_get_running_mutex);
+    motor_get_running = TASK_STOPPED;
+    pthread_mutex_unlock(&motor_get_running_mutex);
+
+    pthread_mutex_lock(&motor_set_running_mutex);
+    motor_set_running = TASK_STOPPED;
+    pthread_mutex_unlock(&motor_set_running_mutex);
+
+    pthread_mutex_lock(&system_running_mutex);
+    system_running = TASK_STOPPED;
+    pthread_mutex_unlock(&system_running_mutex);
+
+    // Apagar MQTT y recursos
+    mosquitto_disconnect(mosq);
+    mosquitto_loop_stop(mosq, false);  // false: no forzar parada abrupta
     mosquitto_destroy(mosq);
     mosquitto_lib_cleanup();
+
+    sleep(LCD_TIME);
 
     // Apagar PRU0
     if (control_pru(0, PRU0_PATH, PRU0_FIRMWARE) == 0) {
@@ -203,6 +227,42 @@ int main() {
     unmap_memory(fd_ram0, map_base_ram0, RAM0_SIZE);
     unmap_memory(fd_shared, map_base_shared, SHARED_SIZE);
 
+    lcd_show_message("Finished        ");
+    sleep(LCD_TIME);
+
+    // Function queue
+    task_queue_shutdown(&adc_queue);
+    task_queue_shutdown(&gpio_input_queue);
+    task_queue_shutdown(&gpio_output_get_queue);
+    task_queue_shutdown(&gpio_output_set_queue);
+    task_queue_shutdown(&motor_get_queue);
+    task_queue_shutdown(&motor_set_queue);
+    task_queue_shutdown(&system_queue);
+    send_queue_shutdown(&mqtt_publish_queue);
+    lcd_queue_shutdown(&lcd_display_queue);
+
+    // Enviá señal de salida a hilos si corresponde (por ejemplo, con colas vacías especiales)
+    pthread_join(adc_thread, NULL);
+    pthread_join(gpio_input_thread, NULL);
+    pthread_join(gpio_output_get_thread, NULL);
+    pthread_join(gpio_output_set_thread, NULL);
+    pthread_join(motor_get_thread, NULL);
+    pthread_join(motor_set_thread, NULL);
+    pthread_join(system_thread, NULL);
+    pthread_join(mqtt_publish_thread, NULL);
+    pthread_join(lcd_display_thread, NULL);
+
+    task_queue_destroy(&adc_queue);
+    task_queue_destroy(&gpio_input_queue);
+    task_queue_destroy(&gpio_output_get_queue);
+    task_queue_destroy(&gpio_output_set_queue);
+    task_queue_destroy(&motor_get_queue);
+    task_queue_destroy(&motor_set_queue);
+    task_queue_destroy(&system_queue);
+
+    lcd_queue_destroy(&lcd_display_queue);
+    send_queue_destroy(&mqtt_publish_queue);
+
     pthread_mutex_destroy(&shm_ctx.ram0_mutex);
     // Destruir todos los mutexes de memoria compartida
     for (int i = 0; i < SHARED_MUTEX_COUNT; i++) {
@@ -216,7 +276,7 @@ int main() {
     pthread_mutex_destroy(&motor_set_running_mutex);
     pthread_mutex_destroy(&system_running_mutex);
 
-    LOG_INFO("Terminando sistema");
+    LOG_INFO("System stopped");
 
     return 0;
 }
