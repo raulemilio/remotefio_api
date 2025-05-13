@@ -1,4 +1,4 @@
-PRU Assembler Unix v2.3.3 Sun May 11 21:04:25 2025
+PRU Assembler Unix v2.3.3 Tue May 13 02:21:21 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE    1
@@ -58,7 +58,7 @@ src/pru1-digital.asm                                                 PAGE    1
       53  .asg 0x130, GPIO_CTRL                                 ; enable GPIO port
       54  .asg 0x00,  GPIO_CTRL_ENABLE                          ;
       55  .asg 0x134, GPIO_OE                                   ; set GPIO input - output
-PRU Assembler Unix v2.3.3 Sun May 11 21:04:25 2025
+PRU Assembler Unix v2.3.3 Tue May 13 02:21:21 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE    2
@@ -76,519 +76,484 @@ src/pru1-digital.asm                                                 PAGE    2
       66
       67  ; INPUT TRIGGER
       68  .asg 6, GPIO2_6_GPIO_INPUT_TRIGGER                    ; P8_45
-      69  .asg 7, GPIO2_7_MOTOR_C_TRIGGER                       ; P8_46
-      70  .asg 11,GPIO2_11_MOTOR_A_TRIGGER                      ; P8_42
-      71  .asg 9, GPIO2_9_MOTOR_B_TRIGGER                       ; P8_44
-      72
-      73; gpio_write
-      74  .asg (1<<8),  GPIO_OUT_BASE                           ;
-      75  .asg 8,  GPIO0_8_OUTPUT_0                             ; P8_35
-      76  .asg 9,  GPIO0_9_OUTPUT_1                             ; P8_33
-      77  .asg 10, GPIO0_10_OUTPUT_2                            ; P8_31
-      78  .asg 11, GPIO0_11_OUTPUT_3                            ; P8_32
-      79
-      80; motor
-      81  ; Enable-Direction
-      82  .asg (1<<2), GPIO_MOTOR_ENA_BASE                      ;
-      83  .asg (1<<14), GPIO_MOTOR_DIR_BASE                     ;
-      84  ; Pins enable
-      85  .asg 2, OUTPUT_MA_E                                   ; GPIO2[2] P8_07
-      86  .asg 3, OUTPUT_MB_E                                   ; GPIO2[2] P8_08
-      87  .asg 4, OUTPUT_MC_E                                   ; GPIO2[2] P8_10
-      88  .asg 5, OUTPUT_MD_E                                   ; GPIO2[2] P8_09
-      89  ; Pins direction
-      90  .asg 14, OUTPUT_MA_D                                  ; GPIO2[14] P8_37
-      91  .asg 15, OUTPUT_MB_D                                  ; GPIO2[15] P8_38
-      92  .asg 16, OUTPUT_MC_D                                  ; GPIO2[16] P8_36
-      93  .asg 17, OUTPUT_MD_D                                  ; GPIO2[17] P8_34
-      94
-      95  ; Step period (medio ciclo de la senial)
-      96  .asg (1<<4), OUTPUT_MA_S                              ; PRU1_R30_4 P8_41
-      97  .asg (1<<5), OUTPUT_MB_S                              ; PRU1_R30_5 P8_42
-      98  .asg (1<<6), OUTPUT_MC_S                              ; PRU1_R30_6 P8_39
-      99  .asg (1<<7), OUTPUT_MD_S                              ; PRU1_r30_7 P8_40
-     100
-     101; functions flags
-     102  .asg 0, GPIO_INPUT_MODE0_FLAG                         ;
-     103  .asg 1, GPIO_INPUT_MODE1_FLAG                         ;
-     104  .asg 2, GPIO_INPUT_MODE2_FLAG                         ;
-     105  .asg 0, GPIO_OUTPUT_GET_MODE0_FLAG                    ;
-     106  .asg 0, GPIO_OUTPUT_SET_MODE0_FLAG                    ;
-     107  .asg 0, MOTOR_GET_MODE0_FLAG                          ;
-     108  .asg 1, MOTOR_GET_MODE1_FLAG                          ;
-     109  .asg 2, MOTOR_GET_MODE2_FLAG                          ;
-     110  .asg 0, MOTOR_SET_MODE0_FLAG                          ;
-PRU Assembler Unix v2.3.3 Sun May 11 21:04:25 2025
+      69  .asg 7, GPIO2_7_MOTOR_TRIGGER                         ; P8_46
+      70
+      71; gpio_write
+      72  .asg (1<<8),  GPIO_OUT_BASE                           ;
+      73  .asg 8,  GPIO0_8_OUTPUT_0                             ; P8_35
+      74  .asg 9,  GPIO0_9_OUTPUT_1                             ; P8_33
+      75  .asg 10, GPIO0_10_OUTPUT_2                            ; P8_31
+      76  .asg 11, GPIO0_11_OUTPUT_3                            ; P8_32
+      77
+      78; motor
+      79  ; Enable-Direction
+      80  .asg (1<<2), GPIO_MOTOR_ENA_BASE                      ;
+      81  .asg (1<<14), GPIO_MOTOR_DIR_BASE                     ;
+      82  ; Pins enable
+      83  .asg 2, OUTPUT_MA_E                                   ; GPIO2[2] P8_07
+      84  .asg 3, OUTPUT_MB_E                                   ; GPIO2[2] P8_08
+      85  .asg 4, OUTPUT_MC_E                                   ; GPIO2[2] P8_10
+      86  .asg 5, OUTPUT_MD_E                                   ; GPIO2[2] P8_09
+      87  ; Pins direction
+      88  .asg 14, OUTPUT_MA_D                                  ; GPIO2[14] P8_37
+      89  .asg 15, OUTPUT_MB_D                                  ; GPIO2[15] P8_38
+      90  .asg 16, OUTPUT_MC_D                                  ; GPIO2[16] P8_36
+      91  .asg 17, OUTPUT_MD_D                                  ; GPIO2[17] P8_34
+      92
+      93  ; Step period (medio ciclo de la senial)
+      94  .asg (1<<4), OUTPUT_MA_S                              ; PRU1_R30_4 P8_41
+      95  .asg (1<<5), OUTPUT_MB_S                              ; PRU1_R30_5 P8_42
+      96  .asg (1<<6), OUTPUT_MC_S                              ; PRU1_R30_6 P8_39
+      97  .asg (1<<7), OUTPUT_MD_S                              ; PRU1_r30_7 P8_40
+      98
+      99; functions flags
+     100  .asg 0, GPIO_INPUT_MODE0_FLAG                         ;
+     101  .asg 1, GPIO_INPUT_MODE1_FLAG                         ;
+     102  .asg 2, GPIO_INPUT_MODE2_FLAG                         ;
+     103  .asg 0, GPIO_OUTPUT_GET_MODE0_FLAG                    ;
+     104  .asg 0, GPIO_OUTPUT_SET_MODE0_FLAG                    ;
+     105  .asg 0, MOTOR_GET_MODE0_FLAG                          ;
+     106  .asg 1, MOTOR_GET_MODE1_FLAG                          ;
+     107  .asg 2, MOTOR_GET_MODE2_FLAG                          ;
+     108  .asg 0, MOTOR_SET_MODE0_FLAG                          ;
+     109
+     110  .asg 12, GPIO_INPUT_DATARDY_FLAG                      ;
+PRU Assembler Unix v2.3.3 Tue May 13 02:21:21 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE    3
 
-     111
-     112  .asg 12, GPIO_INPUT_DATARDY_FLAG                      ;
-     113  .asg 12, GPIO_OUTPUT_GET_DATARDY_FLAG                 ;
-     114  .asg 12, GPIO_OUTPUT_SET_DATARDY_FLAG                 ;
-     115  .asg 12, MOTOR_GET_DATARDY_FLAG                       ;
-     116  .asg 12, MOTOR_SET_DATARDY_FLAG                       ;
-     117
-     118  .asg 32, PRU0_R31_VEC_VALID                           ; allows notification of program completion
-     119  .asg 3,  PRU_EVTOUT_0                                 ; the event number that is sent back
-     120
-     121  .clink
-     122  .global start
-     123
-     124 00000000                 start:
-     125; Registro fijos
-     126  ; r10-> SHARED  -> STEP_PERIOD_A
-     127  ; r11-> INTERNAL-> STEP_PERIOD_A
-     128  ; r12-> SHARED  -> STEP_PERIOD_B
-     129  ; r13-> INTERNAL-> STEP_PERIOD_B
-     130  ; r14-> SHARED  -> STEP_PERIOD_C
-     131  ; r15-> INTERNAL-> STEP_PERIOD_C
-     132  ; r16-> SHARED  -> STEP_PERIOD_D
-     133  ; r17-> INTERNAL-> STEP_PERIOD_D
-     134  ; r20-> SHARED BASE ADDR
-     135  ; r21-> r31 previus state
-     136  ; r22-> GPIO2 interrup addr
-     137  ; r23-> load interrupt state
-     138 00000000                 SETUP:
-     139 00000000 000094240001D4    LDI32 r20, SHARED_ADDR                                ; shared_addr_base
-     140; borrado de momoria
-     141 00000008 0000002EFF8180    ZERO  &r0, 4                                          ; zero put register
-     142 0000000c 000081240000C1    LDI32 r1, 0                                           ; offset_mem
-     143 00000014 000082240000C2    LDI32 r2, 0                                           ; Count mem
-     144 0000001c                 mem_init:
-     145 0000001c 000000E0E13480    SBBO  &r0, r20, r1, 4                                 ;
-     146 00000020 0000000104E1E1    ADD   r1, r1, 4                                       ; cada posicion de memoria ocupa 4 bytes
-     147 00000024 0000000101E2E2    ADD   r2, r2, 1                                       ; count++
-     148 00000028 000000670FE2FD    QBGT  mem_init, r2, SHARED_MEM_SIZE                   ; qbgt myLabel, r3, r4. Branch if r4 > r3
-     149 0000002c 03E880240000C0    LDI32 r0, 1000;
-     150 00000034 00000010E0E0EB    MOV r11, r0;
-     151 00000038 00000010E0E0ED    MOV r13, r0;
-     152 0000003c 00000010E0E0EF    MOV r15, r0;
-     153 00000040 00000010E0E0F1    MOV r17, r0;
-     154
-     155 00000044                 gpio_config:
-     156;GPIO0
-     157 00000044 7130802444E0C0    LDI32 r0, (GPIO0|GPIO_CTRL)                           ; load GPIO0 control register address
-     158 0000004c 000081240000C1    LDI32 r1, GPIO_CTRL_ENABLE                            ; load control enable value
-     159 00000054 000000E1002081    SBBO  &r1, r0, 0, 4                                   ; write enable value to GPIO0 control register
-     160
-     161 00000058 7134802444E0C0    LDI32 r0, (GPIO0|GPIO_OE)                             ; load GPIO0 output enable register address
-     162 00000060 000000F1002081    LBBO  &r1, r0, 0, 4                                   ; Load the values at r0 into r1.
-     163 00000064 0000001D08E1E1    CLR   r1, r1, GPIO0_8_OUTPUT_0                        ;
-     164 00000068 0000001D09E1E1    CLR   r1, r1, GPIO0_9_OUTPUT_1                        ;
-     165 0000006c 0000001D0AE1E1    CLR   r1, r1, GPIO0_10_OUTPUT_2                       ;
-PRU Assembler Unix v2.3.3 Sun May 11 21:04:25 2025
+     111  .asg 12, GPIO_OUTPUT_GET_DATARDY_FLAG                 ;
+     112  .asg 12, GPIO_OUTPUT_SET_DATARDY_FLAG                 ;
+     113  .asg 12, MOTOR_GET_DATARDY_FLAG                       ;
+     114  .asg 12, MOTOR_SET_DATARDY_FLAG                       ;
+     115
+     116  .asg 32, PRU0_R31_VEC_VALID                           ; allows notification of program completion
+     117  .asg 3,  PRU_EVTOUT_0                                 ; the event number that is sent back
+     118
+     119  .clink
+     120  .global start
+     121
+     122 00000000                 start:
+     123; Registro fijos
+     124  ; r10-> SHARED  -> STEP_PERIOD_A
+     125  ; r11-> INTERNAL-> STEP_PERIOD_A
+     126  ; r12-> SHARED  -> STEP_PERIOD_B
+     127  ; r13-> INTERNAL-> STEP_PERIOD_B
+     128  ; r14-> SHARED  -> STEP_PERIOD_C
+     129  ; r15-> INTERNAL-> STEP_PERIOD_C
+     130  ; r16-> SHARED  -> STEP_PERIOD_D
+     131  ; r17-> INTERNAL-> STEP_PERIOD_D
+     132  ; r20-> SHARED BASE ADDR
+     133  ; r21-> r31 previus state
+     134  ; r22-> GPIO2 interrup addr
+     135  ; r23-> load interrupt state
+     136 00000000                 SETUP:
+     137 00000000 000094240001D4    LDI32 r20, SHARED_ADDR                                ; shared_addr_base
+     138; borrado de momoria
+     139 00000008 0000002EFF8180    ZERO  &r0, 4                                          ; zero put register
+     140 0000000c 000081240000C1    LDI32 r1, 0                                           ; offset_mem
+     141 00000014 000082240000C2    LDI32 r2, 0                                           ; Count mem
+     142 0000001c                 mem_init:
+     143 0000001c 000000E0E13480    SBBO  &r0, r20, r1, 4                                 ;
+     144 00000020 0000000104E1E1    ADD   r1, r1, 4                                       ; cada posicion de memoria ocupa 4 bytes
+     145 00000024 0000000101E2E2    ADD   r2, r2, 1                                       ; count++
+     146 00000028 000000670FE2FD    QBGT  mem_init, r2, SHARED_MEM_SIZE                   ; qbgt myLabel, r3, r4. Branch if r4 > r3
+     147 0000002c 03E880240000C0    LDI32 r0, 1000;
+     148 00000034 00000010E0E0EB    MOV r11, r0;
+     149 00000038 00000010E0E0ED    MOV r13, r0;
+     150 0000003c 00000010E0E0EF    MOV r15, r0;
+     151 00000040 00000010E0E0F1    MOV r17, r0;
+     152
+     153 00000044                 gpio_config:
+     154;GPIO0
+     155 00000044 7130802444E0C0    LDI32 r0, (GPIO0|GPIO_CTRL)                           ; load GPIO0 control register address
+     156 0000004c 000081240000C1    LDI32 r1, GPIO_CTRL_ENABLE                            ; load control enable value
+     157 00000054 000000E1002081    SBBO  &r1, r0, 0, 4                                   ; write enable value to GPIO0 control register
+     158
+     159 00000058 7134802444E0C0    LDI32 r0, (GPIO0|GPIO_OE)                             ; load GPIO0 output enable register address
+     160 00000060 000000F1002081    LBBO  &r1, r0, 0, 4                                   ; Load the values at r0 into r1.
+     161 00000064 0000001D08E1E1    CLR   r1, r1, GPIO0_8_OUTPUT_0                        ;
+     162 00000068 0000001D09E1E1    CLR   r1, r1, GPIO0_9_OUTPUT_1                        ;
+     163 0000006c 0000001D0AE1E1    CLR   r1, r1, GPIO0_10_OUTPUT_2                       ;
+     164 00000070 0000001D0BE1E1    CLR   r1, r1, GPIO0_11_OUTPUT_3                       ;
+     165 00000074 000000E1002081    SBBO  &r1, r0, 0, 4                                   ; write input configuration to GPIO0
+PRU Assembler Unix v2.3.3 Tue May 13 02:21:21 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE    4
 
-     166 00000070 0000001D0BE1E1    CLR   r1, r1, GPIO0_11_OUTPUT_3                       ;
-     167 00000074 000000E1002081    SBBO  &r1, r0, 0, 4                                   ; write input configuration to GPIO0
-     168
-     169;GPIO2
-     170 00000078 C1308024481AC0    LDI32 r0, (GPIO2|GPIO_CTRL)                           ; load GPIO0 control register address
-     171 00000080 000081240000C1    LDI32 r1, GPIO_CTRL_ENABLE                            ; load control enable value
-     172 00000088 000000E1002081    SBBO  &r1, r0, 0, 4                                   ; write enable value to GPIO0 control register
-     173
-     174 0000008c C1348024481AC0    LDI32 r0, (GPIO2|GPIO_OE)
-     175 00000094 000000F1002081    LBBO  &r1, r0, 0, 4
-     176 00000098 0000001F06E1E1    SET   r1, r1, GPIO2_6_GPIO_INPUT_TRIGGER
-     177 0000009c 0000001F07E1E1    SET   r1, r1, GPIO2_7_MOTOR_C_TRIGGER
-     178 000000a0 0000001F0BE1E1    SET   r1, r1, GPIO2_11_MOTOR_A_TRIGGER
-     179 000000a4 0000001F09E1E1    SET   r1, r1, GPIO2_9_MOTOR_B_TRIGGER
-     180 000000a8 0000001F16E1E1    SET   r1, r1, GPIO2_22_GPIO_INPUT_0
-     181 000000ac 0000001F17E1E1    SET   r1, r1, GPIO2_23_GPIO_INPUT_1
-     182 000000b0 0000001F18E1E1    SET   r1, r1, GPIO2_24_GPIO_INPUT_2
-     183 000000b4 0000001F19E1E1    SET   r1, r1, GPIO2_25_GPIO_INPUT_3
-     184 000000b8 0000001D02E1E1    CLR   r1, r1, OUTPUT_MA_E
-     185 000000bc 0000001D03E1E1    CLR   r1, r1, OUTPUT_MB_E
-     186 000000c0 0000001D04E1E1    CLR   r1, r1, OUTPUT_MC_E
-     187 000000c4 0000001D05E1E1    CLR   r1, r1, OUTPUT_MD_E
-     188 000000c8 0000001D0EE1E1    CLR   r1, r1, OUTPUT_MA_D
-     189 000000cc 0000001D0FE1E1    CLR   r1, r1, OUTPUT_MB_D
-     190 000000d0 0000001D10E1E1    CLR   r1, r1, OUTPUT_MC_D
-     191 000000d4 0000001D11E1E1    CLR   r1, r1, OUTPUT_MD_D
-     192 000000d8 000000E1002081    SBBO  &r1, r0, 0, 4
-     193
-     194  ; rising detect
-     195 000000dc C1488024481AC0    LDI32 r0, (GPIO2|GPIO_RISINGDETECT)
-     196 000000e4 000000F1002081    LBBO  &r1, r0, 0, 4
-     197 000000e8 0000001F06E1E1    SET   r1, r1, GPIO2_6_GPIO_INPUT_TRIGGER
-     198 000000ec 0000001F07E1E1    SET   r1, r1, GPIO2_7_MOTOR_C_TRIGGER
-     199 000000f0 0000001F0BE1E1    SET   r1, r1, GPIO2_11_MOTOR_A_TRIGGER
-     200 000000f4 0000001F09E1E1    SET   r1, r1, GPIO2_9_MOTOR_B_TRIGGER
-     201 000000f8 0000001F16E1E1    SET   r1, r1, GPIO2_22_GPIO_INPUT_0
-     202 000000fc 0000001F17E1E1    SET   r1, r1, GPIO2_23_GPIO_INPUT_1
-     203 00000100 0000001F18E1E1    SET   r1, r1, GPIO2_24_GPIO_INPUT_2
-     204 00000104 0000001F19E1E1    SET   r1, r1, GPIO2_25_GPIO_INPUT_3
-     205 00000108 000000E1002081    SBBO  &r1, r0, 0, 4
-     206
-     207  ; enable irq set_1
-     208 0000010c C0388024481AC0    LDI32 r0, (GPIO2|GPIO_IRQSTATUS_SET_1)
-     209 00000114 000000F1002081    LBBO  &r1, r0, 0, 4
-     210 00000118 0000001F06E1E1    SET   r1, r1, GPIO2_6_GPIO_INPUT_TRIGGER
-     211 0000011c 0000001F07E1E1    SET   r1, r1, GPIO2_7_MOTOR_C_TRIGGER
-     212 00000120 0000001F0BE1E1    SET   r1, r1, GPIO2_11_MOTOR_A_TRIGGER
-     213 00000124 0000001F09E1E1    SET   r1, r1, GPIO2_9_MOTOR_B_TRIGGER
-     214 00000128 0000001F16E1E1    SET   r1, r1, GPIO2_22_GPIO_INPUT_0
-     215 0000012c 0000001F17E1E1    SET   r1, r1, GPIO2_23_GPIO_INPUT_1
-     216 00000130 0000001F18E1E1    SET   r1, r1, GPIO2_24_GPIO_INPUT_2
-     217 00000134 0000001F19E1E1    SET   r1, r1, GPIO2_25_GPIO_INPUT_3
-     218 00000138 000000E1002081    SBBO  &r1, r0, 0, 4
+     166
+     167;GPIO2
+     168 00000078 C1308024481AC0    LDI32 r0, (GPIO2|GPIO_CTRL)                           ; load GPIO0 control register address
+     169 00000080 000081240000C1    LDI32 r1, GPIO_CTRL_ENABLE                            ; load control enable value
+     170 00000088 000000E1002081    SBBO  &r1, r0, 0, 4                                   ; write enable value to GPIO0 control register
+     171
+     172 0000008c C1348024481AC0    LDI32 r0, (GPIO2|GPIO_OE)
+     173 00000094 000000F1002081    LBBO  &r1, r0, 0, 4
+     174 00000098 0000001F06E1E1    SET   r1, r1, GPIO2_6_GPIO_INPUT_TRIGGER
+     175 0000009c 0000001F07E1E1    SET   r1, r1, GPIO2_7_MOTOR_TRIGGER
+     176 000000a0 0000001F16E1E1    SET   r1, r1, GPIO2_22_GPIO_INPUT_0
+     177 000000a4 0000001F17E1E1    SET   r1, r1, GPIO2_23_GPIO_INPUT_1
+     178 000000a8 0000001F18E1E1    SET   r1, r1, GPIO2_24_GPIO_INPUT_2
+     179 000000ac 0000001F19E1E1    SET   r1, r1, GPIO2_25_GPIO_INPUT_3
+     180 000000b0 0000001D02E1E1    CLR   r1, r1, OUTPUT_MA_E
+     181 000000b4 0000001D03E1E1    CLR   r1, r1, OUTPUT_MB_E
+     182 000000b8 0000001D04E1E1    CLR   r1, r1, OUTPUT_MC_E
+     183 000000bc 0000001D05E1E1    CLR   r1, r1, OUTPUT_MD_E
+     184 000000c0 0000001D0EE1E1    CLR   r1, r1, OUTPUT_MA_D
+     185 000000c4 0000001D0FE1E1    CLR   r1, r1, OUTPUT_MB_D
+     186 000000c8 0000001D10E1E1    CLR   r1, r1, OUTPUT_MC_D
+     187 000000cc 0000001D11E1E1    CLR   r1, r1, OUTPUT_MD_D
+     188 000000d0 000000E1002081    SBBO  &r1, r0, 0, 4
+     189
+     190  ; rising detect
+     191 000000d4 C1488024481AC0    LDI32 r0, (GPIO2|GPIO_RISINGDETECT)
+     192 000000dc 000000F1002081    LBBO  &r1, r0, 0, 4
+     193 000000e0 0000001F06E1E1    SET   r1, r1, GPIO2_6_GPIO_INPUT_TRIGGER
+     194 000000e4 0000001F07E1E1    SET   r1, r1, GPIO2_7_MOTOR_TRIGGER
+     195 000000e8 0000001F16E1E1    SET   r1, r1, GPIO2_22_GPIO_INPUT_0
+     196 000000ec 0000001F17E1E1    SET   r1, r1, GPIO2_23_GPIO_INPUT_1
+     197 000000f0 0000001F18E1E1    SET   r1, r1, GPIO2_24_GPIO_INPUT_2
+     198 000000f4 0000001F19E1E1    SET   r1, r1, GPIO2_25_GPIO_INPUT_3
+     199 000000f8 000000E1002081    SBBO  &r1, r0, 0, 4
+     200
+     201  ; enable irq set_1
+     202 000000fc C0388024481AC0    LDI32 r0, (GPIO2|GPIO_IRQSTATUS_SET_1)
+     203 00000104 000000F1002081    LBBO  &r1, r0, 0, 4
+     204 00000108 0000001F06E1E1    SET   r1, r1, GPIO2_6_GPIO_INPUT_TRIGGER
+     205 0000010c 0000001F07E1E1    SET   r1, r1, GPIO2_7_MOTOR_TRIGGER
+     206 00000110 0000001F16E1E1    SET   r1, r1, GPIO2_22_GPIO_INPUT_0
+     207 00000114 0000001F17E1E1    SET   r1, r1, GPIO2_23_GPIO_INPUT_1
+     208 00000118 0000001F18E1E1    SET   r1, r1, GPIO2_24_GPIO_INPUT_2
+     209 0000011c 0000001F19E1E1    SET   r1, r1, GPIO2_25_GPIO_INPUT_3
+     210 00000120 000000E1002081    SBBO  &r1, r0, 0, 4
+     211
+     212 00000124 C13C8024481AC0    LDI32 r0, (GPIO2|GPIO_DATAOUT)
+     213 0000012c 000000F1002081    LBBO  &r1, r0, 0, 4
+     214 00000130 0000001F02E1E1    SET   r1, r1, OUTPUT_MA_E                     ; DISABLE A4988
+     215 00000134 0000001F03E1E1    SET   r1, r1, OUTPUT_MB_E
+     216 00000138 0000001F04E1E1    SET   r1, r1, OUTPUT_MC_E
+     217 0000013c 0000001F05E1E1    SET   r1, r1, OUTPUT_MD_E
+     218 00000140 000000E1002081    SBBO  &r1, r0, 0 , 4
      219
-     220 0000013c C13C8024481AC0    LDI32 r0, (GPIO2|GPIO_DATAOUT)
-PRU Assembler Unix v2.3.3 Sun May 11 21:04:25 2025
+     220 00000144 C0309624481AD6    LDI32 r22, (GPIO2|GPIO_IRQSTATUS_1)
+PRU Assembler Unix v2.3.3 Tue May 13 02:21:21 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE    5
 
-     221 00000144 000000F1002081    LBBO  &r1, r0, 0, 4
-     222 00000148 0000001F02E1E1    SET   r1, r1, OUTPUT_MA_E                     ; DISABLE A4988
-     223 0000014c 0000001F03E1E1    SET   r1, r1, OUTPUT_MB_E
-     224 00000150 0000001F04E1E1    SET   r1, r1, OUTPUT_MC_E
-     225 00000154 0000001F05E1E1    SET   r1, r1, OUTPUT_MD_E
-     226 00000158 000000E1002081    SBBO  &r1, r0, 0 , 4
-     227
-     228 0000015c C0309624481AD6    LDI32 r22, (GPIO2|GPIO_IRQSTATUS_1)
-     229
-     230 00000164                 MAIN_LOOP:
-     231 00000164                 level_gpio_input:
-     232 00000164 000000F1003480    LBBO  &r0, r20, SHD_GPIO_INPUT_FLAGS, 4
-     233 00000168 000000D100E017    QBBS  GPIO_INPUT_MODE0, r0, GPIO_INPUT_MODE0_FLAG
-     234; get irq status
-     235 0000016c 000000F1003697    LBBO  &r23, r22, 0, 4
-     236 00000170 000000D106F722    QBBS  GPIO_INPUT_MODE1, r23, GPIO2_6_GPIO_INPUT_TRIGGER
-     237 00000174                 level_gpio_input_mode2:
-     238 00000174 000000D116F730    QBBS  GPIO_INPUT_MODE2, r23, GPIO2_22_GPIO_INPUT_0
-     239 00000178 000000D117F72F    QBBS  GPIO_INPUT_MODE2, r23, GPIO2_23_GPIO_INPUT_1
-     240 0000017c 000000D118F72E    QBBS  GPIO_INPUT_MODE2, r23, GPIO2_24_GPIO_INPUT_2
-     241 00000180 000000D119F72D    QBBS  GPIO_INPUT_MODE2, r23, GPIO2_25_GPIO_INPUT_3
-     242 00000184                 level_gpio_output_get:
-     243 00000184 000000F1083480    LBBO  &r0, r20, SHD_GPIO_OUTPUT_GET_FLAGS, 4
-     244 00000188 000000D100E03D    QBBS  GPIO_OUTPUT_GET_MODE0, r0, GPIO_OUTPUT_GET_MODE0_FLAG
-     245 0000018c                 level_gpio_output_set:
-     246 0000018c 000000F1103480    LBBO  &r0, r20, SHD_GPIO_OUTPUT_SET_FLAGS, 4
-     247 00000190 000000D100E048    QBBS  GPIO_OUTPUT_SET_MODE0, r0, GPIO_OUTPUT_SET_MODE0_FLAG
-     248 00000194                 level_motor_get:
-     249 00000194 000000F1183480    LBBO  &r0, r20, SHD_MOTOR_GET_FLAGS, 4
-     250 00000198 000000D100E065    QBBS  MOTOR_GET_MODE0, r0, MOTOR_GET_MODE0_FLAG
-     251 0000019c 000000D107F774    QBBS  MOTOR_GET_MODE1, r23, GPIO2_7_MOTOR_C_TRIGGER
-     252 000001a0                 level_motor_get_mode2:
-     253 000001a0 000000D10BF785    QBBS  MOTOR_GET_MODE2, r23, GPIO2_11_MOTOR_A_TRIGGER
-     254 000001a4 000000D109F784    QBBS  MOTOR_GET_MODE2, r23, GPIO2_9_MOTOR_B_TRIGGER
-     255 000001a8                 level_motor_set:
-     256 000001a8 000000F1203480    LBBO  &r0, r20, SHD_MOTOR_SET_FLAGS, 4
-     257 000001ac 000000D100E095    QBBS  MOTOR_SET_MODE0, r0, MOTOR_SET_MODE0_FLAG
+     221
+     222 0000014c                 MAIN_LOOP:
+     223 0000014c                 level_gpio_input:
+     224 0000014c 000000F1003480    LBBO  &r0, r20, SHD_GPIO_INPUT_FLAGS, 4
+     225 00000150 000000D100E015    QBBS  GPIO_INPUT_MODE0, r0, GPIO_INPUT_MODE0_FLAG
+     226; get irq status
+     227 00000154 000000F1003697    LBBO  &r23, r22, 0, 4
+     228 00000158 000000D106F720    QBBS  GPIO_INPUT_MODE1, r23, GPIO2_6_GPIO_INPUT_TRIGGER
+     229 0000015c                 level_gpio_input_mode2:
+     230 0000015c 000000D116F72E    QBBS  GPIO_INPUT_MODE2, r23, GPIO2_22_GPIO_INPUT_0
+     231 00000160 000000D117F72D    QBBS  GPIO_INPUT_MODE2, r23, GPIO2_23_GPIO_INPUT_1
+     232 00000164 000000D118F72C    QBBS  GPIO_INPUT_MODE2, r23, GPIO2_24_GPIO_INPUT_2
+     233 00000168 000000D119F72B    QBBS  GPIO_INPUT_MODE2, r23, GPIO2_25_GPIO_INPUT_3
+     234 0000016c                 level_gpio_output_get:
+     235 0000016c 000000F1083480    LBBO  &r0, r20, SHD_GPIO_OUTPUT_GET_FLAGS, 4
+     236 00000170 000000D100E03B    QBBS  GPIO_OUTPUT_GET_MODE0, r0, GPIO_OUTPUT_GET_MODE0_FLAG
+     237 00000174                 level_gpio_output_set:
+     238 00000174 000000F1103480    LBBO  &r0, r20, SHD_GPIO_OUTPUT_SET_FLAGS, 4
+     239 00000178 000000D100E046    QBBS  GPIO_OUTPUT_SET_MODE0, r0, GPIO_OUTPUT_SET_MODE0_FLAG
+     240 0000017c                 level_motor_get:
+     241 0000017c 000000F1183480    LBBO  &r0, r20, SHD_MOTOR_GET_FLAGS, 4
+     242 00000180 000000D100E063    QBBS  MOTOR_GET_MODE0, r0, MOTOR_GET_MODE0_FLAG
+     243 00000184 000000D107F772    QBBS  MOTOR_GET_MODE1, r23, GPIO2_7_MOTOR_TRIGGER
+     244 00000188                 level_motor_set:
+     245 00000188 000000F1203480    LBBO  &r0, r20, SHD_MOTOR_SET_FLAGS, 4
+     246 0000018c 000000D100E082    QBBS  MOTOR_SET_MODE0, r0, MOTOR_SET_MODE0_FLAG
+     247
+     248 00000190                 level_motorA_step_time:
+     249 00000190 000000790000B3    QBA  STEP_PERIOD_A
+     250 00000194                 level_motorB_step_time:
+     251 00000194 000000790000B8    QBA  STEP_PERIOD_B
+     252 00000198                 level_motorC_step_time:
+     253 00000198 000000790000BD    QBA  STEP_PERIOD_C
+     254 0000019c                 level_motorD_step_time:
+     255 0000019c 000000790000C2    QBA  STEP_PERIOD_D
+     256
+     257 000001a0 0000007F0000EB    QBA   MAIN_LOOP                                       ; program loop
      258
-     259 000001b0                 level_motorA_step_time:
-     260 000001b0 000000790000C6    QBA  STEP_PERIOD_A
-     261 000001b4                 level_motorB_step_time:
-     262 000001b4 000000790000CB    QBA  STEP_PERIOD_B
-     263 000001b8                 level_motorC_step_time:
-     264 000001b8 000000790000D0    QBA  STEP_PERIOD_C
-     265 000001bc                 level_motorD_step_time:
-     266 000001bc 000000790000D5    QBA  STEP_PERIOD_D
-     267
-     268 000001c0 0000007F0000E9    QBA   MAIN_LOOP                                       ; program loop
-     269
-     270 000001c4                 GPIO_INPUT_MODE0:
-     271; clr flag gpio_input
-     272 000001c4 000000F1003480    LBBO  &r0, r20, SHD_GPIO_INPUT_FLAGS, 4               ;
-     273 000001c8 0000001D00E0E0    CLR   r0, r0, GPIO_INPUT_MODE0_FLAG                   ;
-     274 000001cc 000000E1003480    SBBO  &r0, r20, SHD_GPIO_INPUT_FLAGS, 4               ;
-     275; write GPIO IN DATA INTO SHARED
-PRU Assembler Unix v2.3.3 Sun May 11 21:04:25 2025
+     259 000001a4                 GPIO_INPUT_MODE0:
+     260; clr flag gpio_input
+     261 000001a4 000000F1003480    LBBO  &r0, r20, SHD_GPIO_INPUT_FLAGS, 4               ;
+     262 000001a8 0000001D00E0E0    CLR   r0, r0, GPIO_INPUT_MODE0_FLAG                   ;
+     263 000001ac 000000E1003480    SBBO  &r0, r20, SHD_GPIO_INPUT_FLAGS, 4               ;
+     264; write GPIO IN DATA INTO SHARED
+     265 000001b0 C1388024481AC0    LDI32 r0, (GPIO2|GPIO_DATAIN)                         ;
+     266 000001b8 000000F1002081    LBBO  &r1, r0, 0, 4                                   ;
+     267 000001bc 0000802403C0C0    LDI32 r0, 0x03C00000                                  ; mascara desde bit22 a bit25
+     268 000001c4 00000010E0E1E1    AND   r1, r1, r0                                      ;
+     269 000001c8 0000000B16E1E1    LSR   r1, r1, 22                                      ; se desplazan 22 posiciones para que los dato
+     270; set flag data ready
+     271 000001cc 0000001F0CE1E1    SET   r1, r1, GPIO_INPUT_DATARDY_FLAG                 ; bit12-> flag data ready
+     272 000001d0 000000E1043481    SBBO  &r1, r20, SHD_GPIO_INPUT_DATA, 4                ; Cargamos valores de las entradas gpio_read b
+     273 000001d4 0000007F0000E6    QBA   level_gpio_output_get                           ;
+     274
+     275 000001d8                 GPIO_INPUT_MODE1:
+PRU Assembler Unix v2.3.3 Tue May 13 02:21:21 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE    6
 
-     276 000001d0 C1388024481AC0    LDI32 r0, (GPIO2|GPIO_DATAIN)                         ;
-     277 000001d8 000000F1002081    LBBO  &r1, r0, 0, 4                                   ;
-     278 000001dc 0000802403C0C0    LDI32 r0, 0x03C00000                                  ; mascara desde bit22 a bit25
-     279 000001e4 00000010E0E1E1    AND   r1, r1, r0                                      ;
-     280 000001e8 0000000B16E1E1    LSR   r1, r1, 22                                      ; se desplazan 22 posiciones para que los dato
-     281; set flag data ready
-     282 000001ec 0000001F0CE1E1    SET   r1, r1, GPIO_INPUT_DATARDY_FLAG                 ; bit12-> flag data ready
-     283 000001f0 000000E1043481    SBBO  &r1, r20, SHD_GPIO_INPUT_DATA, 4                ; Cargamos valores de las entradas gpio_read b
-     284 000001f4 0000007F0000E4    QBA   level_gpio_output_get                           ;
-     285
-     286 000001f8                 GPIO_INPUT_MODE1:
-     287 000001f8 000000F1003480    LBBO  &r0, r20, SHD_GPIO_INPUT_FLAGS, 4               ;
-     288 000001fc 000000CF01E0DE    QBBC  level_gpio_input_mode2, r0, GPIO_INPUT_MODE1_FLAG;
-     289; clear IRQ_GPIO_IRQSTATUS_1
-     290 00000200 000000F1003680    LBBO  &r0, r22, 0, 4                                  ;
-     291 00000204 0000001F06E0E0    SET   r0, r0, GPIO2_6_GPIO_INPUT_TRIGGER              ;
-     292 00000208 000000E1003680    SBBO  &r0, r22, 0, 4                                  ;
-     293; read GPIO IN
-     294 0000020c C1388024481AC0    LDI32 r0, (GPIO2|GPIO_DATAIN)                         ;
-     295 00000214 000000F1002081    LBBO  &r1, r0, 0, 4                                   ;
-     296 00000218 0000802403C0C0    LDI32 r0, 0x03C00000                                  ;
-     297 00000220 00000010E0E1E1    AND   r1, r1, r0                                      ;
-     298 00000224 0000000B16E1E1    LSR   r1, r1, 22                                      ;
-     299; set flag rising detect
-     300 00000228 0000001F0CE1E1    SET   r1, r1, GPIO_INPUT_DATARDY_FLAG                 ;
-     301 0000022c 000000E1043481    SBBO  &r1, r20, SHD_GPIO_INPUT_DATA, 4                ;
-     302 00000230 0000007F0000D1    QBA   level_gpio_input_mode2
-     303
-     304 00000234                 GPIO_INPUT_MODE2:
-     305 00000234 000000F1003480    LBBO  &r0, r20, SHD_GPIO_INPUT_FLAGS, 4               ;
-     306 00000238 000000CF02E0D3    QBBC  level_gpio_output_get, r0, GPIO_INPUT_MODE2_FLAG;
-     307; clear IRQ_GPIO_IRQSTATUS_1
-     308 0000023c 000000F1003680    LBBO  &r0, r22, 0, 4                                  ;
-     309 00000240 0000001F16E0E0    SET   r0, r0, GPIO2_22_GPIO_INPUT_0                   ;
-     310 00000244 0000001F17E0E0    SET   r0, r0, GPIO2_23_GPIO_INPUT_1                   ;
-     311 00000248 0000001F18E0E0    SET   r0, r0, GPIO2_24_GPIO_INPUT_2                   ;
-     312 0000024c 0000001F19E0E0    SET   r0, r0, GPIO2_25_GPIO_INPUT_3                   ;
-     313 00000250 000000E1003680    SBBO  &r0, r22, 0, 4                                  ;
-     314; write GPIO IN DATA INTO SHARED
-     315 00000254 C1388024481AC0    LDI32 r0, (GPIO2|GPIO_DATAIN)                         ;
-     316 0000025c 000000F1002081    LBBO  &r1, r0, 0, 4                                   ;
-     317 00000260 0000802403C0C0    LDI32 r0, 0x03C00000                                  ;
-     318 00000268 00000010E0E1E1    AND   r1, r1, r0                                      ;
-     319 0000026c 0000000B16E1E1    LSR   r1, r1, 22                                      ;
-     320; set flag rising detect
-     321 00000270 0000001F0CE1E1    SET   r1, r1, GPIO_INPUT_DATARDY_FLAG                 ;
-     322 00000274 000000E1043481    SBBO  &r1, r20, SHD_GPIO_INPUT_DATA, 4                ;
-     323 00000278 0000007F0000C3    QBA   level_gpio_output_get                           ;
-     324
-     325 0000027c                 GPIO_OUTPUT_GET_MODE0:
-     326; clr flag gpio_output
-     327 0000027c 000000F1083480    LBBO  &r0, r20, SHD_GPIO_OUTPUT_GET_FLAGS, 4          ;
-     328 00000280 0000001D00E0E0    CLR   r0, r0, GPIO_OUTPUT_GET_MODE0_FLAG              ;
-     329 00000284 000000E1083480    SBBO  &r0, r20, SHD_GPIO_OUTPUT_GET_FLAGS, 4          ;
-     330; read GPIO_DATAOUT
-PRU Assembler Unix v2.3.3 Sun May 11 21:04:25 2025
+     276 000001d8 000000F1003480    LBBO  &r0, r20, SHD_GPIO_INPUT_FLAGS, 4               ;
+     277 000001dc 000000CF01E0E0    QBBC  level_gpio_input_mode2, r0, GPIO_INPUT_MODE1_FLAG;
+     278; clear IRQ_GPIO_IRQSTATUS_1
+     279 000001e0 000000F1003680    LBBO  &r0, r22, 0, 4                                  ;
+     280 000001e4 0000001F06E0E0    SET   r0, r0, GPIO2_6_GPIO_INPUT_TRIGGER              ;
+     281 000001e8 000000E1003680    SBBO  &r0, r22, 0, 4                                  ;
+     282; read GPIO IN
+     283 000001ec C1388024481AC0    LDI32 r0, (GPIO2|GPIO_DATAIN)                         ;
+     284 000001f4 000000F1002081    LBBO  &r1, r0, 0, 4                                   ;
+     285 000001f8 0000802403C0C0    LDI32 r0, 0x03C00000                                  ;
+     286 00000200 00000010E0E1E1    AND   r1, r1, r0                                      ;
+     287 00000204 0000000B16E1E1    LSR   r1, r1, 22                                      ;
+     288; set flag rising detect
+     289 00000208 0000001F0CE1E1    SET   r1, r1, GPIO_INPUT_DATARDY_FLAG                 ;
+     290 0000020c 000000E1043481    SBBO  &r1, r20, SHD_GPIO_INPUT_DATA, 4                ;
+     291 00000210 0000007F0000D7    QBA   level_gpio_output_get
+     292
+     293 00000214                 GPIO_INPUT_MODE2:
+     294 00000214 000000F1003480    LBBO  &r0, r20, SHD_GPIO_INPUT_FLAGS, 4               ;
+     295 00000218 000000CF02E0D5    QBBC  level_gpio_output_get, r0, GPIO_INPUT_MODE2_FLAG;
+     296; clear IRQ_GPIO_IRQSTATUS_1
+     297 0000021c 000000F1003680    LBBO  &r0, r22, 0, 4                                  ;
+     298 00000220 0000001F16E0E0    SET   r0, r0, GPIO2_22_GPIO_INPUT_0                   ;
+     299 00000224 0000001F17E0E0    SET   r0, r0, GPIO2_23_GPIO_INPUT_1                   ;
+     300 00000228 0000001F18E0E0    SET   r0, r0, GPIO2_24_GPIO_INPUT_2                   ;
+     301 0000022c 0000001F19E0E0    SET   r0, r0, GPIO2_25_GPIO_INPUT_3                   ;
+     302 00000230 000000E1003680    SBBO  &r0, r22, 0, 4                                  ;
+     303; write GPIO IN DATA INTO SHARED
+     304 00000234 C1388024481AC0    LDI32 r0, (GPIO2|GPIO_DATAIN)                         ;
+     305 0000023c 000000F1002081    LBBO  &r1, r0, 0, 4                                   ;
+     306 00000240 0000802403C0C0    LDI32 r0, 0x03C00000                                  ;
+     307 00000248 00000010E0E1E1    AND   r1, r1, r0                                      ;
+     308 0000024c 0000000B16E1E1    LSR   r1, r1, 22                                      ;
+     309; set flag rising detect
+     310 00000250 0000001F0CE1E1    SET   r1, r1, GPIO_INPUT_DATARDY_FLAG                 ;
+     311 00000254 000000E1043481    SBBO  &r1, r20, SHD_GPIO_INPUT_DATA, 4                ;
+     312 00000258 0000007F0000C5    QBA   level_gpio_output_get                           ;
+     313
+     314 0000025c                 GPIO_OUTPUT_GET_MODE0:
+     315; clr flag gpio_output
+     316 0000025c 000000F1083480    LBBO  &r0, r20, SHD_GPIO_OUTPUT_GET_FLAGS, 4          ;
+     317 00000260 0000001D00E0E0    CLR   r0, r0, GPIO_OUTPUT_GET_MODE0_FLAG              ;
+     318 00000264 000000E1083480    SBBO  &r0, r20, SHD_GPIO_OUTPUT_GET_FLAGS, 4          ;
+     319; read GPIO_DATAOUT
+     320 00000268 713C802444E0C0    LDI32 r0, (GPIO0|GPIO_DATAOUT)                        ;
+     321 00000270 000000F1002081    LBBO  &r1, r0, 0, 4                                   ;
+     322; write GPIO DATAOUT INTO SHARED
+     323 00000274 0F0080240000C0    LDI32 r0, 0xF00                                       ; mascara desde bit8 a bit11 porque en el regi
+     324 0000027c 00000010E0E1E1    AND   r1, r1, r0                                      ;
+     325 00000280 0000000B04E1E1    LSR   r1, r1, 4                                       ; se desplazan 4 posiciones para que los datos
+     326; set flag data ready
+     327 00000284 0000001F0CE1E1    SET   r1, r1, GPIO_OUTPUT_GET_DATARDY_FLAG            ; bit12-> flag gpio_output get complete
+     328 00000288 000000E10C3481    SBBO  &r1, r20, SHD_GPIO_OUTPUT_GET_DATA, 4           ; Cargamos valores de gpio_out en los bits 4-7
+     329 0000028c 0000007F0000BA    QBA   level_gpio_output_set                           ;
+     330
+PRU Assembler Unix v2.3.3 Tue May 13 02:21:21 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE    7
 
-     331 00000288 713C802444E0C0    LDI32 r0, (GPIO0|GPIO_DATAOUT)                        ;
-     332 00000290 000000F1002081    LBBO  &r1, r0, 0, 4                                   ;
-     333; write GPIO DATAOUT INTO SHARED
-     334 00000294 0F0080240000C0    LDI32 r0, 0xF00                                       ; mascara desde bit8 a bit11 porque en el regi
-     335 0000029c 00000010E0E1E1    AND   r1, r1, r0                                      ;
-     336 000002a0 0000000B04E1E1    LSR   r1, r1, 4                                       ; se desplazan 4 posiciones para que los datos
-     337; set flag data ready
-     338 000002a4 0000001F0CE1E1    SET   r1, r1, GPIO_OUTPUT_GET_DATARDY_FLAG            ; bit12-> flag gpio_output get complete
-     339 000002a8 000000E10C3481    SBBO  &r1, r20, SHD_GPIO_OUTPUT_GET_DATA, 4           ; Cargamos valores de gpio_out en los bits 4-7
-     340 000002ac 0000007F0000B8    QBA   level_gpio_output_set                           ;
-     341
-     342 000002b0                 GPIO_OUTPUT_SET_MODE0:
-     343; clr flag gpio_write
-     344 000002b0 000000F1103480    LBBO  &r0, r20, SHD_GPIO_OUTPUT_SET_FLAGS, 4          ;
-     345 000002b4 0000001D00E0E0    CLR   r0, r0, GPIO_OUTPUT_SET_MODE0_FLAG              ; bit4 flag gpio_output set
-     346 000002b8 000000E1103480    SBBO  &r0, r20, SHD_GPIO_OUTPUT_SET_FLAGS, 4          ;
-     347; read gpio_output to set
-     348 000002bc 000000F1143480    LBBO  &r0, r20, SHD_GPIO_OUTPUT_SET_DATA, 4           ;
-     349 000002c0 000000110FE0E1    AND   r1, r0, 0x0F                                    ; extrae los primeros 4 bits (0-3) en r1. Flag
-     350 000002c4 00000011F0E0E2    AND   r2, r0, 0xF0                                    ; extrae los bits 4-7 en r2. Pin state
-     351 000002c8 0000000B04E2E2    LSR   r2, r2, 4                                       ; desplaza los bits 4-7 a la posicion menos si
-     352 000002cc 000083240000C3    LDI32 r3, 0                                           ; inicializa el contador de bits (0 a 3)
-     353 000002d4 010084240000C4    LDI32 r4, GPIO_OUT_BASE                               ; direccion base GPIO_OUT_BASE
-     354 000002dc                 check_bits_w:
-     355 000002dc 0000001101E2E5    AND   r5, r2, 1                                       ; extrae el bit menos significativo de r2 (sta
-     356 000002e0 000000D0E3E109    QBBS  gpio_write_out_funct, r1, r3                    ; qbbs myLabel r1, r3. Branch if( r1&(1<<r3) )
-     357 000002e4                 GPIO_OUTPUT_SET_MODE0_A:
-     358 000002e4 0000000B01E2E2    LSR   r2, r2, 1                                       ; desplaza r2 a la derecha para procesar el si
-     359 000002e8 0000000901E4E4    LSL   r4, r4, 1                                       ; desplaza hacia el proximo bit de GPIO_out1,.
-     360 000002ec 0000000101E3E3    ADD   r3, r3, 1                                       ; count++
-     361 000002f0 0000006704E3FB    QBGT  check_bits_w, r3, 4                             ; cuatro salidas. qbgt myLabel, r3, r4. Branch
-     362; set flag data complete
-     363 000002f4 0000002EFF8180    ZERO  &r0, 4                                          ; shared erase
-     364 000002f8 0000001F0CE0E0    SET   r0, r0, GPIO_OUTPUT_SET_DATARDY_FLAG            ; shared bit12-> flag write complete
-     365 000002fc 000000E1143480    SBBO  &r0, r20, SHD_GPIO_OUTPUT_SET_DATA, 4           ;
-     366 00000300 0000007F0000A5    QBA   level_motor_get                                 ;
-     367
-     368 00000304                 gpio_write_out_funct:
-     369 00000304 000000D100E502    QBBS  write_out_set, r5, 0                            ; jamp si bit0 de r5 es set
-     370 00000308 000000C900E505    QBBC  write_out_clr, r5, 0                            ; jamp si bit0 de r5 es clr
-     371 0000030c                 write_out_set:
-     372 0000030c 7194862444E0C6    LDI32 r6, (GPIO0|GPIO_SETDATAOUT)                     ; load addr for GPIO Set data r6
-     373 00000314 000000E1002684    SBBO  &r4, r6, 0, 4                                   ; write r4 to the r6 address valu
-     374 00000318 0000007F0000F3    QBA   GPIO_OUTPUT_SET_MODE0_A                         ;
-     375 0000031c                 write_out_clr:
-     376 0000031c 7190862444E0C6    LDI32 r6, (GPIO0|GPIO_CLRDATAOUT)                     ; load addr for GPIO Clear data.
-     377 00000324 000000E1002684    SBBO  &r4, r6, 0, 4                                   ; write r4 to the r6 address
-     378 00000328 0000007F0000EF    QBA   GPIO_OUTPUT_SET_MODE0_A                         ;
-     379
-     380 0000032c                 MOTOR_GET_MODE0:
-     381; clr flag motor config get
-     382 0000032c 000000F1183480    LBBO  &r0, r20, SHD_MOTOR_GET_FLAGS, 4                ;
-     383 00000330 0000001D00E0E0    CLR   r0,r0, MOTOR_GET_MODE0_FLAG                     ; bit5 flag get state
-     384 00000334 000000E1183480    SBBO  &r0, r20, SHD_MOTOR_GET_FLAGS, 4                ;
-     385; read MOTOR
-PRU Assembler Unix v2.3.3 Sun May 11 21:04:25 2025
+     331 00000290                 GPIO_OUTPUT_SET_MODE0:
+     332; clr flag gpio_write
+     333 00000290 000000F1103480    LBBO  &r0, r20, SHD_GPIO_OUTPUT_SET_FLAGS, 4          ;
+     334 00000294 0000001D00E0E0    CLR   r0, r0, GPIO_OUTPUT_SET_MODE0_FLAG              ; bit4 flag gpio_output set
+     335 00000298 000000E1103480    SBBO  &r0, r20, SHD_GPIO_OUTPUT_SET_FLAGS, 4          ;
+     336; read gpio_output to set
+     337 0000029c 000000F1143480    LBBO  &r0, r20, SHD_GPIO_OUTPUT_SET_DATA, 4           ;
+     338 000002a0 000000110FE0E1    AND   r1, r0, 0x0F                                    ; extrae los primeros 4 bits (0-3) en r1. Flag
+     339 000002a4 00000011F0E0E2    AND   r2, r0, 0xF0                                    ; extrae los bits 4-7 en r2. Pin state
+     340 000002a8 0000000B04E2E2    LSR   r2, r2, 4                                       ; desplaza los bits 4-7 a la posicion menos si
+     341 000002ac 000083240000C3    LDI32 r3, 0                                           ; inicializa el contador de bits (0 a 3)
+     342 000002b4 010084240000C4    LDI32 r4, GPIO_OUT_BASE                               ; direccion base GPIO_OUT_BASE
+     343 000002bc                 check_bits_w:
+     344 000002bc 0000001101E2E5    AND   r5, r2, 1                                       ; extrae el bit menos significativo de r2 (sta
+     345 000002c0 000000D0E3E109    QBBS  gpio_write_out_funct, r1, r3                    ; qbbs myLabel r1, r3. Branch if( r1&(1<<r3) )
+     346 000002c4                 GPIO_OUTPUT_SET_MODE0_A:
+     347 000002c4 0000000B01E2E2    LSR   r2, r2, 1                                       ; desplaza r2 a la derecha para procesar el si
+     348 000002c8 0000000901E4E4    LSL   r4, r4, 1                                       ; desplaza hacia el proximo bit de GPIO_out1,.
+     349 000002cc 0000000101E3E3    ADD   r3, r3, 1                                       ; count++
+     350 000002d0 0000006704E3FB    QBGT  check_bits_w, r3, 4                             ; cuatro salidas. qbgt myLabel, r3, r4. Branch
+     351; set flag data complete
+     352 000002d4 0000002EFF8180    ZERO  &r0, 4                                          ; shared erase
+     353 000002d8 0000001F0CE0E0    SET   r0, r0, GPIO_OUTPUT_SET_DATARDY_FLAG            ; shared bit12-> flag write complete
+     354 000002dc 000000E1143480    SBBO  &r0, r20, SHD_GPIO_OUTPUT_SET_DATA, 4           ;
+     355 000002e0 0000007F0000A7    QBA   level_motor_get                                 ;
+     356
+     357 000002e4                 gpio_write_out_funct:
+     358 000002e4 000000D100E502    QBBS  write_out_set, r5, 0                            ; jamp si bit0 de r5 es set
+     359 000002e8 000000C900E505    QBBC  write_out_clr, r5, 0                            ; jamp si bit0 de r5 es clr
+     360 000002ec                 write_out_set:
+     361 000002ec 7194862444E0C6    LDI32 r6, (GPIO0|GPIO_SETDATAOUT)                     ; load addr for GPIO Set data r6
+     362 000002f4 000000E1002684    SBBO  &r4, r6, 0, 4                                   ; write r4 to the r6 address valu
+     363 000002f8 0000007F0000F3    QBA   GPIO_OUTPUT_SET_MODE0_A                         ;
+     364 000002fc                 write_out_clr:
+     365 000002fc 7190862444E0C6    LDI32 r6, (GPIO0|GPIO_CLRDATAOUT)                     ; load addr for GPIO Clear data.
+     366 00000304 000000E1002684    SBBO  &r4, r6, 0, 4                                   ; write r4 to the r6 address
+     367 00000308 0000007F0000EF    QBA   GPIO_OUTPUT_SET_MODE0_A                         ;
+     368
+     369 0000030c                 MOTOR_GET_MODE0:
+     370; clr flag motor config get
+     371 0000030c 000000F1183480    LBBO  &r0, r20, SHD_MOTOR_GET_FLAGS, 4                ;
+     372 00000310 0000001D00E0E0    CLR   r0,r0, MOTOR_GET_MODE0_FLAG                     ; bit5 flag get state
+     373 00000314 000000E1183480    SBBO  &r0, r20, SHD_MOTOR_GET_FLAGS, 4                ;
+     374; read MOTOR
+     375 00000318 C13C8024481AC0    LDI32 r0, (GPIO2|GPIO_DATAOUT)                        ; load addr for DATAOUT
+     376 00000320 000000F1002081    LBBO  &r1, r0, 0, 4                                   ; Load the values at r0 into r1.
+     377; write GPIO IN DATA INTO SHARED
+     378 00000324 0000000B02E1E2    LSR   r2, r1, 2                                       ; r2 = bits 2–5 en posición 0–3
+     379 00000328 000000110FE2E2    AND   r2, r2, 0xF                                     ; enmascara solo los 4 bits bajos
+     380 0000032c 0000000B0EE1E3    LSR   r3, r1, 14                                      ; r3 = bits 14–17 en posición 0–3
+     381 00000330 000000110FE3E3    AND   r3, r3, 0xF                                     ; enmascara solo los 4 bits bajos
+     382 00000334 0000000904E2E2    LSL   r2, r2, 4                                       ; ahora r2 contiene los bits 2–5 en posició
+     383 00000338 0000000908E3E3    LSL   r3, r3, 8                                       ; r3 contiene los bits 14–17 en posición 8�
+     384 0000033c 00000012E3E2E4    OR    r4, r2, r3                                      ; combina ambos en r4
+     385; set flag data ready
+PRU Assembler Unix v2.3.3 Tue May 13 02:21:21 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE    8
 
-     386 00000338 C13C8024481AC0    LDI32 r0, (GPIO2|GPIO_DATAOUT)                        ; load addr for DATAOUT
-     387 00000340 000000F1002081    LBBO  &r1, r0, 0, 4                                   ; Load the values at r0 into r1.
-     388; write GPIO IN DATA INTO SHARED
-     389 00000344 0000000B02E1E2    LSR   r2, r1, 2                                       ; r2 = bits 2–5 en posición 0–3
-     390 00000348 000000110FE2E2    AND   r2, r2, 0xF                                     ; enmascara solo los 4 bits bajos
-     391 0000034c 0000000B0EE1E3    LSR   r3, r1, 14                                      ; r3 = bits 14–17 en posición 0–3
-     392 00000350 000000110FE3E3    AND   r3, r3, 0xF                                     ; enmascara solo los 4 bits bajos
-     393 00000354 0000000904E2E2    LSL   r2, r2, 4                                       ; ahora r2 contiene los bits 2–5 en posició
-     394 00000358 0000000908E3E3    LSL   r3, r3, 8                                       ; r3 contiene los bits 14–17 en posición 8�
-     395 0000035c 00000012E3E2E4    OR    r4, r2, r3                                      ; combina ambos en r4
-     396; set flag data ready
-     397 00000360 0000001F0CE4E4    SET   r4, r4, MOTOR_GET_DATARDY_FLAG                  ; bit12-> flag get
-     398 00000364 000000E11C3484    SBBO  &r4, r20, SHD_MOTOR_GET_DATA, 4                 ; Cargamos valores enable-dir de todos los mot
-     399 00000368 0000007F000090    QBA   level_motor_set                                 ;
-     400
-     401 0000036c                 MOTOR_GET_MODE1:
-     402 0000036c 000000F1183480    LBBO  &r0, r20, SHD_MOTOR_GET_FLAGS, 4                ;
-     403 00000370 000000CF01E08C    QBBC  level_motor_get_mode2, r0, MOTOR_GET_MODE1_FLAG ;
-     404; clear IRQ_GPIO_IRQSTATUS_1
-     405 00000374 000000F1003680    LBBO  &r0, r22, 0, 4                                  ;
-     406 00000378 0000001F07E0E0    SET   r0, r0, GPIO2_7_MOTOR_C_TRIGGER                 ;
-     407 0000037c 000000E1003680    SBBO  &r0, r22, 0, 4                                  ;
-     408; read MOTOR
-     409 00000380 C13C8024481AC0    LDI32 r0, (GPIO2|GPIO_DATAOUT)                        ;
-     410 00000388 000000F1002081    LBBO  &r1, r0, 0, 4                                   ;
-     411; write GPIO IN DATA INTO SHARED
-     412 0000038c 0000000B02E1E2    LSR   r2, r1, 2                                       ; r2 = bits 2–5 en posición 0–3
-     413 00000390 000000110FE2E2    AND   r2, r2, 0xF                                     ; enmascara solo los 4 bits bajos
-     414 00000394 0000000B0EE1E3    LSR   r3, r1, 14                                      ; r3 = bits 14–17 en posición 0–3
-     415 00000398 000000110FE3E3    AND   r3, r3, 0xF                                     ; enmascara solo los 4 bits bajos
-     416 0000039c 0000000904E2E2    LSL   r2, r2, 4                                       ; ahora r2 contiene los bits 2–5 en posició
-     417 000003a0 0000000908E3E3    LSL   r3, r3, 8                                       ; r3 contiene los bits 14–17 en posición 8�
-     418 000003a4 00000012E3E2E4    OR    r4, r2, r3                                      ; combina ambos en r4
-     419; set flag data ready
-     420 000003a8 0000001F0CE4E4    SET   r4, r4, MOTOR_GET_DATARDY_FLAG                  ; shared bit12-> flag motor_config get
-     421 000003ac 000000E11C3484    SBBO  &r4, r20, SHD_MOTOR_GET_DATA, 4                 ; Cargamos valores enable-dir de todos los mot
-     422 000003b0 0000007F00007C    QBA   level_motor_get_mode2                           ;
-     423
-     424 000003b4                 MOTOR_GET_MODE2:
-     425 000003b4 000000F1183480    LBBO  &r0, r20, SHD_MOTOR_GET_FLAGS, 4                ;
-     426 000003b8 000000CF02E07C    QBBC  level_motor_set, r0, MOTOR_GET_MODE2_FLAG       ;
-     427; clear IRQ_GPIO_IRQSTATUS_1
-     428 000003bc 000000F1003680    LBBO  &r0, r22, 0, 4                                  ;
-     429 000003c0 0000001F0BE0E0    SET   r0, r0, GPIO2_11_MOTOR_A_TRIGGER                ;
-     430 000003c4 0000001F09E0E0    SET   r0, r0, GPIO2_9_MOTOR_B_TRIGGER                 ;
-     431 000003c8 000000E1003680    SBBO  &r0, r22, 0, 4                                  ;
-     432; read MOTOR
-     433 000003cc C13C8024481AC0    LDI32 r0, (GPIO2|GPIO_DATAOUT)                        ;
-     434 000003d4 000000F1002081    LBBO  &r1, r0, 0, 4                                   ;
-     435; write GPIO IN DATA INTO SHARED
-     436 000003d8 0000000B02E1E2    LSR   r2, r1, 2                                       ; r2 = bits 2–5 en posición 0–3
-     437 000003dc 000000110FE2E2    AND   r2, r2, 0xF                                     ; enmascara solo los 4 bits bajos
-     438 000003e0 0000000B0EE1E3    LSR   r3, r1, 14                                      ; r3 = bits 14–17 en posición 0–3
-     439 000003e4 000000110FE3E3    AND   r3, r3, 0xF                                     ; enmascara solo los 4 bits bajos
-     440 000003e8 0000000904E2E2    LSL   r2, r2, 4                                       ; ahora r2 contiene los bits 2–5 en posició
-PRU Assembler Unix v2.3.3 Sun May 11 21:04:25 2025
+     386 00000340 0000001F0CE4E4    SET   r4, r4, MOTOR_GET_DATARDY_FLAG                  ; bit12-> flag get
+     387 00000344 000000E11C3484    SBBO  &r4, r20, SHD_MOTOR_GET_DATA, 4                 ; Cargamos valores enable-dir de todos los mot
+     388 00000348 0000007F000090    QBA   level_motor_set                                 ;
+     389
+     390 0000034c                 MOTOR_GET_MODE1:
+     391 0000034c 000000F1183480    LBBO  &r0, r20, SHD_MOTOR_GET_FLAGS, 4                ;
+     392 00000350 000000CF01E08E    QBBC  level_motor_set, r0, MOTOR_GET_MODE1_FLAG ;
+     393; clear IRQ_GPIO_IRQSTATUS_1
+     394 00000354 000000F1003680    LBBO  &r0, r22, 0, 4                                  ;
+     395 00000358 0000001F07E0E0    SET   r0, r0, GPIO2_7_MOTOR_TRIGGER                   ;
+     396 0000035c 000000E1003680    SBBO  &r0, r22, 0, 4                                  ;
+     397; read MOTOR
+     398 00000360 C13C8024481AC0    LDI32 r0, (GPIO2|GPIO_DATAOUT)                        ;
+     399 00000368 000000F1002081    LBBO  &r1, r0, 0, 4                                   ;
+     400; write GPIO IN DATA INTO SHARED
+     401 0000036c 0000000B02E1E2    LSR   r2, r1, 2                                       ; r2 = bits 2–5 en posición 0–3
+     402 00000370 000000110FE2E2    AND   r2, r2, 0xF                                     ; enmascara solo los 4 bits bajos
+     403 00000374 0000000B0EE1E3    LSR   r3, r1, 14                                      ; r3 = bits 14–17 en posición 0–3
+     404 00000378 000000110FE3E3    AND   r3, r3, 0xF                                     ; enmascara solo los 4 bits bajos
+     405 0000037c 0000000904E2E2    LSL   r2, r2, 4                                       ; ahora r2 contiene los bits 2–5 en posició
+     406 00000380 0000000908E3E3    LSL   r3, r3, 8                                       ; r3 contiene los bits 14–17 en posición 8�
+     407 00000384 00000012E3E2E4    OR    r4, r2, r3                                      ; combina ambos en r4
+     408; set flag data ready
+     409 00000388 0000001F0CE4E4    SET   r4, r4, MOTOR_GET_DATARDY_FLAG                  ; shared bit12-> flag motor_config get
+     410 0000038c 000000E11C3484    SBBO  &r4, r20, SHD_MOTOR_GET_DATA, 4                 ; Cargamos valores enable-dir de todos los mot
+     411 00000390 0000007F00007E    QBA   level_motor_set                                 ;
+     412
+     413 00000394                 MOTOR_SET_MODE0:
+     414; clr flag motor set
+     415 00000394 000000F1203480    LBBO  &r0, r20, SHD_MOTOR_SET_FLAGS, 4                ; Shared
+     416 00000398 0000001D00E0E0    CLR   r0,r0, MOTOR_SET_MODE0_FLAG                     ; bit5 flag motor
+     417 0000039c 000000E1203480    SBBO  &r0, r20, SHD_MOTOR_SET_FLAGS, 4                ;
+     418; Cargamos los step
+     419 000003a0 000000F128348A    LBBO  &r10, r20, SHD_MOTOR_STEP_PERIOD_A, 4           ; read shared STEP_PERIOD_A
+     420 000003a4 000000F12C348C    LBBO  &r12, r20, SHD_MOTOR_STEP_PERIOD_B, 4           ; read shared STEP_PERIOD_B
+     421 000003a8 000000F130348E    LBBO  &r14, r20, SHD_MOTOR_STEP_PERIOD_C, 4           ; read shared STEP_PERIOD_C
+     422 000003ac 000000F1343490    LBBO  &r16, r20, SHD_MOTOR_STEP_PERIOD_D, 4           ; read shared STEP_PERIOD_C
+     423; load data
+     424 000003b0 000000F1243480    LBBO  &r0, r20, SHD_MOTOR_SET_DATA, 4                 ;
+     425 000003b4 000000110FE0E1    AND   r1, r0, 0x0F                                    ; extrae los priomeros 4 bits (0-3) en r1. Fla
+     426 000003b8 0FF082240000C2    LDI32 r2, 0xFF0                                       ; mascara bit 4-11
+     427 000003c0 00000010E2E0E2    AND   r2, r0, r2                                      ; extrae los bits 4-11 en r2. Pins enable-dir
+     428 000003c4 0000000B04E2E2    LSR   r2, r2, 4                                       ; desplaza los bits 4-11 a la posicion menos s
+     429 000003c8 000083240000C3    LDI32 r3, 0                                           ; inicializa el contador de bits (0 a 3)
+     430 000003d0 000484240000C4    LDI32 r4, GPIO_MOTOR_ENA_BASE                         ; direccion base gpio MOTOR_ENA_Base
+     431 000003d8 400085240000C5    LDI32 r5, GPIO_MOTOR_DIR_BASE                         ; direccion base gpio MOTOR_DIR_Base
+     432 000003e0                 check_bits_m:
+     433 000003e0 0000001111E2E6    AND   r6, r2, 0x11                                    ; mascara inicial Bit0 -> Enable Bit4-> Dir
+     434 000003e4 000000D0E3E10A    QBBS  motor_config, r1, r3                            ; qbbs myLabel r2, r4. Branch if( r2&(1<<r4) )
+     435 000003e8                 MOTOR_SET_MODE0_A1:
+     436 000003e8 0000000B01E2E2    LSR   r2, r2, 1                                       ; desplaza r2 a la derecha para procesar
+     437 000003ec 0000000901E4E4    LSL   r4, r4, 1                                       ; desplaza a la siguiente Ena
+     438 000003f0 0000000901E5E5    LSL   r5, r5, 1                                       ; desplaza a la siguente Dir
+     439 000003f4 0000000101E3E3    ADD   r3, r3, 1                                       ; count++
+     440 000003f8 0000006704E3FA    QBGT  check_bits_m, r3, 4                             ; cuatro salidas. qbgt myLabel, r3, r4. Branch
+PRU Assembler Unix v2.3.3 Tue May 13 02:21:21 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE    9
 
-     441 000003ec 0000000908E3E3    LSL   r3, r3, 8                                       ; r3 contiene los bits 14–17 en posición 8�
-     442 000003f0 00000012E3E2E4    OR    r4, r2, r3                                      ; combina ambos en r4
-     443; set flag data ready
-     444 000003f4 0000001F0CE4E4    SET   r4, r4, MOTOR_GET_DATARDY_FLAG                  ; shared bit12-> flag motor_config get
-     445 000003f8 000000E11C3484    SBBO  &r4, r20, SHD_MOTOR_GET_DATA, 4                 ; Cargamos valores enable-dir de todos los mot
-     446 000003fc 0000007F00006B    QBA   level_motor_set                                 ;
-     447
-     448 00000400                 MOTOR_SET_MODE0:
-     449; clr flag motor set
-     450 00000400 000000F1203480    LBBO  &r0, r20, SHD_MOTOR_SET_FLAGS, 4                ; Shared
-     451 00000404 0000001D00E0E0    CLR   r0,r0, MOTOR_SET_MODE0_FLAG                     ; bit5 flag motor
-     452 00000408 000000E1203480    SBBO  &r0, r20, SHD_MOTOR_SET_FLAGS, 4                ;
-     453; Cargamos los step
-     454 0000040c 000000F128348A    LBBO  &r10, r20, SHD_MOTOR_STEP_PERIOD_A, 4           ; read shared STEP_PERIOD_A
-     455 00000410 000000F12C348C    LBBO  &r12, r20, SHD_MOTOR_STEP_PERIOD_B, 4           ; read shared STEP_PERIOD_B
-     456 00000414 000000F130348E    LBBO  &r14, r20, SHD_MOTOR_STEP_PERIOD_C, 4           ; read shared STEP_PERIOD_C
-     457 00000418 000000F1343490    LBBO  &r16, r20, SHD_MOTOR_STEP_PERIOD_D, 4           ; read shared STEP_PERIOD_C
-     458; load data
-     459 0000041c 000000F1243480    LBBO  &r0, r20, SHD_MOTOR_SET_DATA, 4                 ;
-     460 00000420 000000110FE0E1    AND   r1, r0, 0x0F                                    ; extrae los priomeros 4 bits (0-3) en r1. Fla
-     461 00000424 0FF082240000C2    LDI32 r2, 0xFF0                                       ; mascara bit 4-11
-     462 0000042c 00000010E2E0E2    AND   r2, r0, r2                                      ; extrae los bits 4-11 en r2. Pins enable-dir
-     463 00000430 0000000B04E2E2    LSR   r2, r2, 4                                       ; desplaza los bits 4-11 a la posicion menos s
-     464 00000434 000083240000C3    LDI32 r3, 0                                           ; inicializa el contador de bits (0 a 3)
-     465 0000043c 000484240000C4    LDI32 r4, GPIO_MOTOR_ENA_BASE                         ; direccion base gpio MOTOR_ENA_Base
-     466 00000444 400085240000C5    LDI32 r5, GPIO_MOTOR_DIR_BASE                         ; direccion base gpio MOTOR_DIR_Base
-     467 0000044c                 check_bits_m:
-     468 0000044c 0000001111E2E6    AND   r6, r2, 0x11                                    ; mascara inicial Bit0 -> Enable Bit4-> Dir
-     469 00000450 000000D0E3E10A    QBBS  motor_config, r1, r3                            ; qbbs myLabel r2, r4. Branch if( r2&(1<<r4) )
-     470 00000454                 MOTOR_SET_MODE0_A1:
-     471 00000454 0000000B01E2E2    LSR   r2, r2, 1                                       ; desplaza r2 a la derecha para procesar
-     472 00000458 0000000901E4E4    LSL   r4, r4, 1                                       ; desplaza a la siguiente Ena
-     473 0000045c 0000000901E5E5    LSL   r5, r5, 1                                       ; desplaza a la siguente Dir
-     474 00000460 0000000101E3E3    ADD   r3, r3, 1                                       ; count++
-     475 00000464 0000006704E3FA    QBGT  check_bits_m, r3, 4                             ; cuatro salidas. qbgt myLabel, r3, r4. Branch
-     476; set flag motor config complete
-     477 00000468 0000002EFF8180    ZERO  &r0, 4                                          ; shared erase
-     478 0000046c 0000001F0CE0E0    SET   r0, r0, MOTOR_SET_DATARDY_FLAG                  ; shared bit12-> flag motor config complete
-     479 00000470 000000E1243480    SBBO  &r0, r20, SHD_MOTOR_SET_DATA, 4                 ;
-     480 00000474 0000007F00004F    QBA   level_motorA_step_time                          ;
-     481
-     482 00000478                 motor_config:
-     483 00000478 000000D100E604    QBBS  enable_set, r6, 0                               ;
-     484 0000047c 000000C900E607    QBBC  enable_clr, r6, 0                               ;
-     485 00000480                 MOTOR_SET_MODE0_A2:
-     486 00000480 000000D104E60A    QBBS  dir_set, r6, 4                                  ;
-     487 00000484 000000C904E60D    QBBC  dir_clr, r6, 4                                  ;
-     488 00000488                 enable_set:
-     489 00000488 C1908724481AC7    LDI32 r7, (GPIO2|GPIO_CLRDATAOUT)                     ; A4988 ENABLE CLR
-     490 00000490 000000E1002784    SBBO  &r4, r7, 0, 4                                   ; write r4 to the r7 address value
-     491 00000494 0000007F0000FB    QBA   MOTOR_SET_MODE0_A2                              ;
-     492 00000498                 enable_clr:
-     493 00000498 C1948724481AC7    LDI32 r7, (GPIO2|GPIO_SETDATAOUT)                     ; load addr for GPIO Set data r7
-     494 000004a0 000000E1002784    SBBO  &r4, r7, 0, 4                                   ; write r4 to the r6 address value
-     495 000004a4 0000007F0000F7    QBA   MOTOR_SET_MODE0_A2                              ;
-PRU Assembler Unix v2.3.3 Sun May 11 21:04:25 2025
+     441; set flag motor config complete
+     442 000003fc 0000002EFF8180    ZERO  &r0, 4                                          ; shared erase
+     443 00000400 0000001F0CE0E0    SET   r0, r0, MOTOR_SET_DATARDY_FLAG                  ; shared bit12-> flag motor config complete
+     444 00000404 000000E1243480    SBBO  &r0, r20, SHD_MOTOR_SET_DATA, 4                 ;
+     445 00000408 0000007F000062    QBA   level_motorA_step_time                          ;
+     446
+     447 0000040c                 motor_config:
+     448 0000040c 000000D100E604    QBBS  enable_set, r6, 0                               ;
+     449 00000410 000000C900E607    QBBC  enable_clr, r6, 0                               ;
+     450 00000414                 MOTOR_SET_MODE0_A2:
+     451 00000414 000000D104E60A    QBBS  dir_set, r6, 4                                  ;
+     452 00000418 000000C904E60D    QBBC  dir_clr, r6, 4                                  ;
+     453 0000041c                 enable_set:
+     454 0000041c C1908724481AC7    LDI32 r7, (GPIO2|GPIO_CLRDATAOUT)                     ; A4988 ENABLE CLR
+     455 00000424 000000E1002784    SBBO  &r4, r7, 0, 4                                   ; write r4 to the r7 address value
+     456 00000428 0000007F0000FB    QBA   MOTOR_SET_MODE0_A2                              ;
+     457 0000042c                 enable_clr:
+     458 0000042c C1948724481AC7    LDI32 r7, (GPIO2|GPIO_SETDATAOUT)                     ; load addr for GPIO Set data r7
+     459 00000434 000000E1002784    SBBO  &r4, r7, 0, 4                                   ; write r4 to the r6 address value
+     460 00000438 0000007F0000F7    QBA   MOTOR_SET_MODE0_A2                              ;
+     461 0000043c                 dir_set:
+     462 0000043c C1948724481AC7    LDI32 r7, (GPIO2|GPIO_SETDATAOUT)                     ; load addr for GPIO Set data r7
+     463 00000444 000000E1002785    SBBO  &r5, r7, 0, 4                                   ; write r5 to the r7 address value
+     464 00000448 0000007F0000E8    QBA   MOTOR_SET_MODE0_A1                              ;
+     465 0000044c                 dir_clr:
+     466 0000044c C1908724481AC7    LDI32 r7, (GPIO2|GPIO_CLRDATAOUT)                     ; load addr for GPIO Set data r7
+     467 00000454 000000E1002785    SBBO  &r5, r7, 0, 4                                   ; write r5 to the r7 address value
+     468 00000458 0000007F0000E4    QBA   MOTOR_SET_MODE0_A1                              ;
+     469
+     470 0000045c                 STEP_PERIOD_A:
+     471 0000045c 0000000501EBEB    SUB   r11, r11, 1                                     ; se resta 1 a r10. r10 fue cargado cuando se 
+     472 00000460 0000005100EB02    QBEQ  TOGGLE_PIN_A, r11, 0                            ; toggle pin step cuando la cuenta llega a 0
+     473 00000464 0000007F00004C    QBA   level_motorB_step_time                          ; sino volvemos al loop principal
+     474 00000468                 TOGGLE_PIN_A:
+     475 00000468 0000001510FEFE    XOR   r30, r30, OUTPUT_MA_S                           ; toggle GPIO2_14_MA_S
+     476 0000046c 00000010EAEAEB    MOV   r11, r10                                        ;
+     477 00000470 0000007F000049    QBA   level_motorB_step_time                          ; volvemos al loop principal
+     478
+     479 00000474                 STEP_PERIOD_B:
+     480 00000474 0000000501EDED    SUB   r13, r13, 1                                     ; se resta 1 a r11. r11 fue cargado cuando se 
+     481 00000478 0000005100ED02    QBEQ  TOGGLE_PIN_B, r13, 0                            ; toggle pin step cuando la cuenta llega a 0
+     482 0000047c 0000007F000047    QBA   level_motorC_step_time                          ; sino volvemos al loop principal
+     483 00000480                 TOGGLE_PIN_B:
+     484 00000480 0000001520FEFE    XOR   r30, r30, OUTPUT_MB_S                           ; toggle GPIO2_15_MB_S
+     485 00000484 00000010ECECED    MOV   r13, r12                                        ;
+     486 00000488 0000007F000044    QBA   level_motorC_step_time                          ; volvemos al loop principal
+     487
+     488 0000048c                 STEP_PERIOD_C:
+     489 0000048c 0000000501EFEF    SUB   r15, r15, 1                                     ; se resta 1 a r12. r12 fue cargado cuando se 
+     490 00000490 0000005100EF02    QBEQ  TOGGLE_PIN_C, r15, 0                            ; toggle pin step cuando la cuenta llega a 0
+     491 00000494 0000007F000042    QBA   level_motorD_step_time                          ; sino volvemos al loop principal
+     492 00000498                 TOGGLE_PIN_C:
+     493 00000498 0000001540FEFE    XOR   r30, r30, OUTPUT_MC_S                           ; toggle GPIO2_16_MC_S
+     494 0000049c 00000010EEEEEF    MOV   r15, r14                                        ;
+     495 000004a0 0000007F00003F    QBA   level_motorD_step_time                          ; volvemos al loop principal
+PRU Assembler Unix v2.3.3 Tue May 13 02:21:21 2025
 
 Tools Copyright (c) 2012-2018 Texas Instruments Incorporated
 src/pru1-digital.asm                                                 PAGE   10
 
-     496 000004a8                 dir_set:
-     497 000004a8 C1948724481AC7    LDI32 r7, (GPIO2|GPIO_SETDATAOUT)                     ; load addr for GPIO Set data r7
-     498 000004b0 000000E1002785    SBBO  &r5, r7, 0, 4                                   ; write r5 to the r7 address value
-     499 000004b4 0000007F0000E8    QBA   MOTOR_SET_MODE0_A1                              ;
-     500 000004b8                 dir_clr:
-     501 000004b8 C1908724481AC7    LDI32 r7, (GPIO2|GPIO_CLRDATAOUT)                     ; load addr for GPIO Set data r7
-     502 000004c0 000000E1002785    SBBO  &r5, r7, 0, 4                                   ; write r5 to the r7 address value
-     503 000004c4 0000007F0000E4    QBA   MOTOR_SET_MODE0_A1                              ;
-     504
-     505 000004c8                 STEP_PERIOD_A:
-     506 000004c8 0000000501EBEB    SUB   r11, r11, 1                                     ; se resta 1 a r10. r10 fue cargado cuando se 
-     507 000004cc 0000005100EB02    QBEQ  TOGGLE_PIN_A, r11, 0                            ; toggle pin step cuando la cuenta llega a 0
-     508 000004d0 0000007F000039    QBA   level_motorB_step_time                          ; sino volvemos al loop principal
-     509 000004d4                 TOGGLE_PIN_A:
-     510 000004d4 0000001510FEFE    XOR   r30, r30, OUTPUT_MA_S                           ; toggle GPIO2_14_MA_S
-     511 000004d8 00000010EAEAEB    MOV   r11, r10                                        ;
-     512 000004dc 0000007F000036    QBA   level_motorB_step_time                          ; volvemos al loop principal
-     513
-     514 000004e0                 STEP_PERIOD_B:
-     515 000004e0 0000000501EDED    SUB   r13, r13, 1                                     ; se resta 1 a r11. r11 fue cargado cuando se 
-     516 000004e4 0000005100ED02    QBEQ  TOGGLE_PIN_B, r13, 0                            ; toggle pin step cuando la cuenta llega a 0
-     517 000004e8 0000007F000034    QBA   level_motorC_step_time                          ; sino volvemos al loop principal
-     518 000004ec                 TOGGLE_PIN_B:
-     519 000004ec 0000001520FEFE    XOR   r30, r30, OUTPUT_MB_S                           ; toggle GPIO2_15_MB_S
-     520 000004f0 00000010ECECED    MOV   r13, r12                                        ;
-     521 000004f4 0000007F000031    QBA   level_motorC_step_time                          ; volvemos al loop principal
-     522
-     523 000004f8                 STEP_PERIOD_C:
-     524 000004f8 0000000501EFEF    SUB   r15, r15, 1                                     ; se resta 1 a r12. r12 fue cargado cuando se 
-     525 000004fc 0000005100EF02    QBEQ  TOGGLE_PIN_C, r15, 0                            ; toggle pin step cuando la cuenta llega a 0
-     526 00000500 0000007F00002F    QBA   level_motorD_step_time                          ; sino volvemos al loop principal
-     527 00000504                 TOGGLE_PIN_C:
-     528 00000504 0000001540FEFE    XOR   r30, r30, OUTPUT_MC_S                           ; toggle GPIO2_16_MC_S
-     529 00000508 00000010EEEEEF    MOV   r15, r14                                        ;
-     530 0000050c 0000007F00002C    QBA   level_motorD_step_time                          ; volvemos al loop principal
-     531
-     532 00000510                 STEP_PERIOD_D:
-     533 00000510 0000000501F1F1    SUB   r17, r17, 1                                     ; se resta 1 a r13. r13 fue cargado cuando se 
-     534 00000514 0000005100F102    QBEQ  TOGGLE_PIN_D, r17, 0                            ; toggle pin step cuando la cuenta llega a 0
-     535 00000518 0000007F000013    QBA   level_gpio_input                                ; sino volvemos al loop principal
-     536 0000051c                 TOGGLE_PIN_D:
-     537 0000051c 0000001580FEFE    XOR   r30, r30, OUTPUT_MD_S                           ; toggle GPIO2_17_MD_S
-     538 00000520 00000010F0F0F1    MOV   r17, r16                                        ;
-     539 00000524 0000007F000010    QBA   level_gpio_input                                ; volvemos al loop principal
-     540
-     541 00000528 00239F240000DF    LDI32  R31, (PRU0_R31_VEC_VALID|PRU_EVTOUT_0)         ;
-     542 00000530 0000002A000000    HALT                                                  ; halt the pru program
+     496
+     497 000004a4                 STEP_PERIOD_D:
+     498 000004a4 0000000501F1F1    SUB   r17, r17, 1                                     ; se resta 1 a r13. r13 fue cargado cuando se 
+     499 000004a8 0000005100F102    QBEQ  TOGGLE_PIN_D, r17, 0                            ; toggle pin step cuando la cuenta llega a 0
+     500 000004ac 0000007F000028    QBA   level_gpio_input                                ; sino volvemos al loop principal
+     501 000004b0                 TOGGLE_PIN_D:
+     502 000004b0 0000001580FEFE    XOR   r30, r30, OUTPUT_MD_S                           ; toggle GPIO2_17_MD_S
+     503 000004b4 00000010F0F0F1    MOV   r17, r16                                        ;
+     504 000004b8 0000007F000025    QBA   level_gpio_input                                ; volvemos al loop principal
+     505
+     506 000004bc 00239F240000DF    LDI32  R31, (PRU0_R31_VEC_VALID|PRU_EVTOUT_0)         ;
+     507 000004c4 0000002A000000    HALT                                                  ; halt the pru program
 
 No Assembly Errors, No Assembly Warnings

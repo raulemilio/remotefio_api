@@ -85,9 +85,7 @@ Este documento detalla la asignación de pines para los distintos componentes de
 |------------------------------|--------|
 | ADC input trigger            | P9_14  |
 | Gpio input trigger           | P8_45  |
-| Motor input trigger A        | P8_46  |
-| Motor input trigger B        | P8_42  |
-| Motor input trigger C        | P8_44  |
+| Motor input trigger          | P8_46  |
 
 ---
 
@@ -186,13 +184,13 @@ Este documento detalla la asignación de pines para los distintos componentes de
 **FICHA TRIGGER DB-9**
 | Pin | Descripción                              |
 | --- | ---------------------------------------- |
-| 1   | Motor input trigger A                   |
-| 2   | Motor input trigger B                   |
-| 3   | Motor input trigger C                   |
+| 1   | Analog channels input trigger           |
+| 2   | Gpio input trigger                      |
+| 3   | Motor input trigger                     |
 | 4   | NC                                      |
 | 5   | GND                                     |
-| 6   | Gpio input trigger                      |
-| 7   | Analog channels input trigger           |
+| 6   | NC                                      |
+| 7   | NC                                      |
 | 8   | NC                                      |
 | 9   | NC                                      |
 

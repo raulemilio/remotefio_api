@@ -66,9 +66,7 @@
 
   ; INPUT TRIGGER
   .asg 6, GPIO2_6_GPIO_INPUT_TRIGGER                    ; P8_45
-  .asg 7, GPIO2_7_MOTOR_C_TRIGGER                       ; P8_46
-  .asg 11,GPIO2_11_MOTOR_A_TRIGGER                      ; P8_42
-  .asg 9, GPIO2_9_MOTOR_B_TRIGGER                       ; P8_44
+  .asg 7, GPIO2_7_MOTOR_TRIGGER                         ; P8_46
 
 ; gpio_write
   .asg (1<<8),  GPIO_OUT_BASE                           ;
@@ -174,9 +172,7 @@ gpio_config:
   LDI32 r0, (GPIO2|GPIO_OE)
   LBBO  &r1, r0, 0, 4
   SET   r1, r1, GPIO2_6_GPIO_INPUT_TRIGGER
-  SET   r1, r1, GPIO2_7_MOTOR_C_TRIGGER
-  SET   r1, r1, GPIO2_11_MOTOR_A_TRIGGER
-  SET   r1, r1, GPIO2_9_MOTOR_B_TRIGGER
+  SET   r1, r1, GPIO2_7_MOTOR_TRIGGER
   SET   r1, r1, GPIO2_22_GPIO_INPUT_0
   SET   r1, r1, GPIO2_23_GPIO_INPUT_1
   SET   r1, r1, GPIO2_24_GPIO_INPUT_2
@@ -195,9 +191,7 @@ gpio_config:
   LDI32 r0, (GPIO2|GPIO_RISINGDETECT)
   LBBO  &r1, r0, 0, 4
   SET   r1, r1, GPIO2_6_GPIO_INPUT_TRIGGER
-  SET   r1, r1, GPIO2_7_MOTOR_C_TRIGGER
-  SET   r1, r1, GPIO2_11_MOTOR_A_TRIGGER
-  SET   r1, r1, GPIO2_9_MOTOR_B_TRIGGER
+  SET   r1, r1, GPIO2_7_MOTOR_TRIGGER
   SET   r1, r1, GPIO2_22_GPIO_INPUT_0
   SET   r1, r1, GPIO2_23_GPIO_INPUT_1
   SET   r1, r1, GPIO2_24_GPIO_INPUT_2
@@ -208,9 +202,7 @@ gpio_config:
   LDI32 r0, (GPIO2|GPIO_IRQSTATUS_SET_1)
   LBBO  &r1, r0, 0, 4
   SET   r1, r1, GPIO2_6_GPIO_INPUT_TRIGGER
-  SET   r1, r1, GPIO2_7_MOTOR_C_TRIGGER
-  SET   r1, r1, GPIO2_11_MOTOR_A_TRIGGER
-  SET   r1, r1, GPIO2_9_MOTOR_B_TRIGGER
+  SET   r1, r1, GPIO2_7_MOTOR_TRIGGER
   SET   r1, r1, GPIO2_22_GPIO_INPUT_0
   SET   r1, r1, GPIO2_23_GPIO_INPUT_1
   SET   r1, r1, GPIO2_24_GPIO_INPUT_2
@@ -248,10 +240,7 @@ level_gpio_output_set:
 level_motor_get:
   LBBO  &r0, r20, SHD_MOTOR_GET_FLAGS, 4
   QBBS  MOTOR_GET_MODE0, r0, MOTOR_GET_MODE0_FLAG
-  QBBS  MOTOR_GET_MODE1, r23, GPIO2_7_MOTOR_C_TRIGGER
-level_motor_get_mode2:
-  QBBS  MOTOR_GET_MODE2, r23, GPIO2_11_MOTOR_A_TRIGGER
-  QBBS  MOTOR_GET_MODE2, r23, GPIO2_9_MOTOR_B_TRIGGER
+  QBBS  MOTOR_GET_MODE1, r23, GPIO2_7_MOTOR_TRIGGER
 level_motor_set:
   LBBO  &r0, r20, SHD_MOTOR_SET_FLAGS, 4
   QBBS  MOTOR_SET_MODE0, r0, MOTOR_SET_MODE0_FLAG
@@ -299,7 +288,7 @@ GPIO_INPUT_MODE1:
 ; set flag rising detect
   SET   r1, r1, GPIO_INPUT_DATARDY_FLAG                 ;
   SBBO  &r1, r20, SHD_GPIO_INPUT_DATA, 4                ;
-  QBA   level_gpio_input_mode2
+  QBA   level_gpio_output_get
 
 GPIO_INPUT_MODE2:
   LBBO  &r0, r20, SHD_GPIO_INPUT_FLAGS, 4               ;
@@ -400,34 +389,10 @@ MOTOR_GET_MODE0:
 
 MOTOR_GET_MODE1:
   LBBO  &r0, r20, SHD_MOTOR_GET_FLAGS, 4                ;
-  QBBC  level_motor_get_mode2, r0, MOTOR_GET_MODE1_FLAG ;
+  QBBC  level_motor_set, r0, MOTOR_GET_MODE1_FLAG ;
 ; clear IRQ_GPIO_IRQSTATUS_1
   LBBO  &r0, r22, 0, 4                                  ;
-  SET   r0, r0, GPIO2_7_MOTOR_C_TRIGGER                 ;
-  SBBO  &r0, r22, 0, 4                                  ;
-; read MOTOR
-  LDI32 r0, (GPIO2|GPIO_DATAOUT)                        ;
-  LBBO  &r1, r0, 0, 4                                   ;
-; write GPIO IN DATA INTO SHARED
-  LSR   r2, r1, 2                                       ; r2 = bits 2–5 en posición 0–3
-  AND   r2, r2, 0xF                                     ; enmascara solo los 4 bits bajos
-  LSR   r3, r1, 14                                      ; r3 = bits 14–17 en posición 0–3
-  AND   r3, r3, 0xF                                     ; enmascara solo los 4 bits bajos
-  LSL   r2, r2, 4                                       ; ahora r2 contiene los bits 2–5 en posición 4–7
-  LSL   r3, r3, 8                                       ; r3 contiene los bits 14–17 en posición 8–11
-  OR    r4, r2, r3                                      ; combina ambos en r4
-; set flag data ready
-  SET   r4, r4, MOTOR_GET_DATARDY_FLAG                  ; shared bit12-> flag motor_config get
-  SBBO  &r4, r20, SHD_MOTOR_GET_DATA, 4                 ; Cargamos valores enable-dir de todos los motores bit4-bit7 y el flag complete
-  QBA   level_motor_get_mode2                           ;
-
-MOTOR_GET_MODE2:
-  LBBO  &r0, r20, SHD_MOTOR_GET_FLAGS, 4                ;
-  QBBC  level_motor_set, r0, MOTOR_GET_MODE2_FLAG	;
-; clear IRQ_GPIO_IRQSTATUS_1
-  LBBO  &r0, r22, 0, 4                                  ;
-  SET   r0, r0, GPIO2_11_MOTOR_A_TRIGGER                ;
-  SET   r0, r0, GPIO2_9_MOTOR_B_TRIGGER                 ;
+  SET   r0, r0, GPIO2_7_MOTOR_TRIGGER                   ;
   SBBO  &r0, r22, 0, 4                                  ;
 ; read MOTOR
   LDI32 r0, (GPIO2|GPIO_DATAOUT)                        ;
