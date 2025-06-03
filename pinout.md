@@ -27,14 +27,14 @@ Este documento detalla la asignación de pines para los distintos componentes de
 ---
 
 ## 🔍 Canales Analógicos
-| Canal       | Pin   |
-|-------------|--------|
-| VREF (1.8V) | P9_32 |
-| ADC_GND     | P9_34 | Se conecta a P8_1 (Comun GND)
-| AIN0        | P9_39 |
-| AIN2        | P9_37 |
-| AIN3        | P9_38 |
-| AIN4        | P9_33 |
+| Canal       | Pin   | Descripción                   |
+|-------------|--------|------------------------------|
+| VREF (1.8V) | P9_32 |                               |
+| ADC_GND     | P9_34 | Se conecta a P8_1 (Comun GND) |
+| AIN0        | P9_39 |                               |
+| AIN2        | P9_37 |                               |
+| AIN3        | P9_38 |                               |
+| AIN4        | P9_33 |                               |
 
 ---
 
