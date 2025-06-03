@@ -38,12 +38,12 @@
   .asg 0x30, SHD_MOTOR_STEP_PERIOD_C                    ; shared[12] motor_C STEP_PERIOD_C
   .asg 0x34, SHD_MOTOR_STEP_PERIOD_D                    ; shared[13] motor_D STEP_PERIOD_D
 
-  .asg 0x0F, SHARED_MEM_SIZE                            ; 15 en decimal
+  .asg 0xFF, SHARED_MEM_SIZE                            ; 15 en decimal
   .asg 0x04, OFFSET_MEM                                 ;
 
 ; gpio bank
-  .asg 0x44e07000, GPIO0                                ; GPIO Bank 0, See the AM335x TRM
-  .asg 0x481ac000, GPIO2                                ; GPIO Bank 2
+  .asg 0x4804C000, GPIO1                                ; GPIO Bank 1, See the AM335x TRM
+  .asg 0x481AC000, GPIO2                                ; GPIO Bank 2
 
   .asg 0x190, GPIO_CLRDATAOUT                           ; for clearing the GPIO registers
   .asg 0x194, GPIO_SETDATAOUT                           ; for setting the GPIO registers
@@ -69,11 +69,11 @@
   .asg 7, GPIO2_7_MOTOR_TRIGGER                         ; P8_46
 
 ; gpio_write
-  .asg (1<<8),  GPIO_OUT_BASE                           ;
-  .asg 8,  GPIO0_8_OUTPUT_0                             ; P8_35
-  .asg 9,  GPIO0_9_OUTPUT_1                             ; P8_33
-  .asg 10, GPIO0_10_OUTPUT_2                            ; P8_31
-  .asg 11, GPIO0_11_OUTPUT_3                            ; P8_32
+  .asg (1<<12),  GPIO_OUT_BASE                          ;
+  .asg 12, GPIO1_12_OUTPUT_0                            ; P8_12
+  .asg 13, GPIO1_13_OUTPUT_1                            ; P8_11
+  .asg 14, GPIO1_14_OUTPUT_2                            ; P8_16
+  .asg 15, GPIO1_15_OUTPUT_3                            ; P8_15
 
 ; motor
   ; Enable-Direction
@@ -81,9 +81,9 @@
   .asg (1<<14), GPIO_MOTOR_DIR_BASE                     ;
   ; Pins enable
   .asg 2, OUTPUT_MA_E                                   ; GPIO2[2] P8_07
-  .asg 3, OUTPUT_MB_E                                   ; GPIO2[2] P8_08
-  .asg 4, OUTPUT_MC_E                                   ; GPIO2[2] P8_10
-  .asg 5, OUTPUT_MD_E                                   ; GPIO2[2] P8_09
+  .asg 3, OUTPUT_MB_E                                   ; GPIO2[3] P8_08
+  .asg 4, OUTPUT_MC_E                                   ; GPIO2[4] P8_10
+  .asg 5, OUTPUT_MD_E                                   ; GPIO2[5] P8_09
   ; Pins direction
   .asg 14, OUTPUT_MA_D                                  ; GPIO2[14] P8_37
   .asg 15, OUTPUT_MB_D                                  ; GPIO2[15] P8_38
@@ -140,29 +140,34 @@ SETUP:
   LDI32 r1, 0                                           ; offset_mem
   LDI32 r2, 0                                           ; Count mem
 mem_init:
-  SBBO  &r0, r20, r1, 4                                 ;
-  ADD   r1, r1, 4                                       ; cada posicion de memoria ocupa 4 bytes
-  ADD   r2, r2, 1                                       ; count++
-  QBGT  mem_init, r2, SHARED_MEM_SIZE                   ; qbgt myLabel, r3, r4. Branch if r4 > r3
-  LDI32 r0, 1000;
-  MOV r11, r0;
-  MOV r13, r0;
-  MOV r15, r0;
-  MOV r17, r0;
+  SBBO &r0, r20, r1, 4                                  ;
+  ADD  r1, r1, 4                                        ; cada posicion de memoria ocupa 4 bytes
+  ADD  r2, r2, 1                                        ; count++
+  QBGT mem_init, r2, SHARED_MEM_SIZE                    ; qbgt myLabel, r3, r4. Branch if r4 > r3
+; register init
+  LDI32 r0, 200000                                      ; initial step time 100 ms
+  MOV r10, r0                                           ; M1 step time init
+  MOV r12, r0                                           ; M2 step time init
+  MOV r14, r0                                           ; M3 step time init
+  MOV r16, r0                                           ; M4 step time init
+  MOV r11, r0                                           ; M1 step time count init
+  MOV r13, r0                                           ; M2 step time count init
+  MOV r15, r0                                           ; M3 step time count init
+  MOV r17, r0                                           ; M4 step time count init
 
 gpio_config:
 ;GPIO0
-  LDI32 r0, (GPIO0|GPIO_CTRL)                           ; load GPIO0 control register address
+  LDI32 r0, (GPIO1|GPIO_CTRL)                           ; load GPIO1 control register address
   LDI32 r1, GPIO_CTRL_ENABLE                            ; load control enable value
-  SBBO  &r1, r0, 0, 4                                   ; write enable value to GPIO0 control register
+  SBBO  &r1, r0, 0, 4                                   ; write enable value to GPIO1 control register
 
-  LDI32 r0, (GPIO0|GPIO_OE)                             ; load GPIO0 output enable register address
+  LDI32 r0, (GPIO1|GPIO_OE)                             ; load GPIO0 output enable register address
   LBBO  &r1, r0, 0, 4                                   ; Load the values at r0 into r1.
-  CLR   r1, r1, GPIO0_8_OUTPUT_0                        ;
-  CLR   r1, r1, GPIO0_9_OUTPUT_1                        ;
-  CLR   r1, r1, GPIO0_10_OUTPUT_2                       ;
-  CLR   r1, r1, GPIO0_11_OUTPUT_3                       ;
-  SBBO  &r1, r0, 0, 4                                   ; write input configuration to GPIO0
+  CLR   r1, r1, GPIO1_12_OUTPUT_0                       ;
+  CLR   r1, r1, GPIO1_13_OUTPUT_1                       ;
+  CLR   r1, r1, GPIO1_14_OUTPUT_2                       ;
+  CLR   r1, r1, GPIO1_15_OUTPUT_3                       ;
+  SBBO  &r1, r0, 0, 4                                   ; write input configuration to GPIO1
 
 ;GPIO2
   LDI32 r0, (GPIO2|GPIO_CTRL)                           ; load GPIO0 control register address
@@ -317,15 +322,15 @@ GPIO_OUTPUT_GET_MODE0:
   CLR   r0, r0, GPIO_OUTPUT_GET_MODE0_FLAG              ;
   SBBO  &r0, r20, SHD_GPIO_OUTPUT_GET_FLAGS, 4          ;
 ; read GPIO_DATAOUT
-  LDI32 r0, (GPIO0|GPIO_DATAOUT)                        ;
+  LDI32 r0, (GPIO1|GPIO_DATAOUT)                        ;
   LBBO  &r1, r0, 0, 4                                   ;
 ; write GPIO DATAOUT INTO SHARED
-  LDI32 r0, 0xF00                                       ; mascara desde bit8 a bit11 porque en el registro GPIO_DATAOUT estan en esa posicion
+  LDI32 r0, 0xF000                                      ; mascara desde bit12 a bit15 porque en GPIO_DATAOUT estan en esa posicion
   AND   r1, r1, r0                                      ;
-  LSR   r1, r1, 4                                       ; se desplazan 4 posiciones para que los datos queden a partir del bit4
+  LSR   r1, r1, 8                                       ; se desplazan 8 posiciones para que los datos queden a partir del bit4
 ; set flag data ready
   SET   r1, r1, GPIO_OUTPUT_GET_DATARDY_FLAG            ; bit12-> flag gpio_output get complete
-  SBBO  &r1, r20, SHD_GPIO_OUTPUT_GET_DATA, 4           ; Cargamos valores de gpio_out en los bits 4-7 y el flag data ready en bit12
+  SBBO  &r1, r20, SHD_GPIO_OUTPUT_GET_DATA, 4           ; Cargamos gpio_out en los bits 4-7 y el flag data ready en bit12
   QBA   level_gpio_output_set                           ;
 
 GPIO_OUTPUT_SET_MODE0:
@@ -358,11 +363,11 @@ gpio_write_out_funct:
   QBBS  write_out_set, r5, 0                            ; jamp si bit0 de r5 es set
   QBBC  write_out_clr, r5, 0                            ; jamp si bit0 de r5 es clr
 write_out_set:
-  LDI32 r6, (GPIO0|GPIO_SETDATAOUT)                     ; load addr for GPIO Set data r6
+  LDI32 r6, (GPIO1|GPIO_SETDATAOUT)                     ; load addr for GPIO Set data r6
   SBBO  &r4, r6, 0, 4                                   ; write r4 to the r6 address valu
   QBA   GPIO_OUTPUT_SET_MODE0_A                         ;
 write_out_clr:
-  LDI32 r6, (GPIO0|GPIO_CLRDATAOUT)                     ; load addr for GPIO Clear data.
+  LDI32 r6, (GPIO1|GPIO_CLRDATAOUT)                     ; load addr for GPIO Clear data.
   SBBO  &r4, r6, 0, 4                                   ; write r4 to the r6 address
   QBA   GPIO_OUTPUT_SET_MODE0_A                         ;
 
@@ -419,7 +424,7 @@ MOTOR_SET_MODE0:
   LBBO  &r10, r20, SHD_MOTOR_STEP_PERIOD_A, 4           ; read shared STEP_PERIOD_A
   LBBO  &r12, r20, SHD_MOTOR_STEP_PERIOD_B, 4           ; read shared STEP_PERIOD_B
   LBBO  &r14, r20, SHD_MOTOR_STEP_PERIOD_C, 4           ; read shared STEP_PERIOD_C
-  LBBO  &r16, r20, SHD_MOTOR_STEP_PERIOD_D, 4           ; read shared STEP_PERIOD_C
+  LBBO  &r16, r20, SHD_MOTOR_STEP_PERIOD_D, 4           ; read shared STEP_PERIOD_D
 ; load data
   LBBO  &r0, r20, SHD_MOTOR_SET_DATA, 4                 ;
   AND   r1, r0, 0x0F                                    ; extrae los priomeros 4 bits (0-3) en r1. Flag de mascaras

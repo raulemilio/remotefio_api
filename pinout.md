@@ -50,11 +50,10 @@ Este documento detalla la asignación de pines para los distintos componentes de
 ## 📤 GPIO Output
 | Señal      | Pin    |
 |------------|--------|
-| output_0   | P8_35  |
-| output_1   | P8_33  |
-| output_2   | P8_31  |
-| output_3   | P8_32  |
-
+| output_0   | P8_12  |
+| output_1   | P8_11  |
+| output_2   | P8_16  |
+| output_3   | P8_15  |
 ---
 
 ## 🚗 Control de Motores
@@ -83,7 +82,7 @@ Este documento detalla la asignación de pines para los distintos componentes de
 ## 🚨 Trigger y Detectores
 | Función                       | Pin   |
 |------------------------------|--------|
-| ADC input trigger            | P9_14  |
+| ADC input trigger            | P8_13  |
 | Gpio input trigger           | P8_45  |
 | Motor input trigger          | P8_46  |
 
@@ -181,7 +180,7 @@ Este documento detalla la asignación de pines para los distintos componentes de
 
 ### Conexiones de Trigger
 
-**FICHA TRIGGER DB-9**
+**FICHA TRIGGER GX16-5**
 | Pin | Descripción                              |
 | --- | ---------------------------------------- |
 | 1   | Analog channels input trigger           |
@@ -189,8 +188,3 @@ Este documento detalla la asignación de pines para los distintos componentes de
 | 3   | Motor input trigger                     |
 | 4   | NC                                      |
 | 5   | GND                                     |
-| 6   | NC                                      |
-| 7   | NC                                      |
-| 8   | NC                                      |
-| 9   | NC                                      |
-

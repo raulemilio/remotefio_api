@@ -30,7 +30,7 @@
   .asg 0x24000, PRU1_CTRL                               ; page 19
 
 ; gpio bank
-  .asg 0x4804C000, GPIO1                                ; GPIO Bank 1
+  .asg 0x44e07000, GPIO0                                ; GPIO Bank 0
 
   .asg 0x190, GPIO_CLRDATAOUT                           ; for clearing the GPIO registers
   .asg 0x194, GPIO_SETDATAOUT                           ; for setting the GPIO registers
@@ -43,7 +43,7 @@
   .asg 0x130, GPIO_CTRL                                 ; enable GPIO port
   .asg 0x00,  GPIO_CTRL_ENABLE                          ;
   .asg 0x134, GPIO_OE                                   ;
-  .asg 18,    ADC_INPUT_TRIGGER 			; set gpio p9_14 GPIO1[18] bit18
+  .asg 23,    ADC_INPUT_TRIGGER 			; set gpio p8_13 GPIO0[23] bit23
 
 
 ; registros del modulo clk
@@ -149,23 +149,23 @@ start:
 ;  CLR   r30, pruout_fs_sample_test                     ; debug-> pru0_pru_r30_5 as an output P9_27
 
 SETUP:
-;GPIO1
-  LDI32 r0, (GPIO1|GPIO_CTRL)                          ; load GPIO1 control register address
+;GPIO0
+  LDI32 r0, (GPIO0|GPIO_CTRL)                          ; load GPIO0 control register address
   LDI32 r1, GPIO_CTRL_ENABLE                           ; load control enable value
-  SBBO  &r1, r0, 0, 4                                  ; write enable value to GPIO2 control register
+  SBBO  &r1, r0, 0, 4                                  ; write enable value to GPIO0 control register
 
-  LDI32 r0, (GPIO1|GPIO_OE)                            ; load GPIO1 output enable register address
-  SET   r1, r1, ADC_INPUT_TRIGGER                      ; cargamos la entrada P_14 GPIO1[18] como entrada
-  SBBO  &r1, r0, 0, 4                                  ; write output configuration to GPIO1
+  LDI32 r0, (GPIO0|GPIO_OE)                            ; load GPIO1 output enable register address
+  SET   r1, r1, ADC_INPUT_TRIGGER                      ; cargamos la entrada P8_13 GPI01[23] como entrada
+  SBBO  &r1, r0, 0, 4                                  ; write output configuration to GPIO0
 
 ; rising detect
-  LDI32 r0, (GPIO1|GPIO_RISINGDETECT)                  ; load addr for GPIO1
+  LDI32 r0, (GPIO0|GPIO_RISINGDETECT)                  ; load addr for GPIO0
   LBBO  &r1, r0, 0, 4                                  ; Load the values at r0 into r1.
   SET   r1, r1, ADC_INPUT_TRIGGER                      ;
   SBBO  &r1, r0, 0, 4                                  ; Load the values at r0 into r1.
 
 ; enable irq set_1
-  LDI32 r0, (GPIO1|GPIO_IRQSTATUS_SET_1)               ; load addr for GPIO1
+  LDI32 r0, (GPIO0|GPIO_IRQSTATUS_SET_1)               ; load addr for GPIO0
   LBBO  &r1, r0, 0, 4                                  ; Load the values at r0 into r1.
   SET   r1, r1, ADC_INPUT_TRIGGER                      ;
   SBBO  &r1, r0, 0, 4                                  ; Load the values at r0 into r1.
@@ -261,9 +261,9 @@ SETUP:
   LDI32 r1, ADC_TSC_IRQENABLE_CLR_ALL_MASK             ; ojo para realiazar un clear hay que hacer un set del bit
   SBBO  &r1, r0, 0, 4                                  ; TRM pag. 1849
 
-; GPIO1
+; GPIO0
 ; clear IRQ_GPIO_IRQSTATUS_1
-  LDI32 r0, (GPIO1|GPIO_IRQSTATUS_1)                   ;
+  LDI32 r0, (GPIO0|GPIO_IRQSTATUS_1)                   ;
   LBBO  &r1, r0, 0, 4                                  ;
   SET   r1, r1, ADC_INPUT_TRIGGER                      ;
   SBBO  &r1, r0, 0, 4                                  ;
@@ -291,7 +291,7 @@ SETUP:
 ;  SBBO  &r0, r10, SHD_FLAGS_INDEX, 4                   ;
 ;-------------------------------------------------------
 
-  LDI32 r16, (GPIO1|GPIO_IRQSTATUS_1)                  ;
+  LDI32 r16, (GPIO0|GPIO_IRQSTATUS_1)                  ;
 
 MAIN_LOOP:
   LBBO  &r15, r10, SHD_FLAGS_INDEX, 4                  ;

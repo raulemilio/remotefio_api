@@ -154,7 +154,6 @@ Este documento describe los comandos MQTT utilizados por el sistema BeagleBone B
 **Modos:**
 - `0`: On demand
 - `1`: Trigger GPIO motor
-- `2`: Trigger motor inputs
 
 **Tópico:**  
 `BBRemote/cmds/motor/motor_get`

@@ -10,11 +10,7 @@ config-pin P8_28 gpio_pd # input 2
 config-pin P8_30 gpio_pd # input 3
 
 # analog trigger
-config-pin P9_14 gpio_pd
-#MA input trigger
-config-pin P8_42 gpio_pd
-#MB input trigger
-config-pin P8_43 gpio_pd
+config-pin P8_13 gpio_pd
 # gpio input trigger
 config-pin P8_45 gpio_pd
 #motor trigger
